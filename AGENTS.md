@@ -7,7 +7,7 @@ App pessoal (web + Android, API compartilhada), multi-usuário, 3 módulos inter
 - Backend: Supabase (Postgres + Auth + Storage)
 - Multi-usuário desde o início (não é single-user)
 
-## Status: Fase 0 (protótipos visuais) — COMPLETA
+## Status: Fase 1 (fundação) — COMPLETA (ver CLAUDE.md para detalhes)
 - [x] `prototypes/solar-system.html` — Desenvolver/Criar
 - [x] `prototypes/neural-notes.html` — Anotar
 - [x] `prototypes/rotina.html` — Rotina (3 sub-abas)
@@ -49,8 +49,8 @@ Rodar protótipos: `preview_start` com `name: "prototypes"` (server já configur
 - Web caprichado; Android pode ser mais simples (limitações da plataforma)
 
 ## Roadmap
-0. Protótipos visuais *(atual)*
-1. Fundação — monorepo, schema Supabase, tipos compartilhados
+0. Protótipos visuais — completa
+1. Fundação — monorepo, schema Supabase, tipos compartilhados *(atual)*
 2. Web — casca de navegação + Rotina completa
 3. Web — Anotar (portar protótipo para componentes)
 4. Web — Desenvolver/Criar (portar protótipo, upload real de fotos/recursos, integração tarefas→Rotina)

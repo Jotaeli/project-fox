@@ -7,10 +7,14 @@ App pessoal (web + Android, API compartilhada), multi-usuário, 3 módulos inter
 - Backend: Supabase (Postgres + Auth + Storage)
 - Multi-usuário desde o início (não é single-user)
 
-## Status: Fase 0 (protótipos visuais) — COMPLETA
+## Status: Fase 1 (fundação) — COMPLETA
 - [x] `prototypes/solar-system.html` — Desenvolver/Criar
 - [x] `prototypes/neural-notes.html` — Anotar
 - [x] `prototypes/rotina.html` — Rotina (3 sub-abas)
+- [x] Monorepo pnpm + Turborepo (`apps/api`, `apps/web`, `apps/mobile`, `packages/types`)
+- [x] `packages/types` — tipos compartilhados dos 3 módulos
+- [x] `supabase/migrations/0001_init.sql` — schema Postgres multi-usuário com RLS
+- [ ] Conectar a um projeto Supabase real (URL + chaves em `apps/api/.env`)
 
 ### Specs da Rotina (definidas pelo usuário, prototipadas)
 - **Finanças**: cofrinho porquinho ilustrado (arte fornecida pelo usuário, `prototypes/cofrinho.svg`, viewBox 1254×1254) com "janela de vidro" na barriga mostrando moedas douradas = % da renda restante; hover mostra saldo; renda mensal registrável (fonte + valor); modalidades de gasto (Wishlist sempre fixa + livres: comida, contas, rolê…); cada gasto tem check "foi pago" → moedas somem com stagger; abaixo do porquinho, gráfico anelar (donut) mostra % de cada modalidade sobre o total planejado, com legenda colorida e total no centro
@@ -49,8 +53,8 @@ Rodar protótipos: `preview_start` com `name: "prototypes"` (server já configur
 - Web caprichado; Android pode ser mais simples (limitações da plataforma)
 
 ## Roadmap
-0. Protótipos visuais *(atual)*
-1. Fundação — monorepo, schema Supabase, tipos compartilhados
+0. Protótipos visuais — completa
+1. Fundação — monorepo, schema Supabase, tipos compartilhados *(atual)*
 2. Web — casca de navegação + Rotina completa
 3. Web — Anotar (portar protótipo para componentes)
 4. Web — Desenvolver/Criar (portar protótipo, upload real de fotos/recursos, integração tarefas→Rotina)
