@@ -7,7 +7,7 @@ App pessoal (web + Android, API compartilhada), multi-usuário, 3 módulos inter
 - Backend: Supabase (Postgres + Auth + Storage)
 - Multi-usuário desde o início (não é single-user)
 
-## Status: Fase 1 (fundação) — COMPLETA
+## Status: Fase 3 (Anotar) — COMPLETA
 - [x] `prototypes/solar-system.html` — Desenvolver/Criar
 - [x] `prototypes/neural-notes.html` — Anotar
 - [x] `prototypes/rotina.html` — Rotina (3 sub-abas)
@@ -15,6 +15,9 @@ App pessoal (web + Android, API compartilhada), multi-usuário, 3 módulos inter
 - [x] `packages/types` — tipos compartilhados dos 3 módulos
 - [x] `supabase/migrations/0001_init.sql` — schema Postgres multi-usuário com RLS
 - [x] Conectar a um projeto Supabase real (URL + chaves em `apps/api/.env`, migration aplicada)
+- [x] Web — casca de navegação (`AppShell`, subtabs Rotina/Anotar/Desenvolver·Criar)
+- [x] Web — Rotina completa (Finanças, Wishlist, Tarefas) com Supabase real
+- [x] Web — Anotar: grafo canvas (força dirigida, pan/zoom, drawer de nota, conexões manuais, badges) persistido via `notas`/`conexoes_notas`
 
 ### Specs da Rotina (definidas pelo usuário, prototipadas)
 - **Finanças**: cofrinho porquinho ilustrado (arte fornecida pelo usuário, `prototypes/cofrinho.svg`, viewBox 1254×1254) com "janela de vidro" na barriga mostrando moedas douradas = % da renda restante; hover mostra saldo; renda mensal registrável (fonte + valor); modalidades de gasto (Wishlist sempre fixa + livres: comida, contas, rolê…); cada gasto tem check "foi pago" → moedas somem com stagger; abaixo do porquinho, gráfico anelar (donut) mostra % de cada modalidade sobre o total planejado, com legenda colorida e total no centro
@@ -54,10 +57,10 @@ Rodar protótipos: `preview_start` com `name: "prototypes"` (server já configur
 
 ## Roadmap
 0. Protótipos visuais — completa
-1. Fundação — monorepo, schema Supabase, tipos compartilhados *(atual)*
-2. Web — casca de navegação + Rotina completa
-3. Web — Anotar (portar protótipo para componentes)
-4. Web — Desenvolver/Criar (portar protótipo, upload real de fotos/recursos, integração tarefas→Rotina)
+1. Fundação — monorepo, schema Supabase, tipos compartilhados — completa
+2. Web — casca de navegação + Rotina completa — completa
+3. Web — Anotar (portar protótipo para componentes) — completa
+4. Web — Desenvolver/Criar (portar protótipo, upload real de fotos/recursos, integração tarefas→Rotina) *(atual)*
 5. Android (Expo) — versão enxuta
 6. Polimento e deploy
 
