@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Fox — Anotar (protótipo)</title>
+<style>
+  :root{
+    --bg0:#04081a; --bg1:#0a1230; --panel:rgba(13,22,48,.92); --panel-solid:#0d1630;
+    --line:rgba(148,180,255,.16); --text:#dce6ff; --muted:#8fa3c8; --accent:#6ea8ff;
+    --green:#4ade80; --blue:#60a5fa; --pink:#f472b6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{height:100%; overflow:hidden}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+    background:radial-gradient(130% 100% at 50% 0%, var(--bg1) 0%, var(--bg0) 60%, #020510 100%);
+    color:var(--text); user-select:none;
+  }
+  canvas#net{position:fixed; inset:0; display:block}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:fixed; top:0; left:0; right:0; z-index:20;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 22px; pointer-events:none;
+  }
+  .topbar h1{font-size:15px; font-weight:600; letter-spacing:.4px}
+  .topbar h1 span{color:var(--muted); font-weight:400}
+  .top-actions{display:flex; gap:10px}
+  .btn{
+    pointer-events:auto; cursor:pointer; border:1px solid var(--line); color:var(--text);
+    background:rgba(20,32,66,.75); backdrop-filter:blur(8px);
+    padding:9px 16px; border-radius:12px; font-size:13.5px; font-weight:500;
+    transition:background .15s, border-color .15s, transform .1s; display:inline-flex; align-items:center; gap:7px;
+  }
+  .btn:hover{background:rgba(38,56,105,.85); border-color:rgba(148,180,255,.35)}
+  .btn:active{transform:scale(.97)}
+  .btn.primary{background:linear-gradient(135deg,#3667c4,#274a95); border-color:rgba(148,180,255,.4)}
+  .btn.primary:hover{background:linear-gradient(135deg,#3f74d8,#2d55aa)}
+  .btn svg{width:15px; height:15px}
+
+  #hint{
+    position:fixed; bottom:16px; left:50%; transform:translateX(-50%); z-index:15;
+    font-size:12.5px; color:var(--muted); background:rgba(10,17,38,.6); backdrop-filter:blur(6px);
+    padding:6px 14px; border-radius:99px; border:1px solid rgba(148,180,255,.08);
+    pointer-events:none; transition:opacity .3s, color .2s, border-color .2s;
+  }
+  #hint.connect{color:var(--accent); border-color:rgba(110,168,255,.4)}
+
+  /* ---------- legend ---------- */
+  #legend{
+    position:fixed; left:22px; bottom:16px; z-index:15;
+    display:flex; flex-direction:column; gap:7px;
+    background:rgba(10,17,38,.5); backdrop-filter:blur(6px);
+    border:1px solid var(--line); border-radius:13px; padding:12px 14px;
+  }
+  #legend .lg-row{display:flex; align-items:center; gap:9px; font-size:11.5px; color:var(--muted)}
+  #legend .lg-dot{width:11px; height:11px; border-radius:50%; flex:none}
+  #stats{position:fixed; left:22px; top:56px; z-index:15; font-size:11.5px; color:var(--muted)}
+
+  /* ---------- tooltip ---------- */
+  #tooltip{
+    position:fixed; z-index:30; pointer-events:none; display:none;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:8px 12px; font-size:12px; line-height:1.5; backdrop-filter:blur(8px);
+    box-shadow:0 6px 24px rgba(0,0,0,.4); max-width:240px;
+  }
+  #tooltip b{font-size:12.5px}
+
+  /* ---------- modal ---------- */
+  .modal-wrap{
+    position:fixed; inset:0; z-index:40; display:none; align-items:center; justify-content:center;
+    background:rgba(3,6,16,.55); backdrop-filter:blur(4px);
+  }
+  .modal-wrap.open{display:flex}
+  .modal{
+    width:410px; max-width:calc(100vw - 32px); max-height:calc(100vh - 60px); overflow:auto;
+    background:var(--panel-solid); border:1px solid var(--line); border-radius:20px;
+    padding:24px 26px; box-shadow:0 20px 70px rgba(0,0,0,.55);
+  }
+  .modal h2{font-size:17px; font-weight:600; margin-bottom:18px}
+  .field{margin-bottom:18px}
+  .field > label{display:block; font-size:12px; color:var(--muted); margin-bottom:8px; letter-spacing:.4px; text-transform:uppercase}
+  input[type=text], textarea{
+    width:100%; background:rgba(8,14,32,.8); border:1px solid var(--line); border-radius:10px;
+    color:var(--text); padding:10px 12px; font-size:14px; font-family:inherit; outline:none;
+  }
+  input[type=text]:focus, textarea:focus{border-color:rgba(110,168,255,.55)}
+  textarea{resize:vertical; min-height:70px; line-height:1.5}
+
+  .badge-toggles{display:flex; gap:9px; flex-wrap:wrap}
+  .badge-tog{
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:13px;
+    border:1px solid var(--line); border-radius:99px; padding:8px 14px; background:rgba(8,14,32,.5);
+    transition:border-color .15s, background .15s;
+  }
+  .badge-tog .bt-dot{width:10px; height:10px; border-radius:50%; transition:box-shadow .15s}
+  .badge-tog.sel{background:rgba(20,32,66,.7)}
+  .badge-tog[data-b=wishlist].sel{border-color:var(--green)}
+  .badge-tog[data-b=wishlist].sel .bt-dot{box-shadow:0 0 8px var(--green)}
+  .badge-tog[data-b=task].sel{border-color:var(--blue)}
+  .badge-tog[data-b=task].sel .bt-dot{box-shadow:0 0 8px var(--blue)}
+  .badge-tog[data-b=create].sel{border-color:var(--pink)}
+  .badge-tog[data-b=create].sel .bt-dot{box-shadow:0 0 8px var(--pink)}
+
+  .modal .actions{display:flex; justify-content:flex-end; gap:10px; margin-top:6px}
+
+  /* ---------- drawer ---------- */
+  #drawer{
+    position:fixed; top:0; right:0; bottom:0; width:370px; max-width:92vw; z-index:35;
+    background:var(--panel); border-left:1px solid var(--line); backdrop-filter:blur(14px);
+    transform:translateX(105%); transition:transform .28s cubic-bezier(.3,.8,.3,1);
+    display:flex; flex-direction:column;
+  }
+  #drawer.open{transform:translateX(0)}
+  .dr-head{display:flex; align-items:flex-start; gap:12px; padding:18px 20px 14px; border-bottom:1px solid var(--line)}
+  .dr-node{width:14px; height:14px; border-radius:50%; margin-top:4px; flex:none}
+  .dr-title-input{
+    flex:1; background:none; border:none; color:var(--text); font-size:16px; font-weight:600;
+    outline:none; font-family:inherit; padding:2px 0;
+  }
+  .dr-close{cursor:pointer; border:none; background:none; color:var(--muted); font-size:0; padding:4px 8px; border-radius:8px}
+  .dr-close svg{width:17px; height:17px}
+  .dr-close:hover{color:var(--text); background:rgba(148,180,255,.1)}
+  .dr-body{flex:1; overflow-y:auto; padding:16px 20px}
+  .dr-sec-label{font-size:11px; color:var(--muted); letter-spacing:.4px; text-transform:uppercase; margin:4px 0 10px}
+  .dr-sec{margin-bottom:22px}
+  .dr-body textarea{min-height:120px}
+
+  .conn-item{
+    display:flex; align-items:center; gap:10px; padding:9px 11px; border:1px solid var(--line);
+    border-radius:11px; background:rgba(8,14,32,.5); margin-bottom:8px; cursor:pointer; transition:border-color .12s;
+  }
+  .conn-item:hover{border-color:rgba(148,180,255,.35)}
+  .conn-dot{width:9px; height:9px; border-radius:50%; flex:none}
+  .conn-name{flex:1; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .conn-x{cursor:pointer; color:var(--muted); background:none; border:none; padding:2px; display:flex}
+  .conn-x svg{width:13px; height:13px}
+  .conn-x:hover{color:#ff8080}
+  .conn-empty{font-size:12.5px; color:var(--muted); line-height:1.5; margin-bottom:10px}
+
+  .dr-foot{padding:14px 20px 18px; border-top:1px solid var(--line); display:flex; gap:10px}
+  .dr-foot .btn{flex:1; justify-content:center}
+  .btn.danger{color:#ff8f8f; border-color:rgba(255,120,120,.25)}
+  .btn.danger:hover{background:rgba(120,30,30,.35); border-color:rgba(255,120,120,.5)}
+
+  /* confirm modal reuse */
+  .modal .warn-btn{background:linear-gradient(135deg,#c0392b,#8e2a20); border-color:rgba(255,140,120,.4)}
+</style>
+</head>
+<body>
+
+<canvas id="net"></canvas>
+
+<header class="topbar">
+  <h1>Project Fox <span>· Anotar</span></h1>
+  <div class="top-actions">
+    <button class="btn" id="fitBtn"><span id="fitIcon"></span> Centralizar</button>
+    <button class="btn primary" id="addNoteBtn"><span id="addIcon"></span> Nova nota</button>
+  </div>
+</header>
+
+<div id="stats"></div>
+<div id="hint">Clique numa nota para abrir · arraste para reposicionar · role para dar zoom</div>
+
+<div id="legend">
+  <div class="lg-row"><span class="lg-dot" style="background:var(--green); box-shadow:0 0 8px var(--green)"></span> Wishlist</div>
+  <div class="lg-row"><span class="lg-dot" style="background:var(--blue); box-shadow:0 0 8px var(--blue)"></span> Tarefas</div>
+  <div class="lg-row"><span class="lg-dot" style="background:var(--pink); box-shadow:0 0 8px var(--pink)"></span> Criar</div>
+  <div class="lg-row"><span class="lg-dot" style="background:#dce6ff; box-shadow:0 0 8px #dce6ff"></span> Independente</div>
+</div>
+
+<div id="tooltip"></div>
+
+<!-- ============ modal: nova nota ============ -->
+<div class="modal-wrap" id="modalWrap">
+  <div class="modal">
+    <h2>Nova nota</h2>
+    <div class="field">
+      <label>Título</label>
+      <input type="text" id="nTitle" maxlength="40" placeholder="Ex.: Ideia para um canal">
+    </div>
+    <div class="field">
+      <label>Conteúdo</label>
+      <textarea id="nBody" maxlength="400" placeholder="Escreva livremente…"></textarea>
+    </div>
+    <div class="field">
+      <label>Badges — com o que essa nota tem a ver?</label>
+      <div class="badge-toggles" id="nBadges">
+        <div class="badge-tog" data-b="wishlist"><span class="bt-dot" style="background:var(--green)"></span> Wishlist</div>
+        <div class="badge-tog" data-b="task"><span class="bt-dot" style="background:var(--blue)"></span> Tarefas</div>
+        <div class="badge-tog" data-b="create"><span class="bt-dot" style="background:var(--pink)"></span> Criar</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="noteCancel">Cancelar</button>
+      <button class="btn primary" id="noteCreate">Criar nota</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modal: confirmar exclusão ============ -->
+<div class="modal-wrap" id="confirmWrap">
+  <div class="modal" style="width:340px">
+    <h2 style="margin-bottom:10px">Excluir nota?</h2>
+    <p style="font-size:13.5px; color:var(--muted); line-height:1.55; margin-bottom:22px" id="confirmText"></p>
+    <div class="actions">
+      <button class="btn" id="confirmCancel">Cancelar</button>
+      <button class="btn warn-btn" id="confirmOk">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ drawer: nota ============ -->
+<aside id="drawer">
+  <div class="dr-head">
+    <span class="dr-node" id="drNode"></span>
+    <input class="dr-title-input" id="drTitle" maxlength="40" placeholder="Sem título">
+    <button class="dr-close" id="drawerClose"></button>
+  </div>
+  <div class="dr-body">
+    <div class="dr-sec">
+      <div class="dr-sec-label">Conteúdo</div>
+      <textarea id="drBody" maxlength="400" placeholder="Escreva livremente…"></textarea>
+    </div>
+    <div class="dr-sec">
+      <div class="dr-sec-label">Badges</div>
+      <div class="badge-toggles" id="drBadges">
+        <div class="badge-tog" data-b="wishlist"><span class="bt-dot" style="background:var(--green)"></span> Wishlist</div>
+        <div class="badge-tog" data-b="task"><span class="bt-dot" style="background:var(--blue)"></span> Tarefas</div>
+        <div class="badge-tog" data-b="create"><span class="bt-dot" style="background:var(--pink)"></span> Criar</div>
+      </div>
+    </div>
+    <div class="dr-sec">
+      <div class="dr-sec-label">Conexões</div>
+      <div id="drConns"></div>
+      <button class="btn" id="connectBtn" style="width:100%; justify-content:center; margin-top:4px"><span id="connIcon"></span> Conectar a outra nota</button>
+    </div>
+  </div>
+  <div class="dr-foot">
+    <button class="btn danger" id="deleteNoteBtn"><span id="delIcon"></span> Excluir</button>
+  </div>
+</aside>
+
+<script>
+'use strict';
+const TAU = Math.PI * 2;
+const canvas = document.getElementById('net');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+function resize(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight;
+  canvas.width = W * DPR; canvas.height = H * DPR;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+}
+addEventListener('resize', resize); resize();
+
+/* ============================== ícones ============================== */
+const ICONS = {
+  plus:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  fit:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`,
+  link:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
+  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`
+};
+document.getElementById('addIcon').innerHTML = ICONS.plus;
+document.getElementById('fitIcon').innerHTML = ICONS.fit;
+document.getElementById('connIcon').innerHTML = ICONS.link;
+document.getElementById('delIcon').innerHTML = ICONS.trash;
+document.getElementById('drawerClose').innerHTML = ICONS.close;
+
+/* ============================== badges ============================== */
+const BADGES = {
+  wishlist: {label:'Wishlist', rgb:[74,222,128]},
+  task:     {label:'Tarefas',  rgb:[96,165,250]},
+  create:   {label:'Criar',    rgb:[244,114,182]}
+};
+const INDEP_RGB = [205, 220, 255];
+const BADGE_ORDER = ['wishlist', 'task', 'create'];
+
+function noteColors(n){
+  if (!n.badges.length) return [INDEP_RGB];
+  return n.badges.map(b => BADGES[b].rgb);
+}
+function dominantRGB(n){ return noteColors(n)[0]; }
+function rgba(rgb, a){ return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`; }
+
+/* ============================== dados ============================== */
+let notes = [], links = [];
+let uid = 1;
+function makeNote(o){
+  return Object.assign({
+    id: uid++, title: 'Nova nota', body: '', badges: [],
+    x: (Math.random() - .5) * 200, y: (Math.random() - .5) * 200,
+    vx: 0, vy: 0, pinned: false, born: performance.now()
+  }, o);
+}
+function linkKey(a, b){ return a < b ? a + '-' + b : b + '-' + a; }
+function areLinked(a, b){ return links.some(l => l.a === a && l.b === b || l.a === b && l.b === a); }
+function addLink(a, b){
+  if (a === b || areLinked(a, b)) return;
+  links.push({a, b});
+  firePulse(a, b);
+  updateStats();
+}
+function neighborsOf(id){
+  const s = new Set();
+  for (const l of links){ if (l.a === id) s.add(l.b); if (l.b === id) s.add(l.a); }
+  return s;
+}
+function degree(id){ let d = 0; for (const l of links) if (l.a === id || l.b === id) d++; return d; }
+function noteById(id){ return notes.find(n => n.id === id); }
+function nodeRadius(n){ return Math.min(17, 9 + degree(n.id) * 1.15); }
+
+/* --- grafo de exemplo (o app real começa vazio) --- */
+(function seed(){
+  const def = [
+    {t:'Canal de YouTube',      b:['create'],           body:'Documentar meus projetos pessoais em vídeo.'},
+    {t:'Roteiro do vídeo #1',   b:['create','task'],    body:'Apresentação do canal + tour pelo Project Fox.'},
+    {t:'Comprar microfone',     b:['wishlist'],         body:'Áudio decente pra gravar. Pesquisar até R$400.'},
+    {t:'Aprender Blender',      b:['create'],           body:'Vinhetas 3D e thumbnails mais chamativas.'},
+    {t:'Setup home office',     b:['wishlist','create'],body:'Ambiente que dê vontade de criar todo dia.'},
+    {t:'Treino de 5km',         b:['task'],             body:'Base de corrida pra meta da meia maratona.'},
+    {t:'Comprar tênis de corrida', b:['wishlist'],      body:'Amortecimento pra não machucar o joelho.'},
+    {t:'Meditação diária',      b:['task'],             body:'10 minutos de manhã, antes de tudo.'},
+    {t:'Dom Quixote',           b:[],                   body:'Clássico que sempre adiei. Ler em 1 mês.'},
+    {t:'Resenhas literárias',   b:['create'],           body:'Escrever o que achei de cada livro lido.'},
+    {t:'Livros para ler',       b:[],                   body:'Fila de leitura do ano.'},
+    {t:'Playlist foco',         b:[],                   body:'Sons pra entrar no flow trabalhando.'},
+    {t:'Viagem Japão 2027',     b:['wishlist'],         body:'Meta grande. Começar a juntar e planejar.'}
+  ];
+  const byTitle = {};
+  def.forEach((d, i) => {
+    const ang = i / def.length * TAU;
+    const n = makeNote({title:d.t, badges:d.b, body:d.body,
+      x: Math.cos(ang) * 230 + (Math.random()-.5)*40, y: Math.sin(ang) * 230 + (Math.random()-.5)*40});
+    notes.push(n); byTitle[d.t] = n.id;
+  });
+  const L = (a, b) => links.push({a: byTitle[a], b: byTitle[b]});
+  L('Canal de YouTube','Roteiro do vídeo #1');
+  L('Canal de YouTube','Aprender Blender');
+  L('Canal de YouTube','Comprar microfone');
+  L('Canal de YouTube','Setup home office');
+  L('Roteiro do vídeo #1','Setup home office');
+  L('Treino de 5km','Comprar tênis de corrida');
+  L('Treino de 5km','Meditação diária');
+  L('Dom Quixote','Livros para ler');
+  L('Resenhas literárias','Livros para ler');
+  L('Resenhas literárias','Canal de YouTube');
+  L('Dom Quixote','Resenhas literárias');
+  L('Playlist foco','Setup home office');
+  L('Meditação diária','Playlist foco');
+})();
+
+/* ============================== câmera ============================== */
+const cam = {x:0, y:0, s:1};
+function worldToScreen(wx, wy){ return {x:(wx - cam.x) * cam.s + W / 2, y:(wy - cam.y) * cam.s + H / 2}; }
+function screenToWorld(sx, sy){ return {x:(sx - W / 2) / cam.s + cam.x, y:(sy - H / 2) / cam.s + cam.y}; }
+function fitView(animated){
+  if (!notes.length) return;
+  let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
+  for (const n of notes){ minx = Math.min(minx, n.x); miny = Math.min(miny, n.y); maxx = Math.max(maxx, n.x); maxy = Math.max(maxy, n.y); }
+  const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
+  const spanX = (maxx - minx) + 160, spanY = (maxy - miny) + 160;
+  const s = Math.min(1.3, Math.min(W / spanX, H / spanY));
+  camTarget.x = cx; camTarget.y = cy; camTarget.s = s;
+  if (!animated){ cam.x = cx; cam.y = cy; cam.s = s; }
+}
+const camTarget = {x:0, y:0, s:1};
+
+/* ============================== fundo neural ============================== */
+const bg = {nodes:[], links:[], pulses:[]};
+(function buildBg(){
+  const N = 54, R = 900;
+  for (let i = 0; i < N; i++){
+    const bx = (Math.random() - .5) * R * 2, by = (Math.random() - .5) * R * 2;
+    bg.nodes.push({bx, by, x: bx, y: by, ph: Math.random() * TAU, amp: 8 + Math.random() * 22, sp: .1 + Math.random() * .25, r: .8 + Math.random() * 1.4});
+  }
+  for (let i = 0; i < bg.nodes.length; i++){
+    // conecta a alguns vizinhos próximos
+    const dists = bg.nodes.map((m, j) => ({j, d: Math.hypot(bg.nodes[i].bx - m.bx, bg.nodes[i].by - m.by)}))
+      .filter(o => o.j !== i).sort((a, b) => a.d - b.d).slice(0, 2 + (Math.random() * 2 | 0));
+    for (const o of dists) if (o.d < 340 && !bg.links.some(l => l.a === o.j && l.b === i)) bg.links.push({a: i, b: o.j});
+  }
+})();
+function bgPulse(){
+  if (!bg.links.length) return;
+  const l = bg.links[(Math.random() * bg.links.length) | 0];
+  bg.pulses.push({l, t0: performance.now(), dur: 1400 + Math.random() * 1000});
+}
+setInterval(bgPulse, 900);
+
+/* ============================== pulsos foreground (sinapses) ============================== */
+const pulses = [];
+function firePulse(a, b){ pulses.push({a, b, t0: performance.now(), dur: 750}); }
+setInterval(() => {
+  if (!links.length) return;
+  const l = links[(Math.random() * links.length) | 0];
+  pulses.push({a: l.a, b: l.b, t0: performance.now(), dur: 900});
+}, 1600);
+
+/* ============================== física (force-directed) ============================== */
+function physicsStep(dt){
+  const REP = 5200, SPRING = .012, REST = 118, CENTER = .004, DAMP = .86;
+  for (let i = 0; i < notes.length; i++){
+    const a = notes[i];
+    if (a.pinned) continue;
+    let fx = 0, fy = 0;
+    for (let j = 0; j < notes.length; j++){
+      if (i === j) continue;
+      const b = notes[j];
+      let dx = a.x - b.x, dy = a.y - b.y;
+      let d2 = dx * dx + dy * dy;
+      if (d2 < 1) { d2 = 1; dx = Math.random() - .5; dy = Math.random() - .5; }
+      const d = Math.sqrt(d2);
+      const f = REP / d2;
+      fx += (dx / d) * f; fy += (dy / d) * f;
+    }
+    fx -= a.x * CENTER; fy -= a.y * CENTER;
+    a.fx = fx; a.fy = fy;
+  }
+  for (const l of links){
+    const a = noteById(l.a), b = noteById(l.b);
+    if (!a || !b) continue;
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const d = Math.hypot(dx, dy) || 1;
+    const f = (d - REST) * SPRING;
+    const ux = dx / d, uy = dy / d;
+    if (!a.pinned){ a.fx += ux * f * 60; a.fy += uy * f * 60; }
+    if (!b.pinned){ b.fx -= ux * f * 60; b.fy -= uy * f * 60; }
+  }
+  for (const a of notes){
+    if (a.pinned) continue;
+    a.vx = (a.vx + a.fx * dt) * DAMP;
+    a.vy = (a.vy + a.fy * dt) * DAMP;
+    const max = 260;
+    a.vx = Math.max(-max, Math.min(max, a.vx));
+    a.vy = Math.max(-max, Math.min(max, a.vy));
+    a.x += a.vx * dt; a.y += a.vy * dt;
+  }
+}
+// pré-assenta o layout antes de aparecer
+for (let i = 0; i < 260; i++) physicsStep(1 / 60);
+fitView(false);
+
+/* ============================== estado de interação ============================== */
+let selected = null, hovered = null, connectFrom = null;
+let dragNode = null, dragMoved = false, panning = false;
+let lastPointer = {x:0, y:0}, downPos = {x:0, y:0};
+
+/* ============================== render ============================== */
+function drawBg(t){
+  ctx.save();
+  ctx.translate(W / 2, H / 2);
+  ctx.scale(cam.s, cam.s);
+  ctx.translate(-cam.x * .35, -cam.y * .35);  // parallax
+  for (const n of bg.nodes){
+    n.x = n.bx + Math.cos(t * n.sp + n.ph) * n.amp;
+    n.y = n.by + Math.sin(t * n.sp * 1.1 + n.ph) * n.amp;
+  }
+  ctx.lineWidth = 1 / cam.s;
+  for (const l of bg.links){
+    const a = bg.nodes[l.a], b = bg.nodes[l.b];
+    ctx.strokeStyle = 'rgba(120,150,230,.05)';
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+  for (const n of bg.nodes){
+    ctx.fillStyle = 'rgba(150,175,240,.10)';
+    ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, TAU); ctx.fill();
+  }
+  // pulsos de fundo
+  const now = performance.now();
+  for (let i = bg.pulses.length - 1; i >= 0; i--){
+    const p = bg.pulses[i]; const k = (now - p.t0) / p.dur;
+    if (k > 1){ bg.pulses.splice(i, 1); continue; }
+    const a = bg.nodes[p.l.a], b = bg.nodes[p.l.b];
+    const x = a.x + (b.x - a.x) * k, y = a.y + (b.y - a.y) * k;
+    ctx.fillStyle = `rgba(150,190,255,${(1 - k) * .4})`;
+    ctx.beginPath(); ctx.arc(x, y, 1.6, 0, TAU); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawGraph(t){
+  ctx.save();
+  ctx.translate(W / 2, H / 2);
+  ctx.scale(cam.s, cam.s);
+  ctx.translate(-cam.x, -cam.y);
+
+  const hi = hovered || selected;
+  const hiNeighbors = hi ? neighborsOf(hi.id) : null;
+  const dimmed = id => hi && id !== hi.id && !hiNeighbors.has(id);
+
+  // ---- links ----
+  ctx.lineCap = 'round';
+  for (const l of links){
+    const a = noteById(l.a), b = noteById(l.b);
+    if (!a || !b) continue;
+    const active = hi && (l.a === hi.id || l.b === hi.id);
+    const dim = hi && !active;
+    const ca = dominantRGB(a), cb = dominantRGB(b);
+    const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+    const la = dim ? .05 : active ? .5 : .18;
+    grad.addColorStop(0, rgba(ca, la));
+    grad.addColorStop(1, rgba(cb, la));
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = (active ? 2.1 : 1.3) / cam.s;
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+
+  // ---- pulsos (sinapses) ----
+  const now = performance.now();
+  for (let i = pulses.length - 1; i >= 0; i--){
+    const p = pulses[i]; const k = (now - p.t0) / p.dur;
+    if (k > 1){ pulses.splice(i, 1); continue; }
+    const a = noteById(p.a), b = noteById(p.b);
+    if (!a || !b) continue;
+    const x = a.x + (b.x - a.x) * k, y = a.y + (b.y - a.y) * k;
+    const c = dominantRGB(a);
+    ctx.fillStyle = rgba(c, (1 - k) * .9);
+    ctx.beginPath(); ctx.arc(x, y, 2.6 / cam.s + 1.2, 0, TAU); ctx.fill();
+    ctx.fillStyle = rgba(c, (1 - k) * .25);
+    ctx.beginPath(); ctx.arc(x, y, 6 / cam.s, 0, TAU); ctx.fill();
+  }
+
+  // ---- linha temporária de conexão ----
+  if (connectFrom){
+    const a = noteById(connectFrom);
+    const w = screenToWorld(lastPointer.x, lastPointer.y);
+    ctx.strokeStyle = 'rgba(110,168,255,.6)';
+    ctx.lineWidth = 1.6 / cam.s;
+    ctx.setLineDash([5 / cam.s, 5 / cam.s]);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(w.x, w.y); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // ---- nós ----
+  for (const n of notes){
+    const r = nodeRadius(n);
+    const colors = noteColors(n);
+    const isHi = hi === n;
+    const isNb = hi && hiNeighbors.has(n.id);
+    const dim = dimmed(n.id);
+    const appear = Math.min(1, (now - n.born) / 400);
+    const baseA = (dim ? .32 : 1) * appear;
+    const boost = isHi ? 1.5 : isNb ? 1.15 : 1;
+
+    // halo (blend aditivo de luz)
+    ctx.globalCompositeOperation = 'lighter';
+    const perA = (0.42 / Math.sqrt(colors.length)) * baseA * boost;
+    for (const c of colors){
+      const gR = r * (3.0 + .25 * Math.sin(t * 1.4 + n.id));
+      const g = ctx.createRadialGradient(n.x, n.y, r * .3, n.x, n.y, gR);
+      g.addColorStop(0, rgba(c, perA));
+      g.addColorStop(1, rgba(c, 0));
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(n.x, n.y, gR, 0, TAU); ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+
+    // núcleo
+    const dom = colors[0];
+    const core = ctx.createRadialGradient(n.x - r*.25, n.y - r*.25, r*.1, n.x, n.y, r);
+    core.addColorStop(0, `rgba(255,255,255,${.95 * baseA})`);
+    core.addColorStop(.55, rgba(n.badges.length ? dom : INDEP_RGB, .95 * baseA));
+    core.addColorStop(1, rgba(n.badges.length ? dom : INDEP_RGB, .35 * baseA));
+    ctx.fillStyle = core;
+    ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, TAU); ctx.fill();
+
+    // aro de seleção
+    if (isHi){
+      ctx.strokeStyle = `rgba(255,255,255,${.5})`;
+      ctx.lineWidth = 1.5 / cam.s;
+      ctx.beginPath(); ctx.arc(n.x, n.y, r + 4 / cam.s, 0, TAU); ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  // ---- rótulos (fora do transform, em pixels de tela) ----
+  ctx.textAlign = 'center';
+  for (const n of notes){
+    const r = nodeRadius(n);
+    const sc = worldToScreen(n.x, n.y);
+    const isHi = hi === n, isNb = hi && hiNeighbors.has(n.id);
+    const dim = dimmed(n.id);
+    const showLabel = isHi || isNb || cam.s > .72;
+    if (!showLabel) continue;
+    const a = (dim ? .3 : isHi ? 1 : .82) * Math.min(1, (performance.now() - n.born) / 400);
+    ctx.font = `${isHi ? '600 ' : ''}12px -apple-system, "Segoe UI", sans-serif`;
+    const y = sc.y + r * cam.s + 15;
+    ctx.fillStyle = `rgba(6,10,24,${a * .6})`;
+    ctx.fillText(n.title, sc.x + .5, y + .5);
+    ctx.fillStyle = `rgba(220,230,255,${a})`;
+    ctx.fillText(n.title, sc.x, y);
+  }
+}
+
+let last = performance.now();
+function frame(now){
+  const t = now / 1000;
+  const dt = Math.min(.033, (now - last) / 1000);
+  last = now;
+
+  physicsStep(dt);
+
+  cam.x += (camTarget.x - cam.x) * Math.min(1, dt * 4);
+  cam.y += (camTarget.y - cam.y) * Math.min(1, dt * 4);
+  cam.s += (camTarget.s - cam.s) * Math.min(1, dt * 4);
+
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  drawBg(t);
+  drawGraph(t);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ============================== hit testing ============================== */
+function nodeAt(sx, sy){
+  const w = screenToWorld(sx, sy);
+  let best = null, bestD = 1e9;
+  for (const n of notes){
+    const r = nodeRadius(n) + 6 / cam.s;
+    const d = Math.hypot(w.x - n.x, w.y - n.y);
+    if (d < r && d < bestD){ best = n; bestD = d; }
+  }
+  return best;
+}
+
+/* ============================== mouse ============================== */
+const tooltip = document.getElementById('tooltip');
+const hintEl = document.getElementById('hint');
+
+canvas.addEventListener('mousedown', e => {
+  downPos = {x: e.clientX, y: e.clientY};
+  lastPointer = {x: e.clientX, y: e.clientY};
+  const n = nodeAt(e.clientX, e.clientY);
+  if (n && !connectFrom){
+    dragNode = n; dragMoved = false; n.pinned = true;
+  } else if (!n){
+    panning = true;
+  }
+});
+addEventListener('mousemove', e => {
+  const dx = e.clientX - lastPointer.x, dy = e.clientY - lastPointer.y;
+  lastPointer = {x: e.clientX, y: e.clientY};
+  if (dragNode){
+    const w = screenToWorld(e.clientX, e.clientY);
+    dragNode.x = w.x; dragNode.y = w.y; dragNode.vx = dragNode.vy = 0;
+    if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 4) dragMoved = true;
+    return;
+  }
+  if (panning){
+    cam.x -= dx / cam.s; cam.y -= dy / cam.s;
+    camTarget.x = cam.x; camTarget.y = cam.y;
+    return;
+  }
+  // hover
+  const n = nodeAt(e.clientX, e.clientY);
+  hovered = n;
+  canvas.style.cursor = connectFrom ? 'crosshair' : n ? 'pointer' : 'grab';
+  if (n){
+    const badgeTxt = n.badges.length ? n.badges.map(b => BADGES[b].label).join(' · ') : 'Independente';
+    tooltip.innerHTML = `<b>${n.title}</b><br><span style="color:var(--muted)">${badgeTxt} · ${degree(n.id)} conexões</span>`;
+    tooltip.style.display = 'block';
+    tooltip.style.left = Math.min(W - 250, e.clientX + 15) + 'px';
+    tooltip.style.top = (e.clientY + 15) + 'px';
+  } else tooltip.style.display = 'none';
+});
+addEventListener('mouseup', e => {
+  if (dragNode){
+    dragNode.pinned = false;
+    if (!dragMoved) handleClick(dragNode);
+    dragNode = null; panning = false; return;
+  }
+  if (panning){
+    panning = false;
+    if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) < 4) handleClick(null);
+    return;
+  }
+  const n = nodeAt(e.clientX, e.clientY);
+  if (connectFrom && n) handleClick(n);
+});
+
+function handleClick(n){
+  if (connectFrom){
+    if (n && n.id !== connectFrom){ addLink(connectFrom, n.id); }
+    const from = connectFrom; connectFrom = null;
+    setHint();
+    if (n) { selected = noteById(from) || n; openDrawer(selected); }
+    return;
+  }
+  if (n){ selected = n; openDrawer(n); }
+  else { selected = null; closeDrawer(); }
+}
+
+canvas.addEventListener('dblclick', e => {
+  if (nodeAt(e.clientX, e.clientY)) return;
+  const w = screenToWorld(e.clientX, e.clientY);
+  pendingPos = w;
+  openAddModal();
+});
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const before = screenToWorld(e.clientX, e.clientY);
+  const factor = Math.exp(-e.deltaY * .0012);
+  cam.s = Math.max(.25, Math.min(2.6, cam.s * factor));
+  const after = screenToWorld(e.clientX, e.clientY);
+  cam.x += before.x - after.x; cam.y += before.y - after.y;
+  camTarget.x = cam.x; camTarget.y = cam.y; camTarget.s = cam.s;
+}, {passive:false});
+
+function setHint(){
+  if (connectFrom){
+    hintEl.textContent = 'Clique noutra nota para conectar · Esc para cancelar';
+    hintEl.classList.add('connect');
+  } else {
+    hintEl.textContent = 'Clique numa nota para abrir · arraste para reposicionar · role para dar zoom';
+    hintEl.classList.remove('connect');
+  }
+}
+
+document.getElementById('fitBtn').addEventListener('click', () => fitView(true));
+
+/* ============================== stats ============================== */
+const statsEl = document.getElementById('stats');
+function updateStats(){ statsEl.textContent = `${notes.length} notas · ${links.length} conexões`; }
+updateStats();
+
+/* ============================== badges UI helper ============================== */
+function wireBadgeToggles(container, getArr){
+  container.querySelectorAll('.badge-tog').forEach(el => {
+    el.addEventListener('click', () => {
+      const b = el.dataset.b;
+      const arr = getArr();
+      const i = arr.indexOf(b);
+      if (i >= 0) arr.splice(i, 1); else arr.push(b);
+      arr.sort((x, y) => BADGE_ORDER.indexOf(x) - BADGE_ORDER.indexOf(y));
+      syncBadgeToggles(container, arr);
+      if (getArr === drBadgesArr && selected) updateDrawerNode();
+    });
+  });
+}
+function syncBadgeToggles(container, arr){
+  container.querySelectorAll('.badge-tog').forEach(el => el.classList.toggle('sel', arr.includes(el.dataset.b)));
+}
+
+/* ============================== modal: nova nota ============================== */
+const modalWrap = document.getElementById('modalWrap');
+let newBadges = [], pendingPos = null;
+wireBadgeToggles(document.getElementById('nBadges'), () => newBadges);
+
+function openAddModal(){
+  newBadges = []; syncBadgeToggles(document.getElementById('nBadges'), newBadges);
+  document.getElementById('nTitle').value = '';
+  document.getElementById('nBody').value = '';
+  modalWrap.classList.add('open');
+  setTimeout(() => document.getElementById('nTitle').focus(), 50);
+}
+document.getElementById('addNoteBtn').addEventListener('click', () => { pendingPos = null; openAddModal(); });
+document.getElementById('noteCancel').addEventListener('click', () => modalWrap.classList.remove('open'));
+modalWrap.addEventListener('click', e => { if (e.target === modalWrap) modalWrap.classList.remove('open'); });
+document.getElementById('noteCreate').addEventListener('click', () => {
+  const title = document.getElementById('nTitle').value.trim() || 'Nova nota';
+  const pos = pendingPos || {x: cam.x + (Math.random()-.5)*60, y: cam.y + (Math.random()-.5)*60};
+  const n = makeNote({title, body: document.getElementById('nBody').value.trim(), badges: [...newBadges], x: pos.x, y: pos.y});
+  notes.push(n);
+  modalWrap.classList.remove('open');
+  updateStats();
+  selected = n; openDrawer(n);
+});
+
+/* ============================== drawer ============================== */
+const drawer = document.getElementById('drawer');
+const drTitle = document.getElementById('drTitle');
+const drBody = document.getElementById('drBody');
+const drNode = document.getElementById('drNode');
+const drConns = document.getElementById('drConns');
+let drBadgesRef = [];
+const drBadgesArr = () => drBadgesRef;
+wireBadgeToggles(document.getElementById('drBadges'), drBadgesArr);
+
+function openDrawer(n){
+  drTitle.value = n.title;
+  drBody.value = n.body;
+  drBadgesRef = n.badges;
+  syncBadgeToggles(document.getElementById('drBadges'), n.badges);
+  updateDrawerNode();
+  renderConns(n);
+  drawer.classList.add('open');
+}
+function closeDrawer(){ drawer.classList.remove('open'); }
+function updateDrawerNode(){
+  if (!selected) return;
+  const c = dominantRGB(selected);
+  drNode.style.background = `rgb(${c[0]},${c[1]},${c[2]})`;
+  drNode.style.boxShadow = `0 0 10px rgb(${c[0]},${c[1]},${c[2]})`;
+}
+function renderConns(n){
+  const nb = [...neighborsOf(n.id)].map(noteById).filter(Boolean);
+  if (!nb.length){
+    drConns.innerHTML = `<div class="conn-empty">Sem conexões ainda. Ligue esta nota a outras para formar a rede.</div>`;
+    return;
+  }
+  drConns.innerHTML = nb.map(m => {
+    const c = dominantRGB(m);
+    return `<div class="conn-item" data-id="${m.id}">
+      <span class="conn-dot" style="background:rgb(${c[0]},${c[1]},${c[2]}); box-shadow:0 0 7px rgb(${c[0]},${c[1]},${c[2]})"></span>
+      <span class="conn-name">${m.title}</span>
+      <button class="conn-x" data-x="${m.id}">${ICONS.close}</button>
+    </div>`;
+  }).join('');
+  drConns.querySelectorAll('.conn-item').forEach(el => el.addEventListener('click', e => {
+    if (e.target.closest('.conn-x')) return;
+    const m = noteById(+el.dataset.id);
+    if (m){ selected = m; openDrawer(m); camTarget.x = m.x; camTarget.y = m.y; }
+  }));
+  drConns.querySelectorAll('.conn-x').forEach(el => el.addEventListener('click', e => {
+    e.stopPropagation();
+    const id = +el.dataset.x;
+    links = links.filter(l => !(l.a === n.id && l.b === id || l.a === id && l.b === n.id));
+    renderConns(n); updateStats();
+  }));
+}
+drTitle.addEventListener('input', () => { if (selected){ selected.title = drTitle.value; } });
+drBody.addEventListener('input', () => { if (selected){ selected.body = drBody.value; } });
+document.getElementById('drawerClose').addEventListener('click', () => { closeDrawer(); selected = null; });
+
+document.getElementById('connectBtn').addEventListener('click', () => {
+  if (!selected) return;
+  connectFrom = selected.id;
+  closeDrawer();
+  setHint();
+});
+
+/* ============================== exclusão ============================== */
+const confirmWrap = document.getElementById('confirmWrap');
+document.getElementById('deleteNoteBtn').addEventListener('click', () => {
+  if (!selected) return;
+  document.getElementById('confirmText').textContent =
+    `A nota "${selected.title}" e suas conexões serão removidas da rede. Essa ação não pode ser desfeita.`;
+  confirmWrap.classList.add('open');
+});
+document.getElementById('confirmCancel').addEventListener('click', () => confirmWrap.classList.remove('open'));
+confirmWrap.addEventListener('click', e => { if (e.target === confirmWrap) confirmWrap.classList.remove('open'); });
+document.getElementById('confirmOk').addEventListener('click', () => {
+  if (!selected) return;
+  const id = selected.id;
+  notes = notes.filter(n => n.id !== id);
+  links = links.filter(l => l.a !== id && l.b !== id);
+  selected = null; hovered = null;
+  confirmWrap.classList.remove('open');
+  closeDrawer(); updateStats();
+});
+
+/* ============================== teclado ============================== */
+addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (modalWrap.classList.contains('open')) modalWrap.classList.remove('open');
+  else if (confirmWrap.classList.contains('open')) confirmWrap.classList.remove('open');
+  else if (connectFrom){ connectFrom = null; setHint(); }
+  else if (drawer.classList.contains('open')){ closeDrawer(); selected = null; }
+});
+</script>
+</body>
+</html>

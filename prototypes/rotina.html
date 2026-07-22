@@ -1,0 +1,1479 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Fox — Rotina (protótipo)</title>
+<style>
+  :root{
+    --bg0:#04081a; --bg1:#0a1230; --panel:rgba(13,22,48,.92); --panel-solid:#0d1630;
+    --line:rgba(148,180,255,.16); --text:#dce6ff; --muted:#8fa3c8; --accent:#6ea8ff;
+    --green:#4ade80; --blue:#60a5fa; --pink:#f472b6; --gold:#ffd66e;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+    background:radial-gradient(130% 100% at 50% 0%, var(--bg1) 0%, var(--bg0) 60%, #020510 100%);
+    background-attachment:fixed;
+    color:var(--text); user-select:none; overflow-x:hidden;
+  }
+
+  /* ---------- topo ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 22px; backdrop-filter:blur(10px);
+    background:rgba(5,9,24,.55); border-bottom:1px solid rgba(148,180,255,.07);
+  }
+  .topbar h1{font-size:15px; font-weight:600; letter-spacing:.4px}
+  .topbar h1 span{color:var(--muted); font-weight:400}
+
+  .subtabs{
+    display:flex; gap:4px; background:rgba(8,14,32,.7); border:1px solid var(--line);
+    border-radius:99px; padding:4px;
+  }
+  .subtab{
+    border:none; background:none; color:var(--muted); font-size:13px; font-weight:500;
+    padding:7px 18px; border-radius:99px; cursor:pointer; font-family:inherit;
+    transition:color .2s, background .2s;
+  }
+  .subtab:hover{color:var(--text)}
+  .subtab.sel{background:linear-gradient(135deg,#3667c4,#274a95); color:#fff}
+
+  .month-chip{font-size:12px; color:var(--muted); border:1px solid var(--line); padding:6px 14px; border-radius:99px}
+
+  /* ---------- estrutura das abas ---------- */
+  .tabpane{display:none; max-width:1080px; margin:0 auto; padding:28px 22px 80px}
+  .tabpane.sel{display:block; animation:paneIn .35s cubic-bezier(.3,.8,.3,1)}
+  @keyframes paneIn{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none}}
+
+  .pane-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; gap:14px; flex-wrap:wrap}
+  .pane-title{font-size:19px; font-weight:600}
+  .pane-sub{font-size:12.5px; color:var(--muted); margin-top:3px}
+
+  .btn{
+    cursor:pointer; border:1px solid var(--line); color:var(--text);
+    background:rgba(20,32,66,.75); padding:9px 16px; border-radius:12px;
+    font-size:13.5px; font-weight:500; font-family:inherit;
+    transition:background .15s, border-color .15s, transform .1s;
+    display:inline-flex; align-items:center; gap:7px;
+  }
+  .btn:hover{background:rgba(38,56,105,.85); border-color:rgba(148,180,255,.35)}
+  .btn:active{transform:scale(.97)}
+  .btn.primary{background:linear-gradient(135deg,#3667c4,#274a95); border-color:rgba(148,180,255,.4)}
+  .btn.primary:hover{background:linear-gradient(135deg,#3f74d8,#2d55aa)}
+  .btn svg{width:15px; height:15px}
+  .icon-btn{
+    cursor:pointer; border:1px solid var(--line); background:rgba(8,14,32,.5); color:var(--muted);
+    width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center;
+    transition:color .15s, border-color .15s;
+  }
+  .icon-btn:hover{color:var(--text); border-color:rgba(148,180,255,.4)}
+  .icon-btn svg{width:13px; height:13px}
+
+  /* ============ WISHLIST — tierlist ============ */
+  .tier{
+    display:flex; gap:0; margin-bottom:14px; border-radius:16px; overflow:hidden;
+    border:1px solid var(--line); background:rgba(10,17,38,.45); min-height:118px;
+  }
+  .tier-label{
+    width:86px; flex:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    background:linear-gradient(180deg, var(--tc-bg1), var(--tc-bg2));
+    border-right:1px solid var(--line);
+  }
+  .tier-letter{font-size:26px; font-weight:700; color:var(--tc); text-shadow:0 0 14px var(--tc-glow); cursor:default}
+  .tier-body{flex:1; display:flex; gap:12px; padding:13px; flex-wrap:wrap; align-items:flex-start; transition:background .2s}
+  .tier-body.dragover{background:rgba(110,168,255,.06)}
+
+  .wish-card{
+    width:150px; border-radius:14px; overflow:hidden; cursor:pointer; position:relative;
+    border:1px solid var(--wc, var(--line)); background:rgba(8,14,32,.75);
+    transition:transform .18s, box-shadow .18s;
+  }
+  .wish-card:hover{transform:translateY(-3px); box-shadow:0 8px 26px rgba(0,0,0,.4), 0 0 18px var(--wc-glow, transparent)}
+  .wish-card.dragging{opacity:.35}
+  .wish-card.drop-hint{outline:2px solid var(--accent); outline-offset:2px}
+  .wish-photo{height:74px; position:relative; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.25)}
+  .wish-photo svg{width:24px; height:24px}
+  .wish-info{padding:9px 11px 11px}
+  .wish-name{font-size:12.5px; font-weight:600; line-height:1.3; margin-bottom:6px}
+  .wish-price{font-size:11.5px; color:var(--gold); font-weight:600; display:flex; align-items:center; gap:5px}
+  .wish-price svg{width:12px; height:12px}
+  .wish-chips{display:flex; gap:5px; margin-top:7px; flex-wrap:wrap}
+  .chip{
+    font-size:9.5px; padding:2.5px 8px; border-radius:99px; border:1px solid var(--line);
+    color:var(--muted); display:inline-flex; align-items:center; gap:4px; letter-spacing:.2px;
+  }
+  .chip svg{width:9px; height:9px}
+  .chip.planet{color:#c9b6ff; border-color:rgba(160,130,255,.35)}
+  .wish-card.bought{opacity:.55}
+  .wish-card.bought .wish-photo::after{
+    content:'✓ comprado'; position:absolute; inset:auto 0 0 0; text-align:center;
+    background:rgba(74,222,128,.2); color:var(--green); font-size:10px; padding:3px; font-weight:600;
+  }
+  /* brilho de raridade S */
+  .tier[data-tier="S"] .wish-card::before{
+    content:''; position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:linear-gradient(115deg, transparent 30%, rgba(255,214,110,.16) 46%, rgba(255,255,255,.2) 50%, rgba(255,214,110,.16) 54%, transparent 70%);
+    background-size:280% 100%; animation:shine 4.2s ease-in-out infinite;
+  }
+  @keyframes shine{0%,55%{background-position:120% 0} 90%,100%{background-position:-140% 0}}
+  .tier-empty{font-size:11.5px; color:rgba(143,163,200,.5); align-self:center; padding:8px 6px}
+  .wish-total{font-size:12px; color:var(--muted)}
+  .wish-total b{color:var(--gold)}
+
+  /* ============ TAREFAS — nav de seções + pilha em destaque ============ */
+  .tasks-layout{display:flex; gap:26px; align-items:flex-start}
+  .sections-nav{width:220px; flex:none; display:flex; flex-direction:column; gap:8px}
+  .section-nav-item{
+    display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:14px; cursor:pointer;
+    border:1px solid var(--line); background:rgba(8,14,32,.5);
+    transition:background .15s, border-color .15s;
+  }
+  .section-nav-item:hover{border-color:rgba(148,180,255,.4)}
+  .section-nav-item.sel{background:rgba(20,32,66,.8); border-color:var(--sd-glow, rgba(110,168,255,.45))}
+  .section-nav-item.dragover{border-color:var(--accent); background:rgba(110,168,255,.14)}
+  .section-nav-name{flex:1; min-width:0; font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .section-nav-count{font-size:11px; color:var(--muted)}
+  .section-nav-del{opacity:0; transition:opacity .15s; flex:none}
+  .section-nav-item:hover .section-nav-del{opacity:1}
+  .section-nav-add{width:100%; justify-content:center; font-size:12.5px; margin-top:2px}
+
+  .stack-panel{flex:1; min-width:0; max-width:640px}
+  .stack-head{display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap}
+  .section-dot{width:12px; height:12px; border-radius:50%; flex:none; box-shadow:0 0 9px var(--sd-glow, transparent)}
+  .stack-head .section-name{font-size:17px; font-weight:600}
+  .section-filter{display:flex; gap:3px; background:rgba(8,14,32,.6); border:1px solid var(--line); border-radius:99px; padding:3px}
+  .sf-btn{border:none; background:none; color:var(--muted); font-size:11.5px; font-weight:500; padding:6px 13px; border-radius:99px; cursor:pointer; font-family:inherit; transition:background .15s, color .15s; white-space:nowrap}
+  .sf-btn:hover{color:var(--text)}
+  .sf-btn.sel{background:rgba(110,168,255,.18); color:var(--text)}
+  .section-empty{font-size:12.5px; color:rgba(143,163,200,.5); padding:26px; text-align:center; border:1px dashed rgba(148,180,255,.15); border-radius:16px}
+  .section-body.dragover{background:rgba(110,168,255,.05); border-radius:16px}
+
+  .task-card{
+    border:1px solid var(--line); border-radius:16px; background:var(--panel);
+    padding:16px 18px; margin-bottom:12px; cursor:pointer; position:relative;
+    transition:transform .2s, box-shadow .2s, border-color .2s, opacity .2s;
+  }
+  .task-card:hover{border-color:rgba(148,180,255,.4)}
+  .task-card.dragging{opacity:.35}
+  .section-body .task-card:nth-child(1){
+    border-color:rgba(110,168,255,.5); box-shadow:0 6px 30px rgba(40,80,180,.25);
+    padding:20px 22px;
+  }
+  .section-body .task-card:nth-child(1)::before{
+    content:'AGORA'; position:absolute; top:-9px; left:18px; font-size:9.5px; letter-spacing:1.5px;
+    background:linear-gradient(135deg,#3667c4,#274a95); padding:3px 10px; border-radius:99px; font-weight:700;
+  }
+  .section-body .task-card:nth-child(2){transform:scale(.985); opacity:.92}
+  .section-body .task-card:nth-child(n+3){transform:scale(.97); opacity:.82}
+  .task-title{font-size:15px; font-weight:600; margin-bottom:9px; display:flex; align-items:flex-start; gap:10px; padding-right:84px}
+  .task-title-text{flex:1; min-width:0; word-break:break-word}
+  .task-grip{color:rgba(143,163,200,.4); cursor:grab; display:flex}
+  .task-grip svg{width:13px; height:13px}
+  .task-meta{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+  .task-stage{font-size:11.5px; color:var(--muted)}
+  .stage-dots{display:flex; align-items:center}
+  .stage-dots .sd{width:8px; height:8px; border-radius:50%; flex:none; background:rgba(148,180,255,.16); border:1.5px solid transparent; transition:background .2s, border-color .2s}
+  .stage-dots .sd.done{background:var(--accent)}
+  .stage-dots .sd.current{background:rgba(110,168,255,.2); border-color:var(--accent)}
+  .stage-dots .sd-line{width:13px; height:1.5px; background:rgba(148,180,255,.16); flex:none}
+  .stage-dots .sd-line.done{background:var(--accent)}
+
+  .task-deadline{
+    position:absolute; top:16px; right:18px; font-size:10.5px; font-weight:600; color:var(--muted);
+    border:1px solid var(--line); padding:3px 9px; border-radius:99px; display:flex; align-items:center; gap:5px;
+  }
+  .task-deadline svg{width:10px; height:10px}
+  .task-deadline.warn{color:#ffd27d; border-color:rgba(255,210,125,.4)}
+  .task-deadline.urgent{color:#ff9d7d; border-color:rgba(255,157,125,.45)}
+  .chip.money{color:var(--gold); border-color:rgba(255,214,110,.35)}
+  .chip.wish{color:var(--green); border-color:rgba(74,222,128,.35)}
+  .done-fold{margin-top:26px; text-align:center}
+  .done-fold .btn{font-size:12px; color:var(--muted)}
+  .done-list{max-width:640px; margin:12px auto 0; display:none}
+  .done-list.open{display:block}
+  .done-item{
+    display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid var(--line);
+    border-radius:12px; margin-bottom:8px; color:var(--muted); font-size:13px; background:rgba(8,14,32,.4);
+  }
+  .done-item svg{width:14px; height:14px; color:var(--green)}
+
+  /* ============ FINANÇAS ============ */
+  .fin-grid{display:flex; gap:22px; align-items:flex-start; flex-wrap:wrap}
+  .fin-left{width:330px; flex:none}
+  .fin-right{flex:1; min-width:300px}
+
+  .piggy-panel{
+    border:1px solid var(--line); border-radius:20px; background:var(--panel);
+    padding:20px; text-align:center; position:relative;
+  }
+  #piggyWrap{position:relative; display:inline-block; cursor:pointer}
+  #piggyTip{
+    position:absolute; left:50%; top:-8px; transform:translate(-50%,-100%); z-index:5;
+    background:var(--panel-solid); border:1px solid var(--line); border-radius:12px;
+    padding:10px 16px; font-size:12px; line-height:1.6; white-space:nowrap;
+    opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;
+    box-shadow:0 8px 30px rgba(0,0,0,.45);
+  }
+  #piggyWrap:hover #piggyTip{opacity:1; transform:translate(-50%,-100%) translateY(-4px)}
+  .pig-coin{transition:transform .35s cubic-bezier(.5,1.6,.4,1); transform-box:fill-box; transform-origin:center}
+  .pig-coin.hid{transform:scale(0)}
+  .fin-avail{font-size:26px; font-weight:700; color:var(--gold); margin-top:6px}
+  .fin-avail-sub{font-size:11.5px; color:var(--muted); margin-top:3px}
+
+  .income-box{margin-top:18px; text-align:left}
+  .sec-label{font-size:11px; color:var(--muted); letter-spacing:.5px; text-transform:uppercase; margin-bottom:9px; display:flex; align-items:center; justify-content:space-between}
+  .income-row{
+    display:flex; align-items:center; gap:9px; font-size:12.5px; padding:8px 11px;
+    border:1px solid var(--line); border-radius:11px; margin-bottom:7px; background:rgba(8,14,32,.5);
+  }
+  .income-row .in-name{flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:6px}
+  .income-row svg{width:12px; height:12px; flex:none}
+  .income-row .in-val{color:var(--gold); font-weight:600}
+  .income-row.from-task{border-color:rgba(74,222,128,.3)}
+  .income-row.from-task .in-name{color:var(--green)}
+
+  .chart-panel{
+    border:1px solid var(--line); border-radius:20px; background:var(--panel);
+    padding:20px; margin-top:18px;
+  }
+  .chart-row{display:flex; align-items:center; gap:18px; margin-top:12px}
+  .chart-ring{
+    width:112px; height:112px; border-radius:50%; flex:none; position:relative;
+    transition:background 1s ease;
+  }
+  .chart-hole{
+    position:absolute; inset:16px; border-radius:50%; background:var(--panel);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12.5px; font-weight:700; color:var(--text); text-align:center; padding:4px;
+  }
+  .chart-legend{flex:1; min-width:0; display:flex; flex-direction:column; gap:8px}
+  .mc-row{display:flex; align-items:center; gap:9px; font-size:12px}
+  .mc-dot{width:9px; height:9px; border-radius:50%; flex:none}
+  .mc-name{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--muted)}
+  .mc-pct{font-weight:600; color:var(--text)}
+  .chart-empty{font-size:12px; color:rgba(143,163,200,.5)}
+
+  .modality{
+    border:1px solid var(--line); border-radius:16px; background:var(--panel);
+    padding:16px 18px; margin-bottom:14px;
+  }
+  .mod-head{display:flex; align-items:center; gap:10px; margin-bottom:4px}
+  .mod-name{font-size:14px; font-weight:600; flex:1; display:flex; align-items:center; gap:8px}
+  .mod-name svg{width:14px; height:14px; color:var(--green)}
+  .mod-sub{font-size:11px; color:var(--muted); margin-bottom:10px}
+  .exp-row{
+    display:flex; align-items:center; gap:11px; padding:9px 4px; border-bottom:1px solid rgba(148,180,255,.07);
+    font-size:13px;
+  }
+  .exp-row:last-child{border-bottom:none}
+  .exp-check{
+    width:20px; height:20px; border-radius:50%; flex:none; cursor:pointer;
+    border:1.5px solid rgba(148,180,255,.35); display:flex; align-items:center; justify-content:center;
+    color:transparent; transition:background .2s, border-color .2s;
+  }
+  .exp-check svg{width:11px; height:11px}
+  .exp-row.spent .exp-check{background:var(--pink); border-color:var(--pink); color:#fff}
+  .exp-label{flex:1}
+  .exp-row.spent .exp-label{color:var(--muted)}
+  .exp-val{font-weight:600; color:var(--text)}
+  .exp-row.spent .exp-val{color:var(--pink)}
+  .exp-x{opacity:0; transition:opacity .15s}
+  .exp-row:hover .exp-x{opacity:1}
+  .exp-empty{font-size:12px; color:rgba(143,163,200,.5); padding:8px 4px}
+  .inline-form{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap}
+  .inline-form input, .inline-form select{
+    background:rgba(8,14,32,.8); border:1px solid var(--line); border-radius:9px;
+    color:var(--text); padding:8px 10px; font-size:12.5px; font-family:inherit; outline:none;
+  }
+  .inline-form input:focus, .inline-form select:focus{border-color:rgba(110,168,255,.55)}
+  .inline-form input[type=text]{flex:2; min-width:110px}
+  .inline-form input[type=number]{flex:1; min-width:80px}
+  .inline-form select{flex:2; min-width:130px}
+
+  /* ---------- modais ---------- */
+  .modal-wrap{
+    position:fixed; inset:0; z-index:40; display:none; align-items:center; justify-content:center;
+    background:rgba(3,6,16,.55); backdrop-filter:blur(4px);
+  }
+  .modal-wrap.open{display:flex}
+  .modal{
+    width:430px; max-width:calc(100vw - 32px); max-height:calc(100vh - 60px); overflow:auto;
+    background:var(--panel-solid); border:1px solid var(--line); border-radius:20px;
+    padding:24px 26px; box-shadow:0 20px 70px rgba(0,0,0,.55);
+  }
+  .modal h2{font-size:17px; font-weight:600; margin-bottom:18px}
+  .field{margin-bottom:16px}
+  .field > label{display:block; font-size:11.5px; color:var(--muted); margin-bottom:7px; letter-spacing:.4px; text-transform:uppercase}
+  .modal input[type=text], .modal input[type=number], .modal textarea, .modal select{
+    width:100%; background:rgba(8,14,32,.8); border:1px solid var(--line); border-radius:10px;
+    color:var(--text); padding:10px 12px; font-size:14px; font-family:inherit; outline:none;
+  }
+  .modal input:focus, .modal textarea:focus, .modal select:focus{border-color:rgba(110,168,255,.55)}
+  .modal textarea{resize:vertical; min-height:60px; line-height:1.5}
+  .modal .actions{display:flex; justify-content:flex-end; gap:10px; margin-top:8px}
+  .hue-swatches{display:flex; gap:8px}
+  .hue-sw{width:28px; height:28px; border-radius:9px; cursor:pointer; border:2px solid transparent; transition:transform .12s, border-color .12s}
+  .hue-sw:hover{transform:scale(1.1)}
+  .hue-sw.sel{border-color:#fff; transform:scale(1.1)}
+  .tier-select{display:flex; gap:8px}
+  .tier-opt{
+    flex:1; text-align:center; padding:8px 0; border-radius:10px; cursor:pointer; font-weight:700; font-size:14px;
+    border:1px solid var(--line); color:var(--muted); background:rgba(8,14,32,.5); transition:all .12s;
+  }
+  .tier-opt.sel{color:var(--to-c); border-color:var(--to-c); background:var(--to-bg); text-shadow:0 0 10px var(--to-c)}
+
+  .stage-input-row{display:flex; gap:8px; margin-bottom:8px; align-items:center}
+  .stage-input-row input{flex:1}
+  .cascade{
+    max-height:0; overflow:hidden; transition:max-height .3s ease; margin-top:0;
+  }
+  .cascade.open{max-height:220px; margin-top:12px}
+  .cascade-inner{border:1px solid rgba(255,214,110,.25); border-radius:12px; padding:14px; background:rgba(255,214,110,.04)}
+  .check-row{display:flex; align-items:center; gap:10px; cursor:pointer; font-size:13.5px}
+  .check-row .cbox{
+    width:19px; height:19px; border-radius:6px; border:1.5px solid rgba(148,180,255,.35);
+    display:flex; align-items:center; justify-content:center; color:transparent; transition:all .15s; flex:none;
+  }
+  .check-row .cbox svg{width:11px; height:11px}
+  .check-row.sel .cbox{background:linear-gradient(135deg,#c9a44a,#a07d2c); border-color:var(--gold); color:#fff}
+
+  /* detalhe da tarefa */
+  .stage-line{display:flex; align-items:flex-start; gap:12px; padding:7px 0}
+  .stage-dot{
+    width:22px; height:22px; border-radius:50%; flex:none; border:1.5px solid rgba(148,180,255,.35);
+    display:flex; align-items:center; justify-content:center; color:transparent; position:relative;
+    transition:background .3s, border-color .3s;
+  }
+  .stage-dot svg{width:11px; height:11px}
+  .stage-line.done .stage-dot{background:var(--accent); border-color:var(--accent); color:#fff}
+  .stage-line.current .stage-dot{border-color:var(--accent); box-shadow:0 0 10px rgba(110,168,255,.5)}
+  .stage-line:not(:last-child) .stage-dot::after{
+    content:''; position:absolute; top:23px; left:50%; width:1.5px; height:14px; background:rgba(148,180,255,.2);
+  }
+  .stage-txt{font-size:13.5px; padding-top:2px}
+  .stage-line.done .stage-txt{color:var(--muted)}
+  .stage-line.current .stage-txt{font-weight:600}
+  .stage-line.done{cursor:pointer}
+  .stage-line.done:hover .stage-dot{background:#ff8f8f; border-color:#ff8f8f}
+  .stage-line.done:hover .stage-txt::after{content:' · desfazer'; color:#ff8f8f; font-size:11px}
+  .advance-btn{
+    display:block; margin:20px auto 4px; padding:13px 34px; border-radius:99px; font-size:14.5px;
+  }
+
+  /* detalhe do desejo */
+  .wish-hero{height:120px; border-radius:14px; margin-bottom:16px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.3)}
+  .wish-hero svg{width:34px; height:34px}
+  .wd-row{display:flex; align-items:center; gap:9px; font-size:13px; margin-bottom:10px; color:var(--muted)}
+  .wd-row svg{width:14px; height:14px; flex:none}
+  .wd-row a{color:var(--accent)}
+  .wd-row b{color:var(--gold); font-size:15px}
+
+  /* toast */
+  #toast{
+    position:fixed; top:70px; left:50%; transform:translate(-50%,-12px); z-index:60;
+    background:var(--panel); border:1px solid rgba(255,214,110,.4); border-radius:14px;
+    padding:12px 20px; font-size:13.5px; font-weight:600; backdrop-filter:blur(10px);
+    display:flex; align-items:center; gap:10px; opacity:0; pointer-events:none;
+    transition:opacity .3s, transform .3s; box-shadow:0 10px 40px rgba(0,0,0,.45);
+  }
+  #toast.show{opacity:1; transform:translate(-50%,0)}
+  #toast .t-ic{color:var(--gold); display:flex}
+  #toast .t-ic svg{width:16px; height:16px}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <h1>Project Fox <span>· Rotina</span></h1>
+  <nav class="subtabs">
+    <button class="subtab sel" data-tab="wishlist">Wishlist</button>
+    <button class="subtab" data-tab="tarefas">Tarefas</button>
+    <button class="subtab" data-tab="financas">Finanças</button>
+  </nav>
+  <span class="month-chip" id="monthChip"></span>
+</header>
+
+<!-- ============ WISHLIST ============ -->
+<section class="tabpane sel" id="pane-wishlist">
+  <div class="pane-head">
+    <div>
+      <div class="pane-title">Wishlist Consumista</div>
+      <div class="pane-sub">Arraste os desejos entre os tiers · <span class="wish-total" id="wishTotal"></span></div>
+    </div>
+    <button class="btn primary" id="addWishBtn"></button>
+  </div>
+  <div id="tiers"></div>
+</section>
+
+<!-- ============ TAREFAS ============ -->
+<section class="tabpane" id="pane-tarefas">
+  <div class="pane-head">
+    <div>
+      <div class="pane-title">Tarefas</div>
+      <div class="pane-sub">A pilha define a prioridade</div>
+    </div>
+    <button class="btn primary" id="addTaskBtn"></button>
+  </div>
+  <div class="tasks-layout">
+    <nav class="sections-nav" id="sectionsNav"></nav>
+    <div class="stack-panel">
+      <div class="stack-head" id="stackHead"></div>
+      <div class="section-body" id="stackBody"></div>
+    </div>
+  </div>
+  <div class="done-fold"><button class="btn" id="doneFoldBtn"></button></div>
+  <div class="done-list" id="doneList"></div>
+</section>
+
+<!-- ============ modal: nova seção ============ -->
+<div class="modal-wrap" id="sectionModal">
+  <div class="modal" style="width:360px">
+    <h2>Nova seção</h2>
+    <div class="field"><label>Nome</label><input type="text" id="secName" maxlength="24" placeholder="Ex.: Trabalho"></div>
+    <div class="field"><label>Cor</label><div class="hue-swatches" id="secHues"></div></div>
+    <div class="actions">
+      <button class="btn" id="secCancel">Cancelar</button>
+      <button class="btn primary" id="secCreate">Criar seção</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FINANÇAS ============ -->
+<section class="tabpane" id="pane-financas">
+  <div class="pane-head">
+    <div>
+      <div class="pane-title">Finanças</div>
+      <div class="pane-sub">Marque um gasto como pago e veja o cofrinho reagir</div>
+    </div>
+    <button class="btn" id="addModBtn"></button>
+  </div>
+  <div class="fin-grid">
+    <div class="fin-left">
+      <div class="piggy-panel">
+        <div id="piggyWrap">
+          <div id="piggyTip"></div>
+          <svg id="piggySvg" viewBox="60 180 1130 900" width="280" height="223"></svg>
+        </div>
+        <div class="fin-avail" id="finAvail"></div>
+        <div class="fin-avail-sub" id="finAvailSub"></div>
+        <div class="income-box">
+          <div class="sec-label">Renda do mês <button class="icon-btn" id="addIncomeBtn"></button></div>
+          <div id="incomeList"></div>
+          <div class="inline-form" id="incomeForm" style="display:none">
+            <input type="text" id="incName" maxlength="30" placeholder="Fonte (ex: Emprego TI)">
+            <input type="number" id="incVal" min="0" step="50" placeholder="R$">
+            <button class="btn" id="incOk">Ok</button>
+          </div>
+        </div>
+      </div>
+      <div class="chart-panel">
+        <div class="sec-label">Gastos por modalidade</div>
+        <div class="chart-row">
+          <div class="chart-ring" id="chartRing"><div class="chart-hole"><span id="chartTotal"></span></div></div>
+          <div class="chart-legend" id="chartLegend"></div>
+        </div>
+      </div>
+    </div>
+    <div class="fin-right" id="modalities"></div>
+  </div>
+</section>
+
+<!-- ============ modal: novo desejo ============ -->
+<div class="modal-wrap" id="wishModal">
+  <div class="modal">
+    <h2>Novo desejo</h2>
+    <div class="field"><label>Nome</label><input type="text" id="wName" maxlength="40" placeholder="Ex.: Microfone Shure MV7"></div>
+    <div class="field"><label>Valor</label><input type="number" id="wValue" min="0" step="10" placeholder="R$"></div>
+    <div class="field"><label>Foto (cor de exemplo)</label><div class="hue-swatches" id="wHues"></div></div>
+    <div class="field"><label>Participa de algum planeta?</label>
+      <select id="wPlanet">
+        <option value="">Nenhum</option>
+        <option>Esporte</option><option>Leitura</option><option>Música</option>
+      </select>
+    </div>
+    <div class="field"><label>Descrição</label><textarea id="wDesc" maxlength="200" placeholder="Por que você quer isso?"></textarea></div>
+    <div class="field"><label>Link de compra (opcional)</label><input type="text" id="wLink" placeholder="https://…"></div>
+    <div class="field"><label>Tier inicial</label><div class="tier-select" id="wTierSel"></div></div>
+    <div class="actions">
+      <button class="btn" id="wCancel">Cancelar</button>
+      <button class="btn primary" id="wCreate">Adicionar desejo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modal: detalhe do desejo ============ -->
+<div class="modal-wrap" id="wishDetail">
+  <div class="modal" id="wishDetailBody"></div>
+</div>
+
+<!-- ============ modal: nova tarefa ============ -->
+<div class="modal-wrap" id="taskModal">
+  <div class="modal">
+    <h2>Nova tarefa</h2>
+    <div class="field"><label>Título</label><input type="text" id="tTitle" maxlength="50" placeholder="Ex.: Organizar o quarto"></div>
+    <div class="field"><label>Seção</label><select id="tSection"></select></div>
+    <div class="field"><label>Prazo (opcional)</label><input type="date" id="tDeadline"></div>
+    <div class="field"><label>Etapas</label>
+      <div id="stageInputs"></div>
+      <button class="btn" id="addStageBtn" style="width:100%; justify-content:center; font-size:12.5px"></button>
+    </div>
+    <div class="field">
+      <div class="check-row" id="finCheck"><span class="cbox"></span> Tarefa financeira</div>
+      <div class="cascade" id="finCascade">
+        <div class="cascade-inner">
+          <div class="field" style="margin-bottom:12px"><label>Valor a conquistar</label><input type="number" id="tValue" min="0" step="10" placeholder="R$"></div>
+          <div class="field" style="margin-bottom:0"><label>Referenciar desejo da wishlist</label>
+            <select id="tWish"><option value="">Nenhum</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="tCancel">Cancelar</button>
+      <button class="btn primary" id="tCreate">Criar tarefa</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modal: detalhe da tarefa ============ -->
+<div class="modal-wrap" id="taskDetail">
+  <div class="modal" id="taskDetailBody"></div>
+</div>
+
+<div id="toast"><span class="t-ic"></span><span class="t-txt"></span></div>
+
+<script>
+'use strict';
+
+/* ============================== ícones ============================== */
+const I = {
+  plus:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`,
+  coin:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.2v9.6M14.6 9.3c-.5-.8-1.5-1.3-2.6-1.3-1.6 0-2.8.9-2.8 2.1s1.2 1.7 2.8 2c1.6.3 2.8.8 2.8 2s-1.2 2.1-2.8 2.1c-1.1 0-2.1-.5-2.6-1.3"/></svg>`,
+  planet:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5.5"/><ellipse cx="12" cy="12" rx="10.5" ry="3.6" transform="rotate(-18 12 12)"/></svg>`,
+  image: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>`,
+  ext:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`,
+  grip:  `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>`,
+  spark: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 13.7 9 21 10.5 13.7 12 12 19 10.3 12 3 10.5 10.3 9Z"/></svg>`,
+  chev:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`,
+  clock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 13.5"/></svg>`
+};
+function fmtBRL(v){ return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0}); }
+function fmtDeadlineShort(ms){ return new Date(ms).toLocaleDateString('pt-BR', {day:'2-digit', month:'short'}); }
+function deadlineUrgency(ms){
+  const days = (ms - Date.now()) / 86400000;
+  if (days < 3) return 'urgent';
+  if (days < 7) return 'warn';
+  return '';
+}
+
+/* ============================== estado ============================== */
+const TIERS = {
+  S: {name:'Obsessão',  c:'#ffd66e', bg1:'rgba(255,214,110,.14)', bg2:'rgba(255,214,110,.03)'},
+  A: {name:'Desejo',    c:'#f472b6', bg1:'rgba(244,114,182,.13)', bg2:'rgba(244,114,182,.03)'},
+  B: {name:'Curtiria',  c:'#60a5fa', bg1:'rgba(96,165,250,.12)',  bg2:'rgba(96,165,250,.03)'},
+  C: {name:'Algum dia', c:'#8fa3c8', bg1:'rgba(143,163,200,.10)', bg2:'rgba(143,163,200,.02)'}
+};
+const HUES = [145, 212, 330, 268, 26, 187, 48];
+let wid = 1, tid = 1, eid = 1, secId = 2;
+const sections = [
+  {id:'geral', name:'Geral', hue:212, locked:true, sort:'custom'},
+  {id:'s' + secId++, name:'Trabalho', hue:268, locked:false, sort:'custom'}
+];
+function sectionById(id){ return sections.find(s => s.id === id); }
+
+const wishlist = [
+  {id:wid++, name:'Microfone Shure MV7', value:1400, hue:26,  tier:'S', planet:'Música',  desc:'Áudio decente pra gravar os vídeos do canal.', link:'https://exemplo.com/mv7', bought:false},
+  {id:wid++, name:'Tênis de corrida',    value:800,  hue:145, tier:'S', planet:'Esporte', desc:'Amortecimento pro joelho aguentar a meia maratona.', link:'', bought:false},
+  {id:wid++, name:'Kindle Paperwhite',   value:650,  hue:212, tier:'A', planet:'Leitura', desc:'Ler no escuro sem incomodar ninguém.', link:'', bought:false},
+  {id:wid++, name:'Cadeira ergonômica',  value:1900, hue:268, tier:'A', planet:'',        desc:'Minhas costas imploram.', link:'', bought:false},
+  {id:wid++, name:'Luminária de mesa',   value:180,  hue:48,  tier:'B', planet:'',        desc:'', link:'', bought:false},
+  {id:wid++, name:'Console novo',        value:4500, hue:330, tier:'C', planet:'',        desc:'Um dia. Talvez. Quem sabe.', link:'', bought:false}
+];
+
+const tasks = [
+  {id:tid++, title:'Vender itens usados', sectionId:'geral', stages:[
+    {t:'Separar o que não uso', done:true}, {t:'Fotografar tudo', done:true},
+    {t:'Anunciar online', done:false}, {t:'Entregar aos compradores', done:false}],
+    fin:{value:600, wishId:3}, deadline: Date.now() + 2 * 86400000, done:false},
+  {id:tid++, title:'Organizar setup do quarto', sectionId:'geral', stages:[
+    {t:'Medir o espaço', done:true}, {t:'Escolher os móveis', done:false}, {t:'Montar tudo', done:false}],
+    fin:null, wishRef:4, deadline: Date.now() + 10 * 86400000, done:false},
+  {id:tid++, title:'Renovar a CNH', sectionId:'s2', stages:[
+    {t:'Agendar o exame', done:false}, {t:'Fazer o exame médico', done:false}, {t:'Retirar o documento', done:false}],
+    fin:null, deadline: null, done:false},
+  {id:tid++, title:'Preparar apresentação do projeto', sectionId:'s2', stages:[
+    {t:'Montar slides', done:true}, {t:'Ensaiar a fala', done:false}, {t:'Enviar pro time', done:false}],
+    fin:null, deadline: Date.now() + 5 * 86400000, done:false}
+];
+const doneTasks = [];
+
+const incomes = [ {id:1, source:'Emprego TI', value:4200, fromTask:false} ];
+let incId = 2;
+const modalities = [
+  {id:eid++, name:'Wishlist', locked:true, expenses:[
+    {id:eid++, label:'Tênis de corrida', value:800, spent:false, wishId:2}
+  ]},
+  {id:eid++, name:'Comida', expenses:[
+    {id:eid++, label:'Mercado do mês', value:650, spent:true},
+    {id:eid++, label:'Delivery', value:120, spent:true}
+  ]},
+  {id:eid++, name:'Contas', expenses:[
+    {id:eid++, label:'Aluguel', value:1200, spent:true},
+    {id:eid++, label:'Internet', value:110, spent:false}
+  ]},
+  {id:eid++, name:'Rolê do mês', expenses:[
+    {id:eid++, label:'Show no fim do mês', value:150, spent:false}
+  ]}
+];
+
+function wishById(id){ return wishlist.find(w => w.id === id); }
+function totalIncome(){ return incomes.reduce((s, i) => s + i.value, 0); }
+function totalSpent(){ return modalities.reduce((s, m) => s + m.expenses.filter(e => e.spent).reduce((x, e) => x + e.value, 0), 0); }
+function remaining(){ return Math.max(0, totalIncome() - totalSpent()); }
+
+/* ============================== toast + burst ============================== */
+const toast = document.getElementById('toast');
+toast.querySelector('.t-ic').innerHTML = I.spark;
+let toastTimer = null;
+function showToast(txt){
+  toast.querySelector('.t-txt').textContent = txt;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3600);
+}
+function burstAt(x, y, colors){
+  for (let i = 0; i < 16; i++){
+    const s = document.createElement('span');
+    const c = colors[i % colors.length];
+    s.style.cssText = `position:fixed; left:${x}px; top:${y}px; width:6px; height:6px; border-radius:2px;
+      background:${c}; z-index:70; pointer-events:none;`;
+    document.body.appendChild(s);
+    const ang = Math.random() * Math.PI * 2, d = 40 + Math.random() * 70;
+    s.animate([
+      {transform:'translate(0,0) rotate(0)', opacity:1},
+      {transform:`translate(${Math.cos(ang)*d}px, ${Math.sin(ang)*d + 24}px) rotate(${Math.random()*300-150}deg)`, opacity:0}
+    ], {duration:750 + Math.random()*350, easing:'cubic-bezier(.2,.7,.4,1)'}).onfinish = () => s.remove();
+  }
+}
+
+/* ============================== tabs ============================== */
+document.querySelectorAll('.subtab').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.subtab').forEach(x => x.classList.toggle('sel', x === b));
+  document.querySelectorAll('.tabpane').forEach(p => p.classList.toggle('sel', p.id === 'pane-' + b.dataset.tab));
+}));
+const mNames = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const now = new Date();
+document.getElementById('monthChip').textContent = mNames[now.getMonth()][0].toUpperCase() + mNames[now.getMonth()].slice(1) + ' de ' + now.getFullYear();
+
+/* botões com ícones */
+document.getElementById('addWishBtn').innerHTML = I.plus + ' Adicionar desejo';
+document.getElementById('addTaskBtn').innerHTML = I.plus + ' Adicionar tarefa';
+document.getElementById('addModBtn').innerHTML = I.plus + ' Nova modalidade';
+document.getElementById('addIncomeBtn').innerHTML = I.plus;
+document.getElementById('addStageBtn').innerHTML = I.plus + ' Adicionar etapa';
+
+/* ============================== WISHLIST ============================== */
+const tiersEl = document.getElementById('tiers');
+function photoStyle(hue, h){
+  return `background:linear-gradient(135deg, hsl(${hue},45%,32%), hsl(${(hue+40)%360},55%,18%)); height:${h}px`;
+}
+function renderWishlist(){
+  tiersEl.innerHTML = '';
+  for (const key of ['S','A','B','C']){
+    const t = TIERS[key];
+    const row = document.createElement('div');
+    row.className = 'tier'; row.dataset.tier = key;
+    row.style.cssText = `--tc:${t.c}; --tc-glow:${t.c}66; --tc-bg1:${t.bg1}; --tc-bg2:${t.bg2}`;
+    const items = wishlist.filter(w => w.tier === key);
+    row.innerHTML = `
+      <div class="tier-label"><span class="tier-letter" title="${t.name}">${key}</span></div>
+      <div class="tier-body" data-tier="${key}">
+        ${items.map(w => `
+          <div class="wish-card ${w.bought ? 'bought' : ''}" draggable="true" data-id="${w.id}"
+               style="--wc:${t.c}55; --wc-glow:${t.c}33">
+            <div class="wish-photo" style="${photoStyle(w.hue, 74)}">${I.image}</div>
+            <div class="wish-info">
+              <div class="wish-name">${w.name}</div>
+              <div class="wish-price">${I.coin} ${fmtBRL(w.value)}</div>
+              ${w.planet ? `<div class="wish-chips"><span class="chip planet">${I.planet} ${w.planet}</span></div>` : ''}
+            </div>
+          </div>`).join('') || '<div class="tier-empty">Arraste desejos para cá</div>'}
+      </div>`;
+    tiersEl.appendChild(row);
+  }
+  const tot = wishlist.filter(w => !w.bought).reduce((s, w) => s + w.value, 0);
+  document.getElementById('wishTotal').innerHTML = `total dos desejos: <b>${fmtBRL(tot)}</b>`;
+
+  // drag & drop — reordena dentro da row (drop num card) ou move de tier (drop na área vazia)
+  tiersEl.querySelectorAll('.wish-card').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      card.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    card.addEventListener('click', () => openWishDetail(+card.dataset.id));
+    card.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); });
+    card.addEventListener('dragenter', () => card.classList.add('drop-hint'));
+    card.addEventListener('dragleave', () => card.classList.remove('drop-hint'));
+    card.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation();
+      card.classList.remove('drop-hint');
+      const draggedId = +e.dataTransfer.getData('text/plain');
+      const targetId = +card.dataset.id;
+      if (draggedId === targetId) return;
+      const rect = card.getBoundingClientRect();
+      const placeAfter = e.clientX >= rect.left + rect.width / 2;
+      const prevTier = moveWish(draggedId, targetId, placeAfter);
+      renderWishlist(); syncWishSelects();
+      const w = wishById(draggedId);
+      if (prevTier && prevTier !== w.tier){
+        const up = ['S','A','B','C'].indexOf(w.tier) < ['S','A','B','C'].indexOf(prevTier);
+        if (up) burstAt(e.clientX, e.clientY, [TIERS[w.tier].c, '#fff', TIERS[w.tier].c]);
+      }
+    });
+  });
+  tiersEl.querySelectorAll('.tier-body').forEach(body => {
+    body.addEventListener('dragover', e => { e.preventDefault(); body.classList.add('dragover'); });
+    body.addEventListener('dragleave', () => body.classList.remove('dragover'));
+    body.addEventListener('drop', e => {
+      e.preventDefault(); body.classList.remove('dragover');
+      const draggedId = +e.dataTransfer.getData('text/plain');
+      const prevTier = moveWish(draggedId, null, false, body.dataset.tier);
+      renderWishlist(); syncWishSelects();
+      const w = wishById(draggedId);
+      if (prevTier && prevTier !== w.tier){
+        const up = ['S','A','B','C'].indexOf(w.tier) < ['S','A','B','C'].indexOf(prevTier);
+        if (up) burstAt(e.clientX, e.clientY, [TIERS[w.tier].c, '#fff', TIERS[w.tier].c]);
+      }
+    });
+  });
+}
+// move um desejo para perto de outro (targetId) ou para o fim de um tier (viaTier); retorna o tier anterior
+function moveWish(draggedId, targetId, placeAfter, viaTier){
+  const dragged = wishById(draggedId);
+  if (!dragged) return null;
+  const prevTier = dragged.tier;
+  const targetTier = targetId != null ? wishById(targetId).tier : viaTier;
+  dragged.tier = targetTier;
+  const idx = wishlist.indexOf(dragged);
+  wishlist.splice(idx, 1);
+  let insertIdx;
+  if (targetId != null){
+    const targetIdx = wishlist.indexOf(wishById(targetId));
+    insertIdx = targetIdx + (placeAfter ? 1 : 0);
+  } else {
+    let lastIdx = -1;
+    wishlist.forEach((w, i) => { if (w.tier === targetTier) lastIdx = i; });
+    insertIdx = lastIdx + 1;
+  }
+  wishlist.splice(insertIdx, 0, dragged);
+  return prevTier;
+}
+
+/* modal novo desejo */
+const wishModal = document.getElementById('wishModal');
+let wHue = HUES[0], wTier = 'A';
+const wHuesEl = document.getElementById('wHues');
+HUES.forEach((h, i) => {
+  const s = document.createElement('div');
+  s.className = 'hue-sw' + (i === 0 ? ' sel' : '');
+  s.style.background = `linear-gradient(135deg, hsl(${h},45%,38%), hsl(${(h+40)%360},55%,22%))`;
+  s.addEventListener('click', () => {
+    wHue = h;
+    wHuesEl.querySelectorAll('.hue-sw').forEach(x => x.classList.remove('sel'));
+    s.classList.add('sel');
+  });
+  wHuesEl.appendChild(s);
+});
+const wTierSel = document.getElementById('wTierSel');
+for (const key of ['S','A','B','C']){
+  const o = document.createElement('div');
+  o.className = 'tier-opt' + (key === 'A' ? ' sel' : '');
+  o.textContent = key;
+  o.style.cssText = `--to-c:${TIERS[key].c}; --to-bg:${TIERS[key].bg1}`;
+  o.addEventListener('click', () => {
+    wTier = key;
+    wTierSel.querySelectorAll('.tier-opt').forEach(x => x.classList.remove('sel'));
+    o.classList.add('sel');
+  });
+  wTierSel.appendChild(o);
+}
+document.getElementById('addWishBtn').addEventListener('click', () => {
+  ['wName','wValue','wDesc','wLink'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('wPlanet').value = '';
+  wishModal.classList.add('open');
+  setTimeout(() => document.getElementById('wName').focus(), 50);
+});
+document.getElementById('wCancel').addEventListener('click', () => wishModal.classList.remove('open'));
+wishModal.addEventListener('click', e => { if (e.target === wishModal) wishModal.classList.remove('open'); });
+document.getElementById('wCreate').addEventListener('click', () => {
+  const name = document.getElementById('wName').value.trim();
+  if (!name){ document.getElementById('wName').focus(); return; }
+  wishlist.push({
+    id: wid++, name, value: +document.getElementById('wValue').value || 0,
+    hue: wHue, tier: wTier, planet: document.getElementById('wPlanet').value,
+    desc: document.getElementById('wDesc').value.trim(), link: document.getElementById('wLink').value.trim(),
+    bought: false
+  });
+  wishModal.classList.remove('open');
+  renderWishlist(); syncWishSelects();
+});
+
+/* detalhe do desejo */
+const wishDetail = document.getElementById('wishDetail');
+const wishDetailBody = document.getElementById('wishDetailBody');
+wishDetail.addEventListener('click', e => { if (e.target === wishDetail) wishDetail.classList.remove('open'); });
+function openWishDetail(id){
+  const w = wishById(id);
+  if (!w) return;
+  const t = TIERS[w.tier];
+  wishDetailBody.innerHTML = `
+    <div class="wish-hero" style="${photoStyle(w.hue, 120)}">${I.image}</div>
+    <h2 style="margin-bottom:12px">${w.name} ${w.bought ? '<span style="font-size:11px; color:var(--green)">✓ comprado</span>' : ''}</h2>
+    <div class="wd-row">${I.coin} <b>${fmtBRL(w.value)}</b></div>
+    ${w.planet ? `<div class="wd-row">${I.planet} Participa do planeta <span style="color:#c9b6ff">${w.planet}</span> no Desenvolver/Criar</div>` : ''}
+    ${w.desc ? `<div class="wd-row" style="align-items:flex-start"><span style="line-height:1.55">${w.desc}</span></div>` : ''}
+    ${w.link ? `<div class="wd-row">${I.ext} <a href="${w.link}" target="_blank" rel="noopener">Link de compra</a></div>` : ''}
+    <div class="field" style="margin-top:16px"><label>Tier</label><div class="tier-select" id="wdTierSel"></div></div>
+    <div class="actions">
+      <button class="btn" id="wdDelete" style="color:#ff8f8f; margin-right:auto">${I.trash} Excluir</button>
+      <button class="btn" id="wdClose">Fechar</button>
+    </div>`;
+  const sel = wishDetailBody.querySelector('#wdTierSel');
+  for (const key of ['S','A','B','C']){
+    const o = document.createElement('div');
+    o.className = 'tier-opt' + (key === w.tier ? ' sel' : '');
+    o.textContent = key;
+    o.style.cssText = `--to-c:${TIERS[key].c}; --to-bg:${TIERS[key].bg1}`;
+    o.addEventListener('click', () => { w.tier = key; renderWishlist(); openWishDetail(id); });
+    sel.appendChild(o);
+  }
+  wishDetailBody.querySelector('#wdClose').addEventListener('click', () => wishDetail.classList.remove('open'));
+  wishDetailBody.querySelector('#wdDelete').addEventListener('click', () => {
+    const i = wishlist.indexOf(w); if (i >= 0) wishlist.splice(i, 1);
+    wishDetail.classList.remove('open');
+    renderWishlist(); syncWishSelects();
+  });
+  wishDetail.classList.add('open');
+}
+
+/* selects que referenciam a wishlist (tarefas + finanças) */
+function syncWishSelects(){
+  const opts = wishlist.filter(w => !w.bought)
+    .map(w => `<option value="${w.id}">${w.name} — ${fmtBRL(w.value)}</option>`).join('');
+  document.getElementById('tWish').innerHTML = '<option value="">Nenhum</option>' + opts;
+}
+
+/* ============================== TAREFAS ============================== */
+const sectionsNav = document.getElementById('sectionsNav');
+const stackHead = document.getElementById('stackHead');
+const stackBody = document.getElementById('stackBody');
+let activeSectionId = 'geral';
+function stageDotsHTML(t){
+  const doneCount = t.stages.filter(s => s.done).length;
+  let html = '<div class="stage-dots">';
+  t.stages.forEach((s, i) => {
+    const cls = s.done ? 'done' : (i === doneCount ? 'current' : '');
+    html += `<span class="sd ${cls}"></span>`;
+    if (i < t.stages.length - 1) html += `<span class="sd-line ${i < doneCount ? 'done' : ''}"></span>`;
+  });
+  return html + '</div>';
+}
+function taskCardHTML(t){
+  const done = t.stages.filter(s => s.done).length;
+  const w = wishById(t.fin ? t.fin.wishId : t.wishRef);
+  return `
+    <div class="task-card" draggable="true" data-id="${t.id}">
+      ${t.deadline ? `<span class="task-deadline ${deadlineUrgency(t.deadline)}">${I.clock} ${fmtDeadlineShort(t.deadline)}</span>` : ''}
+      <div class="task-title"><span class="task-grip">${I.grip}</span><span class="task-title-text">${t.title}</span></div>
+      <div class="task-meta">
+        <span class="task-stage">etapa ${Math.min(done + 1, t.stages.length)}/${t.stages.length}</span>
+        ${stageDotsHTML(t)}
+        ${t.fin ? `<span class="chip money">${I.coin} ${fmtBRL(t.fin.value)}</span>` : ''}
+        ${w ? `<span class="chip wish">${I.spark} ${w.name}</span>` : ''}
+      </div>
+    </div>`;
+}
+// tarefas de uma seção, na ordem certa pro modo de visualização atual (não altera os dados)
+function tasksForSection(sec){
+  const items = tasks.filter(t => t.sectionId === sec.id);
+  if (sec.sort === 'date'){
+    const withDl = items.filter(t => t.deadline).sort((a, b) => a.deadline - b.deadline);
+    const withoutDl = items.filter(t => !t.deadline);
+    return [...withDl, ...withoutDl];
+  }
+  return items;
+}
+function renderTasks(){
+  if (!sectionById(activeSectionId)) activeSectionId = 'geral';
+
+  // nav lateral com todas as seções
+  sectionsNav.innerHTML = sections.map(sec => {
+    const count = tasks.filter(t => t.sectionId === sec.id).length;
+    return `
+    <div class="section-nav-item ${sec.id === activeSectionId ? 'sel' : ''}" data-section="${sec.id}" style="--sd-glow:hsl(${sec.hue},70%,60%)77">
+      <span class="section-dot" style="background:hsl(${sec.hue},65%,60%)"></span>
+      <span class="section-nav-name">${sec.name}</span>
+      <span class="section-nav-count">${count}</span>
+      ${!sec.locked ? `<button class="icon-btn section-nav-del" title="Excluir seção">${I.trash}</button>` : ''}
+    </div>`;
+  }).join('') + `<button class="btn section-nav-add" id="addSectionBtn">${I.plus} Nova seção</button>`;
+
+  sectionsNav.querySelectorAll('.section-nav-item').forEach(item => {
+    item.addEventListener('click', () => { activeSectionId = item.dataset.section; renderTasks(); });
+    item.addEventListener('dragover', e => { e.preventDefault(); item.classList.add('dragover'); });
+    item.addEventListener('dragleave', () => item.classList.remove('dragover'));
+    item.addEventListener('drop', e => {
+      e.preventDefault(); item.classList.remove('dragover');
+      const draggedId = +e.dataTransfer.getData('text/plain');
+      moveTaskToSection(draggedId, item.dataset.section);
+      renderTasksFlip();
+    });
+    const delBtn = item.querySelector('.section-nav-del');
+    if (delBtn) delBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = item.dataset.section;
+      tasks.forEach(t => { if (t.sectionId === id) t.sectionId = 'geral'; });
+      const i = sections.findIndex(s => s.id === id);
+      if (i >= 0) sections.splice(i, 1);
+      if (activeSectionId === id) activeSectionId = 'geral';
+      renderTasks();
+      showToast('Seção excluída — tarefas movidas para Geral');
+    });
+  });
+  document.getElementById('addSectionBtn').addEventListener('click', openSectionModal);
+
+  // painel da pilha em foco
+  const sec = sectionById(activeSectionId);
+  const items = tasksForSection(sec);
+  stackHead.style.setProperty('--sd-glow', `hsl(${sec.hue},70%,60%)`);
+  stackHead.innerHTML = `
+    <span class="section-dot" style="background:hsl(${sec.hue},65%,60%)"></span>
+    <span class="section-name">${sec.name}</span>
+    <div class="section-filter">
+      <button class="sf-btn ${sec.sort === 'custom' ? 'sel' : ''}" data-sort="custom">Personalizado</button>
+      <button class="sf-btn ${sec.sort === 'date' ? 'sel' : ''}" data-sort="date">Data</button>
+    </div>
+    <button class="icon-btn section-add" title="Adicionar tarefa nesta seção">${I.plus}</button>`;
+  stackHead.querySelectorAll('.sf-btn').forEach(btn => btn.addEventListener('click', () => {
+    sec.sort = btn.dataset.sort;
+    renderTasks();
+  }));
+  stackHead.querySelector('.section-add').addEventListener('click', () => openTaskModal(sec.id));
+
+  stackBody.dataset.section = sec.id;
+  stackBody.innerHTML = items.map(taskCardHTML).join('') || '<div class="section-empty">Nenhuma tarefa aqui ainda.</div>';
+
+  stackBody.querySelectorAll('.task-card').forEach(card => {
+    card.addEventListener('click', () => openTaskDetail(+card.dataset.id));
+    card.addEventListener('dragstart', e => {
+      card.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    card.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); });
+    card.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation();
+      const draggedId = +e.dataTransfer.getData('text/plain');
+      const targetId = +card.dataset.id;
+      if (draggedId === targetId) return;
+      if (sec.sort === 'date') return; // ordem é derivada da data
+      const rect = card.getBoundingClientRect();
+      const placeAfter = e.clientY >= rect.top + rect.height / 2;
+      moveTask(draggedId, targetId, placeAfter);
+      renderTasksFlip();
+    });
+  });
+
+  renderDone();
+}
+// listeners do container da pilha — registrados uma única vez (o elemento persiste entre renders)
+stackBody.addEventListener('dragover', e => { e.preventDefault(); stackBody.classList.add('dragover'); });
+stackBody.addEventListener('dragleave', () => stackBody.classList.remove('dragover'));
+stackBody.addEventListener('drop', e => {
+  e.preventDefault(); stackBody.classList.remove('dragover');
+  const draggedId = +e.dataTransfer.getData('text/plain');
+  moveTaskToSection(draggedId, stackBody.dataset.section);
+  renderTasksFlip();
+});
+// move uma tarefa pra perto de outra (targetId), dentro da mesma seção ou trocando de seção
+function moveTask(draggedId, targetId, placeAfter){
+  const dragged = tasks.find(x => x.id === draggedId);
+  const target = tasks.find(x => x.id === targetId);
+  dragged.sectionId = target.sectionId;
+  const idx = tasks.indexOf(dragged);
+  tasks.splice(idx, 1);
+  const targetIdx = tasks.indexOf(target);
+  tasks.splice(targetIdx + (placeAfter ? 1 : 0), 0, dragged);
+}
+// move uma tarefa pro fim de uma seção (drop em área vazia)
+function moveTaskToSection(draggedId, sectionId){
+  const dragged = tasks.find(x => x.id === draggedId);
+  if (!dragged || dragged.sectionId === sectionId) return;
+  dragged.sectionId = sectionId;
+  const idx = tasks.indexOf(dragged);
+  tasks.splice(idx, 1);
+  let lastIdx = -1;
+  tasks.forEach((t, i) => { if (t.sectionId === sectionId) lastIdx = i; });
+  tasks.splice(lastIdx + 1, 0, dragged);
+}
+// FLIP: anima a troca de posição das tarefas ao reordenar
+function renderTasksFlip(){
+  const before = new Map();
+  stackBody.querySelectorAll('.task-card').forEach(el => before.set(+el.dataset.id, el.getBoundingClientRect()));
+  renderTasks();
+  requestAnimationFrame(() => {
+    stackBody.querySelectorAll('.task-card').forEach(el => {
+      const old = before.get(+el.dataset.id);
+      if (!old) return;
+      const now = el.getBoundingClientRect();
+      const dx = old.left - now.left, dy = old.top - now.top;
+      if (Math.abs(dx) > 1 || Math.abs(dy) > 1){
+        el.animate(
+          [{transform:`translate(${dx}px,${dy}px)`}, {transform:'translate(0,0)'}],
+          {duration:320, easing:'cubic-bezier(.22,.7,.32,1)'}
+        );
+      }
+    });
+  });
+}
+function renderDone(){
+  document.getElementById('doneFoldBtn').innerHTML = `${I.chev} Concluídas (${doneTasks.length})`;
+  document.getElementById('doneList').innerHTML = doneTasks.map(t =>
+    `<div class="done-item">${I.check} ${t.title}${t.fin ? ` <span class="chip money" style="margin-left:auto">${I.coin} ${fmtBRL(t.fin.value)}</span>` : ''}</div>`).join('');
+}
+document.getElementById('doneFoldBtn').addEventListener('click', () =>
+  document.getElementById('doneList').classList.toggle('open'));
+
+/* modal nova tarefa */
+const taskModal = document.getElementById('taskModal');
+const stageInputs = document.getElementById('stageInputs');
+function addStageInput(val){
+  const row = document.createElement('div');
+  row.className = 'stage-input-row';
+  row.innerHTML = `<input type="text" maxlength="60" placeholder="Ex.: Separar materiais" value="${val || ''}">
+    <button class="icon-btn">${I.close}</button>`;
+  row.querySelector('.icon-btn').addEventListener('click', () => {
+    if (stageInputs.children.length > 1) row.remove();
+  });
+  stageInputs.appendChild(row);
+}
+document.getElementById('addStageBtn').addEventListener('click', () => addStageInput());
+const finCheck = document.getElementById('finCheck');
+finCheck.querySelector('.cbox').innerHTML = I.check;
+finCheck.addEventListener('click', () => {
+  finCheck.classList.toggle('sel');
+  document.getElementById('finCascade').classList.toggle('open', finCheck.classList.contains('sel'));
+});
+const tSectionSel = document.getElementById('tSection');
+function syncSectionSelects(){
+  tSectionSel.innerHTML = sections.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+}
+function openTaskModal(sectionId){
+  document.getElementById('tTitle').value = '';
+  document.getElementById('tDeadline').value = '';
+  document.getElementById('tValue').value = '';
+  document.getElementById('tWish').value = '';
+  syncSectionSelects();
+  tSectionSel.value = sectionId || 'geral';
+  stageInputs.innerHTML = ''; addStageInput();
+  finCheck.classList.remove('sel');
+  document.getElementById('finCascade').classList.remove('open');
+  taskModal.classList.add('open');
+  setTimeout(() => document.getElementById('tTitle').focus(), 50);
+}
+document.getElementById('addTaskBtn').addEventListener('click', () => openTaskModal(activeSectionId));
+document.getElementById('tCancel').addEventListener('click', () => taskModal.classList.remove('open'));
+taskModal.addEventListener('click', e => { if (e.target === taskModal) taskModal.classList.remove('open'); });
+document.getElementById('tCreate').addEventListener('click', () => {
+  const title = document.getElementById('tTitle').value.trim();
+  if (!title){ document.getElementById('tTitle').focus(); return; }
+  const stages = [...stageInputs.querySelectorAll('input')]
+    .map(i => i.value.trim()).filter(Boolean).map(t => ({t, done:false}));
+  if (!stages.length){ stageInputs.querySelector('input').focus(); return; }
+  let fin = null;
+  if (finCheck.classList.contains('sel')){
+    fin = {value: +document.getElementById('tValue').value || 0,
+           wishId: +document.getElementById('tWish').value || null};
+  }
+  const dlVal = document.getElementById('tDeadline').value;
+  const deadline = dlVal ? new Date(dlVal + 'T23:59:59').getTime() : null;
+  tasks.push({id: tid++, title, sectionId: tSectionSel.value, stages, fin, deadline, done:false});
+  taskModal.classList.remove('open');
+  renderTasks();
+});
+
+/* modal nova seção */
+const sectionModal = document.getElementById('sectionModal');
+let secHue = HUES[0];
+const secHuesEl = document.getElementById('secHues');
+HUES.forEach((h, i) => {
+  const s = document.createElement('div');
+  s.className = 'hue-sw' + (i === 0 ? ' sel' : '');
+  s.style.background = `linear-gradient(135deg, hsl(${h},45%,38%), hsl(${(h+40)%360},55%,22%))`;
+  s.addEventListener('click', () => {
+    secHue = h;
+    secHuesEl.querySelectorAll('.hue-sw').forEach(x => x.classList.remove('sel'));
+    s.classList.add('sel');
+  });
+  secHuesEl.appendChild(s);
+});
+function openSectionModal(){
+  document.getElementById('secName').value = '';
+  sectionModal.classList.add('open');
+  setTimeout(() => document.getElementById('secName').focus(), 50);
+}
+document.getElementById('secCancel').addEventListener('click', () => sectionModal.classList.remove('open'));
+sectionModal.addEventListener('click', e => { if (e.target === sectionModal) sectionModal.classList.remove('open'); });
+document.getElementById('secCreate').addEventListener('click', () => {
+  const name = document.getElementById('secName').value.trim();
+  if (!name){ document.getElementById('secName').focus(); return; }
+  const newSec = {id: 's' + secId++, name, hue: secHue, locked:false, sort:'custom'};
+  sections.push(newSec);
+  activeSectionId = newSec.id;
+  sectionModal.classList.remove('open');
+  renderTasks();
+});
+
+/* detalhe da tarefa */
+const taskDetail = document.getElementById('taskDetail');
+const taskDetailBody = document.getElementById('taskDetailBody');
+taskDetail.addEventListener('click', e => { if (e.target === taskDetail) taskDetail.classList.remove('open'); });
+function openTaskDetail(id){
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  const doneCount = t.stages.filter(s => s.done).length;
+  const finished = doneCount === t.stages.length;
+  const w = wishById(t.fin ? t.fin.wishId : t.wishRef);
+  taskDetailBody.innerHTML = `
+    <h2 style="margin-bottom:6px">${t.title}</h2>
+    <div style="display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap">
+      ${t.fin ? `<span class="chip money">${I.coin} conquista ${fmtBRL(t.fin.value)}</span>` : ''}
+      ${w ? `<span class="chip wish">${I.spark} ${w.name}</span>` : ''}
+    </div>
+    <div>${t.stages.map((s, i) => `
+      <div class="stage-line ${s.done ? 'done' : ''} ${!s.done && i === doneCount ? 'current' : ''}" data-i="${i}">
+        <span class="stage-dot">${I.check}</span><span class="stage-txt">${s.t}</span>
+      </div>`).join('')}</div>
+    <button class="btn primary advance-btn" id="advanceBtn">
+      ${finished ? 'Tarefa concluída' : I.check + ' Concluir etapa'}
+    </button>
+    <div class="actions" style="margin-top:14px">
+      <button class="btn" id="tdDelete" style="color:#ff8f8f; margin-right:auto">${I.trash}</button>
+      <button class="btn" id="tdClose">Fechar</button>
+    </div>`;
+  const adv = taskDetailBody.querySelector('#advanceBtn');
+  if (finished) adv.disabled = true;
+  adv.addEventListener('click', e => {
+    const next = t.stages.find(s => !s.done);
+    if (!next) return;
+    next.done = true;
+    const r = adv.getBoundingClientRect();
+    if (t.stages.every(s => s.done)){
+      // tarefa completa!
+      burstAt(r.left + r.width / 2, r.top, ['#6ea8ff', '#ffd66e', '#4ade80', '#f472b6']);
+      t.done = true;
+      const i = tasks.indexOf(t); tasks.splice(i, 1);
+      doneTasks.unshift(t);
+      if (t.fin && t.fin.value > 0){
+        incomes.push({id: incId++, source: 'Tarefa · ' + t.title, value: t.fin.value, fromTask: true});
+        showToast(`${fmtBRL(t.fin.value)} conquistados foram pro cofrinho!`);
+        renderFinance();
+      } else showToast('Tarefa concluída!');
+      setTimeout(() => taskDetail.classList.remove('open'), 900);
+      renderTasks();
+      openTaskDetail(id); // re-render estado final enquanto fecha
+    } else {
+      burstAt(r.left + r.width / 2, r.top, ['#6ea8ff', '#9fc3ff']);
+      renderTasks();
+      openTaskDetail(id);
+    }
+  });
+  taskDetailBody.querySelectorAll('.stage-line.done').forEach(line => line.addEventListener('click', () => {
+    const i = +line.dataset.i;
+    for (let j = i; j < t.stages.length; j++) t.stages[j].done = false;
+    renderTasks();
+    openTaskDetail(id);
+  }));
+  taskDetailBody.querySelector('#tdClose').addEventListener('click', () => taskDetail.classList.remove('open'));
+  taskDetailBody.querySelector('#tdDelete').addEventListener('click', () => {
+    const i = tasks.indexOf(t); if (i >= 0) tasks.splice(i, 1);
+    taskDetail.classList.remove('open');
+    renderTasks();
+  });
+  taskDetail.classList.add('open');
+}
+
+/* ============================== FINANÇAS ============================== */
+/* --- porquinho SVG --- */
+// arte do porquinho (fornecida pelo usuário) — silhueta completa, viewBox 0 0 1254 1254
+const PIG_ART = `
+<path fill="#FD9DBA" stroke="none" d="M1113.987305,736.855713C1106.735352,738.225952 1099.515869,739.808716 1092.224609,740.921509C1077.973999,743.096375 1063.672485,744.937622 1049.425903,747.136597C1047.954102,747.363831 1046.139282,748.783630 1045.447754,750.141174C1034.240967,772.136414 1020.900391,792.720154 1005.136658,811.719666C991.085938,828.654419 975.513489,844.072937 958.308838,857.783142C949.752991,864.601135 940.833557,870.962891 931.545654,877.842712C930.251465,878.479858 929.462158,878.752441 928.733032,879.138672C912.151855,887.920959 895.548645,896.662659 879.049194,905.596191C877.527649,906.419983 876.085693,908.315369 875.613953,909.995911C873.376648,917.965698 871.463867,926.027466 869.481323,934.067749C864.012024,956.248657 858.565491,978.435242 853.109985,1000.619568C844.896667,1011.777649 832.870300,1013.731934 820.285583,1013.915100C806.176208,1014.120422 792.056641,1014.161377 777.951050,1013.846130C772.178040,1013.717163 766.319580,1012.939758 760.694336,1011.625549C749.924683,1009.109253 743.692078,1001.826660 741.055481,991.223267C736.607910,973.337585 732.093384,955.468567 727.449707,936.965698C662.052551,951.142090 596.308411,952.630432 529.525879,943.930908C507.740479,938.892029 486.603210,934.359192 465.633270,929.152466C460.812836,927.955566 459.185944,928.751831 458.046997,933.315063C452.523590,955.445312 446.786530,977.522156 441.125153,999.617920C434.336426,1010.388550 423.591797,1013.486267 411.933594,1013.798828C396.001770,1014.225830 380.048218,1014.052917 364.108063,1013.836792C358.998413,1013.767517 353.843292,1013.052734 348.811493,1012.094910C339.023621,1010.231750 333.208069,1003.567749 331.218689,994.376953C321.593903,949.911255 312.401306,905.352112 302.900269,860.859192C302.437469,858.691895 300.962860,856.218506 299.198486,854.927612C254.262970,822.049805 222.573563,779.224548 202.909744,727.305969C192.826202,700.682312 187.213348,673.136292 185.889236,644.704712C185.642014,639.396362 185.304138,634.092285 184.999115,627.858154C184.993835,619.622925 184.997543,612.315857 185.001251,605.008728C186.793274,563.179688 196.265686,523.185486 213.459671,484.995087C232.382812,442.963959 258.893677,406.439209 293.088501,375.587891C320.632477,350.737030 351.893707,331.487335 385.655792,316.346710C419.794800,301.037109 455.415070,290.160675 492.216034,283.604401C512.946228,279.911285 533.899536,277.243073 554.853516,275.105896C571.856262,273.371735 589.020325,272.236237 606.093872,272.438843C625.831665,272.673157 645.580200,274.295197 665.266968,275.981201C692.778992,278.337402 719.987366,282.921997 746.661377,290.080780C762.862793,294.428864 778.817261,299.722687 794.788696,304.882568C798.476440,306.073944 800.274475,305.712860 802.151489,302.041534C812.376953,282.041199 825.526978,264.054138 841.502563,248.305176C851.333679,238.613556 861.968079,229.760849 874.570312,223.634415C892.721924,214.810120 898.738586,222.073471 904.647095,234.931763C911.757996,250.406998 915.410583,267.028687 917.984619,283.845886C918.536377,287.450745 919.020508,291.065887 919.781250,295.433838C920.686035,310.596283 921.756592,324.999146 921.828796,339.407013C921.864136,346.452179 922.557495,351.819397 930.619446,353.523376C932.786682,353.981537 934.785522,355.567902 936.690186,356.884460C951.668762,367.238800 966.604614,377.654877 981.556152,388.048431C985.410828,390.728027 989.273926,393.395477 993.133240,396.068481C993.941711,397.437805 994.510071,399.044159 995.593567,400.142090C1029.519531,434.520874 1053.965210,474.488342 1067.247437,521.100952C1069.479980,528.936218 1077.047485,534.254211 1086.147461,535.010803C1095.236206,535.766479 1104.315308,536.639343 1113.649658,538.079956C1111.156982,540.751038 1108.130859,542.518555 1105.721313,544.907654C1098.002930,552.560669 1093.248047,562.065491 1089.859985,572.238098C1080.516235,600.293457 1077.073364,629.015747 1079.905029,658.534119C1081.448242,674.620178 1084.299072,690.341980 1090.011963,705.485718C1093.554443,714.876587 1097.748413,723.929810 1105.382446,730.788635C1107.974976,733.117920 1111.103638,734.850464 1113.987305,736.855713M673.109436,361.212891C683.443909,362.845581 693.837708,364.177979 704.094360,366.204620C712.520691,367.869568 717.504395,361.828217 718.693542,356.127197C720.122192,349.278656 715.610291,342.515381 708.680359,341.252563C677.400879,335.552551 645.865845,332.068481 614.087219,331.204285C580.958740,330.303345 547.866089,331.201874 514.926331,335.143646C501.078461,336.800720 487.285553,338.928131 473.482941,340.946045C468.786987,341.632599 465.722656,344.621643 463.997772,348.889374C462.020844,353.780670 462.816742,358.384857 466.161621,362.455688C470.093750,367.241211 475.349915,366.377960 480.483429,365.512787C511.331970,360.313660 542.398193,357.134003 573.650024,356.132904C606.623962,355.076660 639.484314,357.078674 673.109436,361.212891M877.092957,383.541229C882.432617,380.495728 887.869263,377.602539 893.047058,374.303070C894.428833,373.422577 895.794922,371.329315 895.856506,369.741943C896.949280,341.589050 894.967712,313.699097 887.832336,286.337891C886.311096,280.504608 884.293701,274.800720 882.183167,268.000397C879.381042,270.078918 877.542969,271.137085 876.079834,272.576324C865.309204,283.171082 857.024048,295.645782 850.149780,308.943817C832.828735,342.450531 824.793152,377.842621 830.038208,415.652039C830.285889,417.437592 831.281677,419.119385 831.929016,420.849487C833.519653,419.818146 835.383789,419.048248 836.658447,417.714844C848.756897,405.058380 861.771851,393.504211 877.092957,383.541229M924.383179,545.570862C926.222229,552.383484 926.829956,559.874451 930.137329,565.878235C939.127563,582.198059 960.368652,584.355530 973.412598,571.046875C983.577515,560.675720 985.995728,543.154846 979.238464,529.209412C973.955994,518.307617 965.375732,512.225586 953.194580,512.388733C940.923706,512.552979 932.504272,519.148071 927.906860,530.226990C926.031555,534.746155 925.545715,539.841919 924.383179,545.570862z"/>
+<path fill="#EE729D" stroke="none" d="M1114.429810,736.890259C1111.103638,734.850464 1107.974976,733.117920 1105.382446,730.788635C1097.748413,723.929810 1093.554443,714.876587 1090.011963,705.485718C1084.299072,690.341980 1081.448242,674.620178 1079.905029,658.534119C1077.073364,629.015747 1080.516235,600.293457 1089.859985,572.238098C1093.248047,562.065491 1098.002930,552.560669 1105.721313,544.907654C1108.130859,542.518555 1111.156982,540.751038 1113.950439,538.355408C1127.426392,536.832764 1135.957397,543.945312 1142.231689,554.771484C1151.157349,570.172607 1155.218140,587.134033 1157.668213,604.519531C1161.539062,631.987183 1160.392822,659.306641 1154.016724,686.313538C1150.792358,699.970398 1146.326172,713.210266 1138.020508,724.800537C1132.342285,732.724304 1125.111450,737.700806 1114.429810,736.890259M1128.123535,650.313599C1128.908447,652.835083 1129.378174,655.516541 1130.556763,657.838135C1132.090210,660.858643 1134.932007,660.871704 1136.780518,658.047180C1137.578125,656.828308 1138.120605,655.356323 1138.438843,653.923767C1140.992554,642.425171 1141.171021,630.850098 1138.544556,619.384705C1138.013306,617.065308 1135.512085,615.197144 1133.919067,613.120911C1132.328003,615.035034 1129.953857,616.708862 1129.280029,618.904480C1126.205933,628.923157 1126.503174,639.195801 1128.123535,650.313599M1099.811035,624.389465C1099.815430,632.828247 1099.694336,641.270203 1099.908081,649.703674C1099.965088,651.957825 1100.738647,654.338867 1101.756958,656.374695C1102.483765,657.827698 1104.382202,659.919250 1105.378662,659.729980C1106.929688,659.435425 1108.321167,657.573669 1109.462402,656.125427C1110.130859,655.277100 1110.451172,653.947083 1110.469971,652.826111C1110.653320,641.916687 1110.794067,631.005615 1110.786865,620.095154C1110.785889,618.686279 1110.059937,617.177185 1109.352661,615.888550C1107.309326,612.166382 1104.171143,612.126648 1102.307373,615.953369C1101.161133,618.306458 1100.717407,621.001648 1099.811035,624.389465z"/>
+<path fill="#F685AA" stroke="none" d="M993.378235,395.830444C989.273926,393.395477 985.410828,390.728027 981.556152,388.048431C966.604614,377.654877 951.668762,367.238800 936.690186,356.884460C934.785522,355.567902 932.786682,353.981537 930.619446,353.523376C922.557495,351.819397 921.864136,346.452179 921.828796,339.407013C921.756592,324.999146 920.686035,310.596283 920.049072,295.759186C933.161926,279.833649 947.881897,266.205872 965.536255,256.009979C975.356323,250.338669 985.407593,245.251709 996.872070,243.570633C1005.580872,242.293625 1011.380920,245.126572 1013.785828,253.572815C1015.498413,259.587921 1016.799866,265.985748 1016.721375,272.192993C1016.523804,287.799683 1016.617065,303.564514 1014.402527,318.950592C1011.857178,336.635223 1007.357971,354.084229 1002.900940,371.428345C1000.767761,379.729523 996.774170,387.552704 993.378235,395.830444z"/>
+<path fill="#F178A1" stroke="none" d="M853.565186,1000.690063C858.565491,978.435242 864.012024,956.248657 869.481323,934.067749C871.463867,926.027466 873.376648,917.965698 875.613953,909.995911C876.085693,908.315369 877.527649,906.419983 879.049194,905.596191C895.548645,896.662659 912.151855,887.920959 928.733032,879.138672C929.462158,878.752441 930.251465,878.479858 931.340210,878.135010C925.653870,906.251709 919.660339,934.392029 913.609436,962.520081C912.385559,968.209412 911.092773,973.892212 909.573303,979.507996C906.145752,992.176086 897.596191,999.210571 884.453003,999.891113C874.320984,1000.415771 864.165466,1000.487427 853.565186,1000.690063z"/>
+<path fill="#F380A6" stroke="none" d="M184.627441,605.063965C184.997543,612.315857 184.993835,619.622925 185.006653,627.382202C177.642242,628.863464 170.249191,630.768066 162.883987,630.665894C156.047455,630.571045 149.267853,628.151245 142.407349,627.130188C139.675110,626.723572 136.449051,626.540161 134.036530,627.597900C121.376549,633.148499 108.437035,634.999817 95.211136,630.622864C91.556358,629.413330 88.013817,626.554749 85.501633,623.548706C82.640388,620.125061 83.773659,615.843689 86.514458,612.499329C89.170563,609.258240 92.635498,608.169983 96.799324,609.778687C103.576576,612.396912 110.543831,612.809937 118.084694,611.452087C114.912651,607.246765 111.721672,603.652344 109.246849,599.618530C101.207970,586.515625 98.687477,572.651367 105.547234,558.297974C111.367851,546.118896 121.447609,540.346985 134.961578,540.879089C147.992706,541.392334 157.224609,547.739685 162.869064,559.443298C169.828293,573.873108 166.399460,587.615662 160.074768,601.130493C158.960175,603.512146 157.399231,605.684937 155.691696,608.544922C166.050034,611.925354 175.109589,608.116211 184.627441,605.063965M142.497787,589.889709C143.625397,585.246765 145.507416,580.635559 145.704285,575.953491C146.001663,568.881531 139.915771,562.246582 134.336349,562.293457C127.681679,562.349304 122.609726,568.585693 123.005302,576.707458C123.477966,586.412170 129.446426,592.907959 136.530396,599.583923C138.667191,596.156250 140.411026,593.358948 142.497787,589.889709z"/>
+<path fill="#F17AA2" stroke="none" d="M441.571106,999.697876C446.786530,977.522156 452.523590,955.445312 458.046997,933.315063C459.185944,928.751831 460.812836,927.955566 465.633270,929.152466C486.603210,934.359192 507.740479,938.892029 529.135254,943.977051C525.977417,957.307800 523.087280,970.525330 518.855103,983.298218C514.881775,995.289734 504.789124,999.670776 492.911346,999.830261C475.949860,1000.058105 458.982117,999.818054 441.571106,999.697876z"/>
+<path fill="#BE3F6F" stroke="none" d="M672.666992,361.147034C639.484314,357.078674 606.623962,355.076660 573.650024,356.132904C542.398193,357.134003 511.331970,360.313660 480.483429,365.512787C475.349915,366.377960 470.093750,367.241211 466.161621,362.455688C462.816742,358.384857 462.020844,353.780670 463.997772,348.889374C465.722656,344.621643 468.786987,341.632599 473.482941,340.946045C487.285553,338.928131 501.078461,336.800720 514.926331,335.143646C547.866089,331.201874 580.958740,330.303345 614.087219,331.204285C645.865845,332.068481 677.400879,335.552551 708.680359,341.252563C715.610291,342.515381 720.122192,349.278656 718.693542,356.127197C717.504395,361.828217 712.520691,367.869568 704.094360,366.204620C693.837708,364.177979 683.443909,362.845581 672.666992,361.147034z"/>
+<path fill="#E56191" stroke="none" d="M876.801819,383.758209C861.771851,393.504211 848.756897,405.058380 836.658447,417.714844C835.383789,419.048248 833.519653,419.818146 831.929016,420.849487C831.281677,419.119385 830.285889,417.437592 830.038208,415.652039C824.793152,377.842621 832.828735,342.450531 850.149780,308.943817C857.024048,295.645782 865.309204,283.171082 876.079834,272.576324C877.542969,271.137085 879.381042,270.078918 882.183167,268.000397C884.293701,274.800720 886.311096,280.504608 887.832336,286.337891C894.967712,313.699097 896.949280,341.589050 895.856506,369.741943C895.794922,371.329315 894.428833,373.422577 893.047058,374.303070C887.869263,377.602539 882.432617,380.495728 876.801819,383.758209z"/>
+<path fill="#310731" stroke="none" d="M924.405518,545.123169C925.545715,539.841919 926.031555,534.746155 927.906860,530.226990C932.504272,519.148071 940.923706,512.552979 953.194580,512.388733C965.375732,512.225586 973.955994,518.307617 979.238464,529.209412C985.995728,543.154846 983.577515,560.675720 973.412598,571.046875C960.368652,584.355530 939.127563,582.198059 930.137329,565.878235C926.829956,559.874451 926.222229,552.383484 924.405518,545.123169M963.308105,526.992676C957.254272,523.721252 952.088562,524.510132 948.793945,529.209167C945.622986,533.732178 946.305847,540.669556 950.275818,544.262512C954.262085,547.870117 960.439026,547.863342 964.335388,544.247009C968.619690,540.270630 969.003418,534.134521 965.268982,528.911133C964.887451,528.377380 964.366028,527.943604 963.308105,526.992676z"/>
+<path fill="#3F0838" stroke="none" d="M1128.066772,649.890259C1126.503174,639.195801 1126.205933,628.923157 1129.280029,618.904480C1129.953857,616.708862 1132.328003,615.035034 1133.919067,613.120911C1135.512085,615.197144 1138.013306,617.065308 1138.544556,619.384705C1141.171021,630.850098 1140.992554,642.425171 1138.438843,653.923767C1138.120605,655.356323 1137.578125,656.828308 1136.780518,658.047180C1134.932007,660.871704 1132.090210,660.858643 1130.556763,657.838135C1129.378174,655.516541 1128.908447,652.835083 1128.066772,649.890259z"/>
+<path fill="#3D0937" stroke="none" d="M1099.884766,623.966370C1100.717407,621.001648 1101.161133,618.306458 1102.307373,615.953369C1104.171143,612.126648 1107.309326,612.166382 1109.352661,615.888550C1110.059937,617.177185 1110.785889,618.686279 1110.786865,620.095154C1110.794067,631.005615 1110.653320,641.916687 1110.469971,652.826111C1110.451172,653.947083 1110.130859,655.277100 1109.462402,656.125427C1108.321167,657.573669 1106.929688,659.435425 1105.378662,659.729980C1104.382202,659.919250 1102.483765,657.827698 1101.756958,656.374695C1100.738647,654.338867 1099.965088,651.957825 1099.908081,649.703674C1099.694336,641.270203 1099.815430,632.828247 1099.884766,623.966370z"/>
+<path fill="#FDF9FB" stroke="none" d="M142.326324,590.225708C140.411026,593.358948 138.667191,596.156250 136.530396,599.583923C129.446426,592.907959 123.477966,586.412170 123.005302,576.707458C122.609726,568.585693 127.681679,562.349304 134.336349,562.293457C139.915771,562.246582 146.001663,568.881531 145.704285,575.953491C145.507416,580.635559 143.625397,585.246765 142.326324,590.225708z"/>
+<path fill="#F5F3F5" stroke="none" d="M963.608826,527.228027C964.366028,527.943604 964.887451,528.377380 965.268982,528.911133C969.003418,534.134521 968.619690,540.270630 964.335388,544.247009C960.439026,547.863342 954.262085,547.870117 950.275818,544.262512C946.305847,540.669556 945.622986,533.732178 948.793945,529.209167C952.088562,524.510132 957.254272,523.721252 963.608826,527.228027z"/>`;
+
+const piggySvg = document.getElementById('piggySvg');
+const coinPositions = [];
+// janela de moedas embutida na barriga (coordenadas encontradas visualmente na arte acima)
+const BELLY = {cx: 630, cy: 670, rx: 305, ry: 180};
+(function buildPiggy(){
+  const {cx, cy, rx, ry} = BELLY;
+  const coinR = 30;
+  for (let y = cy + ry - 28; y >= cy - ry + 28; y -= 60){
+    const off = Math.round((cy + ry - 28 - y) / 60) % 2 ? 34 : 0;
+    for (let x = cx - rx + 20; x <= cx + rx - 20; x += 68){
+      const dx = (x + off - cx) / (rx - coinR), dy = (y - cy) / (ry - coinR);
+      if (dx * dx + dy * dy <= 1) coinPositions.push({x: x + off, y});
+    }
+  }
+  coinPositions.sort((a, b) => b.y - a.y || a.x - b.x);
+
+  piggySvg.innerHTML = `
+    <defs>
+      <clipPath id="belly"><ellipse cx="${cx}" cy="${cy}" rx="${rx - 6}" ry="${ry - 6}"/></clipPath>
+      <radialGradient id="coinG" cx="35%" cy="35%">
+        <stop offset="0%" stop-color="#ffe9a8"/><stop offset="70%" stop-color="#ffd66e"/><stop offset="100%" stop-color="#d4a545"/>
+      </radialGradient>
+      <radialGradient id="windowG" cx="50%" cy="35%" r="75%">
+        <stop offset="0%" stop-color="rgba(255,255,255,.16)"/><stop offset="100%" stop-color="rgba(255,255,255,.02)"/>
+      </radialGradient>
+    </defs>
+    ${PIG_ART}
+    <!-- janelinha de vidro na barriga, mostrando as moedas guardadas -->
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#windowG)" stroke="rgba(255,255,255,.3)" stroke-width="7"/>
+    <g clip-path="url(#belly)" id="coinLayer"></g>
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="rgba(255,255,255,.32)" stroke-width="7"/>
+    <ellipse cx="${cx}" cy="${cy - ry * .55}" rx="${rx * .5}" ry="${ry * .2}" fill="rgba(255,255,255,.1)"/>`;
+
+  const layer = piggySvg.querySelector('#coinLayer');
+  coinPositions.forEach((p, i) => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    g.setAttribute('cx', p.x); g.setAttribute('cy', p.y); g.setAttribute('r', coinR);
+    g.setAttribute('fill', 'url(#coinG)');
+    g.setAttribute('stroke', '#b8893a'); g.setAttribute('stroke-width', '4');
+    g.classList.add('pig-coin', 'hid');
+    g.dataset.i = i;
+    layer.appendChild(g);
+  });
+})();
+
+let shownCoins = 0;
+function updatePiggy(){
+  const total = totalIncome();
+  const frac = total > 0 ? remaining() / total : 0;
+  const target = Math.round(frac * coinPositions.length);
+  const coins = piggySvg.querySelectorAll('.pig-coin');
+  if (target === shownCoins) return;
+  const dir = target > shownCoins ? 1 : -1;
+  let idx = 0;
+  for (let i = shownCoins; i !== target; i += dir){
+    const coin = coins[dir > 0 ? i : i - 1];
+    setTimeout(() => coin.classList.toggle('hid', dir < 0), idx * 28);
+    idx++;
+  }
+  shownCoins = target;
+}
+
+/* número animado */
+let dispAvail = null;
+function tweenAvail(to){
+  if (dispAvail === null){ dispAvail = to; document.getElementById('finAvail').textContent = fmtBRL(to); return; }
+  const from = dispAvail, t0 = performance.now(), dur = 600;
+  (function step(now){
+    const k = Math.min(1, (now - t0) / dur);
+    const v = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
+    document.getElementById('finAvail').textContent = fmtBRL(v);
+    if (k < 1) requestAnimationFrame(step); else dispAvail = to;
+  })(t0);
+}
+
+const CHART_HUES = [212, 330, 145, 48, 268, 26, 187];
+function renderModalityChart(){
+  const rows = modalities.map((m, i) => ({
+    name: m.name, hue: CHART_HUES[i % CHART_HUES.length],
+    total: m.expenses.reduce((s, e) => s + e.value, 0)
+  })).filter(r => r.total > 0);
+  const grandTotal = rows.reduce((s, r) => s + r.total, 0);
+  const ring = document.getElementById('chartRing');
+  const legend = document.getElementById('chartLegend');
+  const totalEl = document.getElementById('chartTotal');
+
+  if (!grandTotal){
+    ring.style.background = 'conic-gradient(rgba(148,180,255,.12) 0% 100%)';
+    totalEl.textContent = '—';
+    legend.innerHTML = '<div class="chart-empty">Nenhum gasto planejado ainda.</div>';
+    return;
+  }
+  let acc = 0;
+  const stops = rows.map(r => {
+    const from = acc;
+    acc += r.total / grandTotal * 100;
+    return `hsl(${r.hue},62%,58%) ${from}% ${acc}%`;
+  }).join(', ');
+  ring.style.background = `conic-gradient(${stops})`;
+  totalEl.textContent = fmtBRL(grandTotal);
+  legend.innerHTML = rows
+    .sort((a, b) => b.total - a.total)
+    .map(r => `<div class="mc-row">
+      <span class="mc-dot" style="background:hsl(${r.hue},62%,58%)"></span>
+      <span class="mc-name">${r.name}</span>
+      <span class="mc-pct">${Math.round(r.total / grandTotal * 100)}%</span>
+    </div>`).join('');
+}
+function renderFinance(){
+  const total = totalIncome(), spent = totalSpent(), avail = remaining();
+  tweenAvail(avail);
+  document.getElementById('finAvailSub').textContent = `disponíveis de ${fmtBRL(total)} · ${total ? Math.round(avail / total * 100) : 0}% do cofrinho`;
+  document.getElementById('piggyTip').innerHTML =
+    `<b style="color:var(--gold)">${fmtBRL(avail)}</b> ainda no cofrinho<br>
+     <span style="color:var(--muted)">renda ${fmtBRL(total)} · gasto ${fmtBRL(spent)}</span>`;
+  updatePiggy();
+  renderModalityChart();
+
+  document.getElementById('incomeList').innerHTML = incomes.map(inc => `
+    <div class="income-row ${inc.fromTask ? 'from-task' : ''}">
+      <span class="in-name">${inc.fromTask ? I.spark + ' ' : ''}${inc.source}</span>
+      <span class="in-val">${fmtBRL(inc.value)}</span>
+      <button class="icon-btn exp-x" data-inc="${inc.id}">${I.close}</button>
+    </div>`).join('');
+  document.querySelectorAll('[data-inc]').forEach(b => b.addEventListener('click', () => {
+    const i = incomes.findIndex(x => x.id === +b.dataset.inc);
+    if (i >= 0) incomes.splice(i, 1);
+    renderFinance();
+  }));
+
+  const modsEl = document.getElementById('modalities');
+  modsEl.innerHTML = modalities.map(m => {
+    const planned = m.expenses.reduce((s, e) => s + e.value, 0);
+    const spentM = m.expenses.filter(e => e.spent).reduce((s, e) => s + e.value, 0);
+    return `
+    <div class="modality" data-mod="${m.id}">
+      <div class="mod-head">
+        <span class="mod-name">${m.locked ? I.spark : ''}${m.name}</span>
+        <button class="icon-btn add-exp" title="Adicionar gasto">${I.plus}</button>
+      </div>
+      <div class="mod-sub">${fmtBRL(spentM)} gastos de ${fmtBRL(planned)} planejados</div>
+      <div class="exp-list">
+        ${m.expenses.map(e => {
+          const w = wishById(e.wishId);
+          return `
+          <div class="exp-row ${e.spent ? 'spent' : ''}" data-exp="${e.id}">
+            <span class="exp-check">${I.check}</span>
+            <span class="exp-label">${e.label}${w ? ` <span class="chip wish" style="margin-left:6px">${I.spark} tier ${w.tier}</span>` : ''}</span>
+            <span class="exp-val">${fmtBRL(e.value)}</span>
+            <button class="icon-btn exp-x">${I.close}</button>
+          </div>`;
+        }).join('') || '<div class="exp-empty">Nenhum gasto ainda</div>'}
+      </div>
+      <div class="exp-form-slot"></div>
+    </div>`;
+  }).join('');
+
+  modsEl.querySelectorAll('.exp-row .exp-check').forEach(chk => chk.addEventListener('click', e => {
+    const row = chk.closest('.exp-row');
+    const mod = modalities.find(m => m.id === +row.closest('.modality').dataset.mod);
+    const exp = mod.expenses.find(x => x.id === +row.dataset.exp);
+    exp.spent = !exp.spent;
+    if (exp.wishId){
+      const w = wishById(exp.wishId);
+      if (w){ w.bought = exp.spent; renderWishlist(); if (exp.spent) showToast(`"${w.name}" riscado da wishlist!`); }
+    }
+    renderFinance();
+  }));
+  modsEl.querySelectorAll('.exp-row .exp-x').forEach(x => x.addEventListener('click', e => {
+    e.stopPropagation();
+    const row = x.closest('.exp-row');
+    const mod = modalities.find(m => m.id === +row.closest('.modality').dataset.mod);
+    const i = mod.expenses.findIndex(e2 => e2.id === +row.dataset.exp);
+    if (i >= 0) mod.expenses.splice(i, 1);
+    renderFinance();
+  }));
+  modsEl.querySelectorAll('.add-exp').forEach(b => b.addEventListener('click', () => {
+    const modEl = b.closest('.modality');
+    const mod = modalities.find(m => m.id === +modEl.dataset.mod);
+    const slot = modEl.querySelector('.exp-form-slot');
+    if (slot.innerHTML){ slot.innerHTML = ''; return; }
+    if (mod.locked){
+      const opts = wishlist.filter(w => !w.bought && !mod.expenses.some(e => e.wishId === w.id))
+        .map(w => `<option value="${w.id}">${w.name} — ${fmtBRL(w.value)}</option>`).join('');
+      slot.innerHTML = `<div class="inline-form">
+        <select>${opts || '<option value="">(nenhum desejo disponível)</option>'}</select>
+        <button class="btn">Alocar</button></div>`;
+      slot.querySelector('.btn').addEventListener('click', () => {
+        const w = wishById(+slot.querySelector('select').value);
+        if (!w) return;
+        mod.expenses.push({id: eid++, label: w.name, value: w.value, spent:false, wishId: w.id});
+        renderFinance();
+      });
+    } else {
+      slot.innerHTML = `<div class="inline-form">
+        <input type="text" maxlength="34" placeholder="Descrição do gasto">
+        <input type="number" min="0" step="10" placeholder="R$">
+        <button class="btn">Ok</button></div>`;
+      slot.querySelector('.btn').addEventListener('click', () => {
+        const label = slot.querySelector('input[type=text]').value.trim();
+        const val = +slot.querySelector('input[type=number]').value;
+        if (!label || !val) return;
+        mod.expenses.push({id: eid++, label, value: val, spent:false});
+        renderFinance();
+      });
+      setTimeout(() => slot.querySelector('input').focus(), 40);
+    }
+  }));
+}
+
+/* renda */
+document.getElementById('addIncomeBtn').addEventListener('click', () => {
+  const f = document.getElementById('incomeForm');
+  f.style.display = f.style.display === 'none' ? 'flex' : 'none';
+  if (f.style.display === 'flex') setTimeout(() => document.getElementById('incName').focus(), 40);
+});
+document.getElementById('incOk').addEventListener('click', () => {
+  const name = document.getElementById('incName').value.trim();
+  const val = +document.getElementById('incVal').value;
+  if (!name || !val) return;
+  incomes.push({id: incId++, source: name, value: val, fromTask:false});
+  document.getElementById('incName').value = ''; document.getElementById('incVal').value = '';
+  document.getElementById('incomeForm').style.display = 'none';
+  renderFinance();
+});
+
+/* nova modalidade */
+document.getElementById('addModBtn').addEventListener('click', () => {
+  const name = prompt('Nome da modalidade (ex.: Transporte):');
+  if (name && name.trim()){
+    modalities.push({id: eid++, name: name.trim(), expenses: []});
+    renderFinance();
+  }
+});
+
+/* ============================== teclado ============================== */
+addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  document.querySelectorAll('.modal-wrap.open').forEach(m => m.classList.remove('open'));
+});
+
+/* ============================== init ============================== */
+renderWishlist();
+syncWishSelects();
+renderTasks();
+renderFinance();
+</script>
+</body>
+</html>

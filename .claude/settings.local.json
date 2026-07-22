@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n \"dr-icon'\\\\\\).textContent\\\\|fc-ach'\\\\\\).textContent\\\\|✨\\\\|📸\\\\|✓ \\\\${tk.title}\\\\|✓ Concluir\\\\|📕\" \"/Users/jotaeli/Documents/Project Fox/prototypes/solar-system.html\")",
+      "Bash(python3 -)",
+      "Bash(pnpm -v)",
+      "Bash(git --version)",
+      "Bash(corepack enable *)",
+      "Bash(corepack prepare *)",
+      "Bash(npm install *)",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(curl -sI --max-time 5 https://registry.npmjs.org/react)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm typecheck *)",
+      "Bash(pnpm build *)",
+      "Bash(git add *)"
+    ]
+  }
+}

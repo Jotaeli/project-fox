@@ -1,0 +1,1662 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Fox — Desenvolver / Criar (protótipo)</title>
+<style>
+  :root{
+    --bg0:#04081a; --bg1:#0a1230; --panel:rgba(13,22,48,.92); --panel-solid:#0d1630;
+    --line:rgba(148,180,255,.16); --text:#dce6ff; --muted:#8fa3c8; --accent:#6ea8ff;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{height:100%; overflow:hidden}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+    background:radial-gradient(120% 90% at 50% 10%, var(--bg1) 0%, var(--bg0) 65%, #020510 100%);
+    color:var(--text); user-select:none;
+  }
+  canvas#space{position:fixed; inset:0; display:block}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:fixed; top:0; left:0; right:0; z-index:20;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 22px; pointer-events:none;
+  }
+  .topbar .brand{display:flex; align-items:baseline; gap:10px}
+  .topbar h1{font-size:15px; font-weight:600; letter-spacing:.4px}
+  .topbar h1 span{color:var(--muted); font-weight:400}
+  .btn{
+    pointer-events:auto; cursor:pointer; border:1px solid var(--line); color:var(--text);
+    background:rgba(20,32,66,.75); backdrop-filter:blur(8px);
+    padding:9px 16px; border-radius:12px; font-size:13.5px; font-weight:500;
+    transition:background .15s, border-color .15s, transform .1s;
+  }
+  .btn:hover{background:rgba(38,56,105,.85); border-color:rgba(148,180,255,.35)}
+  .btn:active{transform:scale(.97)}
+  .btn.primary{background:linear-gradient(135deg,#3667c4,#274a95); border-color:rgba(148,180,255,.4)}
+  .btn.primary:hover{background:linear-gradient(135deg,#3f74d8,#2d55aa)}
+
+  #backBtn{position:fixed; top:14px; left:22px; z-index:21; display:none}
+
+  #hint{
+    position:fixed; bottom:16px; left:50%; transform:translateX(-50%); z-index:15;
+    font-size:12.5px; color:var(--muted); background:rgba(10,17,38,.6); backdrop-filter:blur(6px);
+    padding:6px 14px; border-radius:99px; border:1px solid rgba(148,180,255,.08);
+    pointer-events:none; transition:opacity .3s;
+  }
+
+  /* ---------- focus card ---------- */
+  #focusCard{
+    position:fixed; top:64px; left:22px; z-index:20; width:250px; display:none;
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:16px 18px; backdrop-filter:blur(10px);
+  }
+  #focusCard .fc-name{display:flex; align-items:center; gap:9px; font-size:16px; font-weight:600}
+  #focusCard .fc-dot{width:11px; height:11px; border-radius:50%; flex:none}
+  #focusCard .fc-type{font-size:11.5px; color:var(--muted); margin:3px 0 12px 20px; letter-spacing:.3px}
+  #focusCard .fc-barwrap{height:6px; border-radius:99px; background:rgba(148,180,255,.12); overflow:hidden}
+  #focusCard .fc-bar{height:100%; border-radius:99px; transition:width .6s ease, background .6s}
+  #focusCard .fc-meta{font-size:12px; color:var(--muted); margin-top:8px}
+  #focusCard .fc-ach{font-size:12px; color:#ffcf7d; margin-top:8px; font-weight:600}
+  #focusCard .fc-status{font-size:12.5px; margin-top:10px; font-weight:500}
+  .fc-delete{
+    display:block; width:100%; margin-top:14px; padding-top:12px; border-top:1px solid var(--line);
+    background:none; border-left:none; border-right:none; border-bottom:none;
+    color:var(--muted); font-size:12px; font-weight:500; cursor:pointer; text-align:left;
+    transition:color .15s;
+  }
+  .fc-delete:hover{color:#ff8080}
+
+  /* ---------- tooltip ---------- */
+  #tooltip{
+    position:fixed; z-index:30; pointer-events:none; display:none;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:8px 12px; font-size:12px; line-height:1.5; backdrop-filter:blur(8px);
+    box-shadow:0 6px 24px rgba(0,0,0,.4);
+  }
+  #tooltip b{font-size:13px}
+  #tooltip .tt-muted{color:var(--muted)}
+
+  /* ---------- modal ---------- */
+  .modal-wrap{
+    position:fixed; inset:0; z-index:40; display:none; align-items:center; justify-content:center;
+    background:rgba(3,6,16,.55); backdrop-filter:blur(4px);
+  }
+  .modal-wrap.open{display:flex}
+  .modal{
+    width:420px; max-width:calc(100vw - 32px); max-height:calc(100vh - 60px); overflow:auto;
+    background:var(--panel-solid); border:1px solid var(--line); border-radius:20px;
+    padding:24px 26px; box-shadow:0 20px 70px rgba(0,0,0,.55);
+  }
+  .modal h2{font-size:17px; font-weight:600; margin-bottom:18px}
+  .field{margin-bottom:18px}
+  .field > label{display:block; font-size:12px; color:var(--muted); margin-bottom:8px; letter-spacing:.4px; text-transform:uppercase}
+  input[type=text], textarea{
+    width:100%; background:rgba(8,14,32,.8); border:1px solid var(--line); border-radius:10px;
+    color:var(--text); padding:10px 12px; font-size:14px; font-family:inherit; outline:none;
+  }
+  input[type=text]:focus, textarea:focus{border-color:rgba(110,168,255,.55)}
+  textarea{resize:vertical; min-height:70px; line-height:1.5}
+
+  .swatches{display:flex; gap:9px; flex-wrap:wrap}
+  .swatch{
+    width:30px; height:30px; border-radius:50%; cursor:pointer; border:2px solid transparent;
+    transition:transform .12s, border-color .12s;
+  }
+  .swatch:hover{transform:scale(1.12)}
+  .swatch.sel{border-color:#fff; transform:scale(1.12); box-shadow:0 0 0 3px rgba(255,255,255,.15)}
+
+  .type-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:9px}
+  .type-card{
+    border:1px solid var(--line); border-radius:12px; padding:10px 4px 8px; cursor:pointer; text-align:center;
+    background:rgba(8,14,32,.5); transition:border-color .12s, background .12s;
+  }
+  .type-card:hover{background:rgba(20,32,66,.6)}
+  .type-card.sel{border-color:rgba(110,168,255,.7); background:rgba(28,44,88,.6)}
+  .type-card .tp{width:34px; height:34px; border-radius:50%; margin:0 auto 7px; position:relative}
+  .type-card span{font-size:11px; color:var(--muted)}
+  .tp-rochoso{background:radial-gradient(circle at 32% 30%, hsl(var(--ph),55%,68%), hsl(var(--ph),50%,34%));}
+  .tp-rochoso::after{content:''; position:absolute; inset:0; border-radius:50%;
+    background:radial-gradient(circle at 62% 55%, rgba(0,0,0,.35) 0 4px, transparent 5px),
+               radial-gradient(circle at 30% 68%, rgba(0,0,0,.3) 0 3px, transparent 4px),
+               radial-gradient(circle at 55% 22%, rgba(255,255,255,.25) 0 2.5px, transparent 3.5px);}
+  .tp-gasoso{background:radial-gradient(circle at 32% 30%, hsl(var(--ph),55%,70%), hsl(var(--ph),50%,36%)); overflow:hidden; border-radius:50%}
+  .tp-gasoso::after{content:''; position:absolute; inset:0;
+    background:repeating-linear-gradient(0deg, transparent 0 5px, rgba(0,0,0,.22) 5px 9px, transparent 9px 13px, rgba(255,255,255,.14) 13px 16px);}
+  .tp-anelado{background:radial-gradient(circle at 32% 30%, hsl(var(--ph),55%,68%), hsl(var(--ph),50%,34%));}
+  .tp-anelado::after{content:''; position:absolute; left:-9px; right:-9px; top:11px; height:12px;
+    border:2.5px solid hsla(var(--ph),60%,75%,.75); border-radius:50%; transform:rotate(-14deg);}
+  .tp-gelado{background:radial-gradient(circle at 30% 28%, hsl(var(--ph),35%,90%), hsl(var(--ph),50%,58%) 55%, hsl(var(--ph),55%,34%)); overflow:hidden; border-radius:50%}
+  .tp-gelado::after{content:''; position:absolute; inset:0; border-radius:50%;
+    background:radial-gradient(ellipse 65% 34% at 50% 6%, rgba(255,255,255,.95), transparent 72%),
+               radial-gradient(ellipse 58% 30% at 50% 97%, rgba(255,255,255,.85), transparent 72%),
+               linear-gradient(118deg, transparent 42%, rgba(255,255,255,.35) 49%, transparent 55%),
+               linear-gradient(62deg, transparent 62%, rgba(255,255,255,.22) 67%, transparent 73%);}
+
+  .moon-opts{display:flex; flex-direction:column; gap:8px}
+  .moon-opt{
+    display:flex; align-items:center; gap:11px; border:1px solid var(--line); border-radius:12px;
+    padding:10px 13px; cursor:pointer; background:rgba(8,14,32,.5); transition:border-color .12s;
+  }
+  .moon-opt:hover{border-color:rgba(148,180,255,.35)}
+  .moon-opt.locked{cursor:default; opacity:.95}
+  .moon-opt .mo-icon{font-size:17px}
+  .moon-opt .mo-txt{flex:1}
+  .moon-opt .mo-name{font-size:13.5px; font-weight:500}
+  .moon-opt .mo-desc{font-size:11.5px; color:var(--muted); margin-top:1px}
+  .moon-opt input[type=checkbox]{
+    -webkit-appearance:none; appearance:none; flex:none; position:relative;
+    width:20px; height:20px; border-radius:6px; margin-left:auto;
+    border:1.5px solid rgba(148,180,255,.35); background:rgba(8,14,32,.7);
+    cursor:pointer; transition:background .15s, border-color .15s;
+  }
+  .moon-opt input[type=checkbox]:hover{border-color:rgba(148,180,255,.6)}
+  .moon-opt input[type=checkbox]:checked{
+    background:linear-gradient(135deg,#3667c4,#274a95); border-color:rgba(148,180,255,.75);
+  }
+  .moon-opt input[type=checkbox]:checked::after{
+    content:''; position:absolute; left:6px; top:2px; width:5px; height:10px;
+    border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg);
+  }
+  .moon-opt .mo-req{font-size:10.5px; color:var(--accent); border:1px solid rgba(110,168,255,.4); padding:2px 7px; border-radius:99px}
+
+  input[type=range]{width:100%; accent-color:var(--accent)}
+  .meta-val{font-size:13px; margin-top:6px; color:var(--text)}
+  .meta-val b{color:var(--accent)}
+
+  .modal .actions{display:flex; justify-content:flex-end; gap:10px; margin-top:6px}
+
+  /* ---------- drawer ---------- */
+  #drawer{
+    position:fixed; top:0; right:0; bottom:0; width:360px; max-width:92vw; z-index:35;
+    background:var(--panel); border-left:1px solid var(--line); backdrop-filter:blur(14px);
+    transform:translateX(105%); transition:transform .28s cubic-bezier(.3,.8,.3,1);
+    display:flex; flex-direction:column;
+  }
+  #drawer.open{transform:translateX(0)}
+  .dr-head{display:flex; align-items:center; gap:12px; padding:18px 20px 14px; border-bottom:1px solid var(--line)}
+  .dr-head .dr-icon{font-size:22px}
+  .dr-head .dr-title{font-size:15.5px; font-weight:600}
+  .dr-head .dr-sub{font-size:12px; color:var(--muted); margin-top:1px}
+  .dr-close{margin-left:auto; cursor:pointer; border:none; background:none; color:var(--muted); font-size:20px; padding:4px 8px; border-radius:8px}
+  .dr-close:hover{color:var(--text); background:rgba(148,180,255,.1)}
+  .dr-body{flex:1; overflow-y:auto; padding:16px 20px}
+  .dr-foot{padding:14px 20px 18px; border-top:1px solid var(--line)}
+
+  .chip{
+    display:inline-flex; align-items:center; gap:7px; font-size:12px; padding:5px 12px;
+    border-radius:99px; border:1px solid var(--line); background:rgba(8,14,32,.6); margin-bottom:14px;
+  }
+  .chip .cdot{width:7px; height:7px; border-radius:50%}
+
+  .entry{border-left:2px solid rgba(148,180,255,.25); padding:2px 0 14px 14px; margin-left:5px; position:relative}
+  .entry::before{content:''; position:absolute; left:-5px; top:5px; width:8px; height:8px; border-radius:50%; background:var(--accent)}
+  .entry .e-date{font-size:11px; color:var(--muted); letter-spacing:.3px; text-transform:capitalize}
+  .entry .e-text{font-size:13.5px; line-height:1.55; margin-top:3px}
+
+  .res-item{
+    display:flex; align-items:center; gap:12px; padding:11px 13px; border:1px solid var(--line);
+    border-radius:12px; background:rgba(8,14,32,.5); margin-bottom:9px;
+  }
+  .res-item .r-icon{font-size:19px}
+  .res-item .r-name{font-size:13.5px; font-weight:500}
+  .res-item .r-kind{font-size:11px; color:var(--muted); margin-top:1px}
+
+  .photo-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+  .photo{aspect-ratio:1; border-radius:10px; border:1px solid rgba(148,180,255,.12)}
+
+  .empty{color:var(--muted); font-size:13px; text-align:center; padding:26px 10px; line-height:1.6}
+  .add-row{display:flex; gap:8px}
+  .add-row input{flex:1}
+
+  /* ---------- objetivo/descrição no focus card ---------- */
+  #focusCard .fc-obj{display:flex; gap:7px; align-items:flex-start; font-size:12.5px; margin-top:10px}
+  #focusCard .fc-obj svg{flex:none; margin-top:2px; color:var(--accent)}
+  #focusCard .fc-desc{font-size:11.5px; color:var(--muted); margin-top:5px; line-height:1.5}
+  .fc-goal{width:100%; margin-top:13px; text-align:center; font-size:12.5px; padding:8px 10px}
+
+  /* ---------- painel de eventos ---------- */
+  #eventsPanel{
+    position:fixed; right:22px; bottom:18px; z-index:18; width:292px;
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    backdrop-filter:blur(12px); overflow:hidden;
+  }
+  .ep-head{display:flex; align-items:center; gap:9px; padding:13px 16px; cursor:pointer; user-select:none}
+  .ep-head .ep-ic{color:var(--accent); display:flex}
+  .ep-head .ep-title{font-size:13.5px; font-weight:600; flex:1}
+  .ep-count{font-size:11px; background:rgba(110,168,255,.18); color:var(--accent); border:1px solid rgba(110,168,255,.35); padding:1px 8px; border-radius:99px; font-weight:600}
+  .ep-chev{color:var(--muted); display:flex; transition:transform .25s}
+  #eventsPanel.collapsed .ep-chev{transform:rotate(180deg)}
+  .ep-inner{max-height:360px; transition:max-height .3s ease, opacity .2s; opacity:1; overflow:hidden}
+  #eventsPanel.collapsed .ep-inner{max-height:0; opacity:0}
+  .ep-tabs{display:flex; gap:4px; padding:0 12px 10px}
+  .ep-tab{flex:1; background:none; border:1px solid transparent; color:var(--muted); font-size:11.5px; padding:5px 0; border-radius:8px; cursor:pointer; font-weight:500}
+  .ep-tab:hover{color:var(--text)}
+  .ep-tab.sel{background:rgba(110,168,255,.12); border-color:rgba(110,168,255,.3); color:var(--text)}
+  .ep-body{max-height:260px; overflow-y:auto; padding:2px 10px 12px}
+  .ep-row{display:flex; align-items:center; gap:10px; padding:9px 8px; border-radius:12px; cursor:pointer; transition:background .12s}
+  .ep-row:hover{background:rgba(148,180,255,.08)}
+  .ep-chip{width:32px; height:32px; border-radius:10px; flex:none; display:flex; align-items:center; justify-content:center; font-size:15px;
+    background:hsla(var(--eh),60%,55%,.16); color:hsl(var(--eh),75%,72%); border:1px solid hsla(var(--eh),60%,60%,.3)}
+  .ep-info{flex:1; min-width:0}
+  .ep-name{font-size:12.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .ep-sub{font-size:10.5px; color:var(--muted); margin:1px 0 4px}
+  .ep-prog{height:4px; border-radius:99px; background:rgba(148,180,255,.12); overflow:hidden}
+  .ep-prog > div{height:100%; border-radius:99px; background:hsl(var(--eh),65%,60%)}
+  .ep-time{font-size:10px; font-weight:600; color:var(--muted); flex:none; padding:3px 7px; border-radius:99px; border:1px solid var(--line)}
+  .ep-time.warn{color:#ffd27d; border-color:rgba(255,210,125,.4)}
+  .ep-time.urgent{color:#ff9d7d; border-color:rgba(255,157,125,.45)}
+  .ep-badge{font-size:10px; font-weight:600; padding:3px 8px; border-radius:99px; flex:none}
+  .ep-badge.done{color:#7ef0b2; border:1px solid rgba(126,240,178,.35); background:rgba(126,240,178,.08)}
+  .ep-badge.fail{color:#ff9d7d; border:1px solid rgba(255,157,125,.4); background:rgba(255,157,125,.08)}
+  .ep-empty{color:var(--muted); font-size:12px; text-align:center; padding:18px 8px; line-height:1.6}
+
+  /* ---------- criação de meta ---------- */
+  .icon-grid{display:grid; grid-template-columns:repeat(8,1fr); gap:7px}
+  .icon-opt{aspect-ratio:1; border:1px solid var(--line); border-radius:10px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; color:var(--muted); font-size:16px; background:rgba(8,14,32,.5); transition:color .12s, border-color .12s, background .12s}
+  .icon-opt:hover{color:var(--text); border-color:rgba(148,180,255,.4)}
+  .icon-opt.sel{color:hsl(var(--gh),75%,72%); border-color:hsla(var(--gh),65%,60%,.6); background:hsla(var(--gh),60%,55%,.12)}
+  .dl-chips{display:flex; gap:7px; flex-wrap:wrap}
+  .dl-chip{font-size:11.5px; padding:6px 12px; border-radius:99px; border:1px solid var(--line); background:rgba(8,14,32,.5); color:var(--muted); cursor:pointer}
+  .dl-chip:hover{color:var(--text)}
+  .dl-chip.sel{color:var(--text); border-color:rgba(110,168,255,.55); background:rgba(110,168,255,.12)}
+  .cl-item{display:flex; align-items:center; gap:9px; padding:8px 11px; border:1px solid var(--line); border-radius:10px; background:rgba(8,14,32,.5); margin-bottom:7px; font-size:13px}
+  .cl-item .cl-x{margin-left:auto; cursor:pointer; color:var(--muted); background:none; border:none; display:flex; padding:2px}
+  .cl-item .cl-x:hover{color:#ff8080}
+
+  /* ---------- detalhe do evento ---------- */
+  .ev-head{display:flex; align-items:center; gap:12px; margin-bottom:16px}
+  .ev-chip-lg{width:44px; height:44px; border-radius:13px; flex:none; display:flex; align-items:center; justify-content:center; font-size:20px;
+    background:hsla(var(--eh),60%,55%,.16); color:hsl(var(--eh),75%,72%); border:1px solid hsla(var(--eh),60%,60%,.35)}
+  .ev-title{font-size:16px; font-weight:600}
+  .ev-sub{font-size:11.5px; color:var(--muted); margin-top:2px}
+  .ev-item{border:1px solid var(--line); border-radius:12px; padding:11px 13px; margin-bottom:9px; background:rgba(8,14,32,.5)}
+  .ev-item.done{border-color:hsla(var(--eh),60%,60%,.45)}
+  .ev-item-head{display:flex; align-items:center; gap:10px}
+  .ev-check{width:20px; height:20px; border-radius:50%; flex:none; border:1.5px solid rgba(148,180,255,.35); display:flex; align-items:center; justify-content:center; color:transparent}
+  .ev-check svg{width:11px; height:11px}
+  .ev-item.done .ev-check{background:hsl(var(--eh),65%,55%); border-color:hsl(var(--eh),65%,60%); color:#fff}
+  .ev-item-text{font-size:13px; flex:1}
+  .ev-attach{font-size:11px; padding:5px 10px; border-radius:8px; cursor:pointer; border:1px solid rgba(110,168,255,.4); background:rgba(110,168,255,.1); color:var(--accent)}
+  .ev-attach:hover{background:rgba(110,168,255,.2)}
+  .ev-proof{font-size:11px; color:var(--muted); margin-top:7px; padding-left:30px; line-height:1.5}
+  .ev-picker{margin-top:9px; padding-left:30px}
+  .ev-pick{font-size:11.5px; padding:7px 10px; border:1px solid var(--line); border-radius:9px; margin-bottom:6px; cursor:pointer; background:rgba(8,14,32,.6); line-height:1.4}
+  .ev-pick:hover{border-color:rgba(110,168,255,.5)}
+  .ev-pick .pk-date{color:var(--accent); font-size:10px}
+
+  /* ---------- toast festinha ---------- */
+  #toast{
+    position:fixed; top:70px; left:50%; transform:translate(-50%,-12px); z-index:60;
+    background:var(--panel); border:1px solid rgba(126,240,178,.4); border-radius:14px;
+    padding:12px 20px; font-size:13.5px; font-weight:600; backdrop-filter:blur(10px);
+    display:flex; align-items:center; gap:10px; opacity:0; pointer-events:none;
+    transition:opacity .3s, transform .3s; box-shadow:0 10px 40px rgba(0,0,0,.45);
+  }
+  #toast.show{opacity:1; transform:translate(-50%,0)}
+  #toast .t-ic{color:#7ef0b2; display:flex}
+</style>
+</head>
+<body>
+
+<canvas id="space"></canvas>
+
+<header class="topbar">
+  <div class="brand"><h1>Project Fox <span>· Desenvolver / Criar</span></h1></div>
+  <div style="display:flex; gap:10px">
+    <button class="btn" id="statsBtn"><span id="statsBtnIcon"></span> Estatísticas</button>
+    <button class="btn primary" id="addPlanetBtn"><span id="addPlanetIcon"></span> Adicionar planeta</button>
+  </div>
+</header>
+
+<button class="btn" id="backBtn"><span id="backBtnIcon"></span> Voltar ao sistema</button>
+<div id="hint">Clique num planeta para se aproximar</div>
+
+<div id="focusCard">
+  <div class="fc-name"><span class="fc-dot"></span><span class="fc-nm"></span></div>
+  <div class="fc-type"></div>
+  <div class="fc-barwrap"><div class="fc-bar"></div></div>
+  <div class="fc-meta"></div>
+  <div class="fc-ach"></div>
+  <div class="fc-status"></div>
+  <div class="fc-obj" style="display:none"><span class="fc-obj-ic"></span><span class="fc-obj-txt"></span></div>
+  <div class="fc-desc" style="display:none"></div>
+  <button class="btn fc-goal" id="newGoalBtn"></button>
+  <button class="fc-delete" id="deletePlanetBtn"><span id="deleteBtnIcon"></span> Excluir planeta</button>
+</div>
+
+<div id="tooltip"></div>
+
+<!-- ============ painel de eventos ============ -->
+<div id="eventsPanel">
+  <div class="ep-head" id="epHead">
+    <span class="ep-ic" id="epIcon"></span>
+    <span class="ep-title">Eventos</span>
+    <span class="ep-count" id="epCount">0</span>
+    <span class="ep-chev" id="epChev"></span>
+  </div>
+  <div class="ep-inner">
+    <div class="ep-tabs">
+      <button class="ep-tab sel" data-tab="active">Ativos</button>
+      <button class="ep-tab" data-tab="history">Histórico</button>
+    </div>
+    <div class="ep-body" id="epBody"></div>
+  </div>
+</div>
+
+<!-- ============ modal: nova meta ============ -->
+<div class="modal-wrap" id="goalWrap">
+  <div class="modal" style="width:400px">
+    <h2>Nova meta <span id="goalPlanetName" style="font-size:11px; color:var(--muted); font-weight:400"></span></h2>
+    <div class="field">
+      <label>Título</label>
+      <input type="text" id="gTitle" maxlength="48" placeholder="Ex.: Ler Dom Quixote">
+    </div>
+    <div class="field">
+      <label>Ícone</label>
+      <div class="icon-grid" id="gIconGrid"></div>
+    </div>
+    <div class="field">
+      <label>Cor</label>
+      <div class="swatches" id="gSwatches"></div>
+    </div>
+    <div class="field">
+      <label>Prazo</label>
+      <div class="dl-chips" id="gDeadlines"></div>
+    </div>
+    <div class="field">
+      <label>Checklist de objetivos</label>
+      <div id="gChecklist"></div>
+      <div class="add-row">
+        <input type="text" id="gClInput" maxlength="60" placeholder="Ex.: Terminar a Parte 1">
+        <button class="btn" id="gClAdd">Adicionar</button>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="goalCancel">Cancelar</button>
+      <button class="btn primary" id="goalCreate">Criar meta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modal: detalhe do evento ============ -->
+<div class="modal-wrap" id="eventWrap">
+  <div class="modal" style="width:420px" id="eventModal"></div>
+</div>
+
+<div id="toast"><span class="t-ic"></span><span class="t-txt"></span></div>
+
+<!-- ============ modal: estatísticas (prévia de Rotina) ============ -->
+<div class="modal-wrap" id="statsWrap">
+  <div class="modal" style="width:380px">
+    <h2><span id="statsTitleIcon"></span> Tarefas concluídas <span style="font-size:11px; color:var(--muted); font-weight:400">· prévia da aba Rotina</span></h2>
+    <div id="statsBars"></div>
+    <div class="actions"><button class="btn" id="statsClose">Fechar</button></div>
+  </div>
+</div>
+
+<!-- ============ modal: adicionar planeta ============ -->
+<div class="modal-wrap" id="modalWrap">
+  <div class="modal">
+    <h2>Novo planeta</h2>
+    <div class="field">
+      <label>Nome da área</label>
+      <input type="text" id="pName" maxlength="24" placeholder="Ex.: Esporte, Leitura, Música…">
+    </div>
+    <div class="field">
+      <label>Objetivo principal</label>
+      <input type="text" id="pObjective" maxlength="60" placeholder="Ex.: Ler 12 livros no ano">
+    </div>
+    <div class="field">
+      <label>Descrição</label>
+      <textarea id="pDescription" maxlength="140" style="min-height:52px" placeholder="Por que essa área importa pra você?"></textarea>
+    </div>
+    <div class="field">
+      <label>Cor</label>
+      <div class="swatches" id="swatches"></div>
+    </div>
+    <div class="field">
+      <label>Tipo</label>
+      <div class="type-grid" id="typeGrid"></div>
+    </div>
+    <div class="field">
+      <label>Luas</label>
+      <div class="moon-opts">
+        <div class="moon-opt locked">
+          <span class="mo-icon" id="moIconReport"></span>
+          <span class="mo-txt"><span class="mo-name">Relatório</span><span class="mo-desc" style="display:block">Seus diários sobre esta área</span></span>
+          <span class="mo-req">obrigatória</span>
+        </div>
+        <label class="moon-opt">
+          <span class="mo-icon" id="moIconLibrary"></span>
+          <span class="mo-txt"><span class="mo-name">Recursos</span><span class="mo-desc" style="display:block">Livros, arquivos e materiais</span></span>
+          <input type="checkbox" id="mRecursos">
+        </label>
+        <label class="moon-opt">
+          <span class="mo-icon" id="moIconCamera"></span>
+          <span class="mo-txt"><span class="mo-name">Fotos</span><span class="mo-desc" style="display:block">Registros visuais das atividades</span></span>
+          <input type="checkbox" id="mFotos">
+        </label>
+      </div>
+    </div>
+    <div class="field">
+      <label>Meta de relatórios</label>
+      <input type="range" id="pMeta" min="1" max="7" value="3">
+      <div class="meta-val" id="metaVal"></div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="cancelPlanet">Cancelar</button>
+      <button class="btn primary" id="createPlanet">Criar planeta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ drawer: lua ============ -->
+<aside id="drawer">
+  <div class="dr-head">
+    <span class="dr-icon"></span>
+    <div><div class="dr-title"></div><div class="dr-sub"></div></div>
+    <button class="dr-close" id="drawerClose"><span id="drawerCloseIcon"></span></button>
+  </div>
+  <div class="dr-body"></div>
+  <div class="dr-foot"></div>
+</aside>
+
+<!-- ============ modal: confirmar exclusão ============ -->
+<div class="modal-wrap" id="confirmWrap">
+  <div class="modal" style="width:340px">
+    <h2 style="margin-bottom:10px">Excluir planeta?</h2>
+    <p style="font-size:13.5px; color:var(--muted); line-height:1.55; margin-bottom:22px" id="confirmText"></p>
+    <div class="actions">
+      <button class="btn" id="confirmCancel">Cancelar</button>
+      <button class="btn" id="confirmOk" style="background:linear-gradient(135deg,#c0392b,#8e2a20); border-color:rgba(255,140,120,.4)">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+const TAU = Math.PI * 2, DAY = 86400000;
+const canvas = document.getElementById('space');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+function resize(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight;
+  canvas.width = W * DPR; canvas.height = H * DPR;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+}
+addEventListener('resize', resize); resize();
+
+/* ============================== dados ============================== */
+const COLORS = [
+  {name:'Verde', h:145}, {name:'Azul', h:212}, {name:'Rosa', h:330}, {name:'Roxo', h:268},
+  {name:'Laranja', h:26}, {name:'Ciano', h:187}, {name:'Amarelo', h:48}
+];
+const TYPES = [
+  {id:'rochoso', name:'Rochoso'}, {id:'gasoso', name:'Gasoso'},
+  {id:'anelado', name:'Anelado'}, {id:'gelado', name:'Gelado'}
+];
+const MOON_STYLE = {
+  relatorio: {label:'Relatório', icon:'report',  col:'#8fd0ff'},
+  recursos:  {label:'Recursos',  icon:'library', col:'#ffcf7d'},
+  fotos:     {label:'Fotos',     icon:'camera',  col:'#d3a6ff'}
+};
+
+/* ============================== ícones (substituem emojis) ============================== */
+const ICONS = {
+  report:  `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
+  library: `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg>`,
+  camera:  `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`,
+  book:    `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+  award:   `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><polyline points="8.5 13.5 7 22 12 19 17 22 15.5 13.5"/></svg>`,
+  chart:   `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+  trash:   `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
+  check:   `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  sparkle: `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="currentColor"><path d="M12 2 13.7 9 21 10.5 13.7 12 12 19 10.3 12 3 10.5 10.3 9Z"/></svg>`,
+  plus:    `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  back:    `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`,
+  close:   `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  target:  `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+  flame:   `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`,
+  rocket:  `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>`,
+  heart:   `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+  zap:     `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+  music:   `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
+  clock:   `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  chevron: `<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`
+};
+const GOAL_ICONS = ['target', 'book', 'flame', 'rocket', 'heart', 'zap', 'music', 'award'];
+
+// versões rasterizadas dos ícones das luas, para desenhar centralizadas no canvas
+function makeMoonIcon(name){
+  const strokes = {
+    report:  '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+    library: '<path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/>',
+    camera:  '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>'
+  };
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${strokes[name]}</svg>`;
+  const img = new Image();
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  return img;
+}
+const MOON_ICON_IMG = {report: makeMoonIcon('report'), library: makeMoonIcon('library'), camera: makeMoonIcon('camera')};
+
+// injeta os ícones estáticos da UI (substituem os emojis do markup)
+document.getElementById('statsBtnIcon').innerHTML = ICONS.chart;
+document.getElementById('addPlanetIcon').innerHTML = ICONS.plus;
+document.getElementById('backBtnIcon').innerHTML = ICONS.back;
+document.getElementById('deleteBtnIcon').innerHTML = ICONS.trash;
+document.getElementById('statsTitleIcon').innerHTML = ICONS.chart;
+document.getElementById('moIconReport').innerHTML = ICONS.report;
+document.getElementById('moIconLibrary').innerHTML = ICONS.library;
+document.getElementById('moIconCamera').innerHTML = ICONS.camera;
+document.getElementById('drawerCloseIcon').innerHTML = ICONS.close;
+document.getElementById('epIcon').innerHTML = ICONS.target;
+document.getElementById('epChev').innerHTML = ICONS.chevron;
+document.getElementById('newGoalBtn').innerHTML = `${ICONS.target} Nova meta`;
+document.querySelector('#focusCard .fc-obj-ic').innerHTML = ICONS.target;
+document.querySelector('#toast .t-ic').innerHTML = ICONS.sparkle;
+
+let planets = [];
+
+function buildFeatures(type){
+  const f = [];
+  if (type === 'rochoso' || type === 'anelado'){
+    const n = type === 'rochoso' ? 9 : 5;
+    for (let i = 0; i < n; i++) f.push({
+      fx: Math.random() * 2 - 1, fy: Math.random() * 1.5 - .75,
+      s: .09 + Math.random() * .17, light: Math.random() < .3
+    });
+  } else if (type === 'gasoso'){
+    let y = -.85;
+    while (y < .85){
+      const th = .13 + Math.random() * .2;
+      f.push({band: true, fy: y + th / 2, th, light: Math.random() < .45, a: .12 + Math.random() * .16});
+      y += th;
+    }
+    for (let i = 0; i < 3; i++) f.push({
+      fx: Math.random() * 2 - 1, fy: Math.random() * 1.2 - .6,
+      s: .11 + Math.random() * .12, storm: true, light: Math.random() < .5
+    });
+  } else if (type === 'gelado'){
+    for (let i = 0; i < 5; i++) f.push({
+      fx: Math.random() * 2 - 1, fy: Math.random() * 1.1 - .55,
+      s: .08 + Math.random() * .13, light: true
+    });
+  }
+  return f;
+}
+
+function makePlanet(o){
+  const idx = planets.length;
+  const dist = 150 + idx * 72;
+  return Object.assign({
+    dist,
+    size: 14 + Math.random() * 7,
+    angle: Math.random() * TAU,
+    baseSpeed: 22 / Math.pow(dist, 1.12),
+    spin: Math.random() * TAU,
+    spinSpeed: .22 + Math.random() * .25,
+    createdAt: Date.now(),
+    reports: [], resources: [], photos: [], tasks: [], events: [],
+    objective: '', description: '', partyUntil: 0,
+    hasRecursos: false, hasFotos: false,
+    features: buildFeatures(o.type)
+  }, o);
+}
+
+function ago(d){ return Date.now() - d * DAY; }
+function randPhoto(hue){
+  return {h1: hue + Math.random() * 60 - 30, h2: hue + Math.random() * 120 - 60, ang: (Math.random() * 360) | 0};
+}
+
+/* --- planetas de demonstração (o app real começa só com o sol) --- */
+(function seed(){
+  const p1 = makePlanet({name:'Esporte', hue:145, type:'rochoso', meta:5, size:17, hasFotos:true,
+    objective:'Correr uma meia maratona', description:'Manter o corpo ativo e a mente sã.'});
+  p1.createdAt = ago(40);
+  p1.events = [
+    {id:'e1', title:'Correr 10km sem parar', icon:'flame', hue:26, status:'active',
+     createdAt: ago(10), deadline: Date.now() + 5 * DAY,
+     checklist:[
+       {text:'Correr 5km', proof:{t: ago(1.1), text:'Corrida de 5km no parque, melhor ritmo do mês.'}},
+       {text:'Correr 8km', proof:null},
+       {text:'Correr 10km', proof:null}
+     ]},
+    {id:'e2', title:'Montar rotina de treinos', icon:'award', hue:145, status:'done',
+     createdAt: ago(30), deadline: ago(2), completedAt: ago(6),
+     checklist:[
+       {text:'Definir dias da semana', proof:{t: ago(9), text:'Montar plano de treino'}},
+       {text:'Testar por uma semana', proof:{t: ago(7), text:'Semana completa de testes.'}}
+     ]}
+  ];
+  p1.reports = [
+    {t: ago(.2),  text:'Treino de peito e 20min de cardio. Cansado mas feliz.'},
+    {t: ago(1.1), text:'Corrida de 5km no parque, melhor ritmo do mês.'},
+    {t: ago(2.3), text:'Perna + mobilidade. Joelho reclamou um pouco.'},
+    {t: ago(3.4), text:'Natação 40min, técnica de respiração melhorando.'},
+    {t: ago(4.6), text:'Dia leve: só alongamento e caminhada.'}
+  ];
+  p1.photos = [randPhoto(145), randPhoto(145), randPhoto(145), randPhoto(145)];
+  p1.tasks = [
+    {title:'Comprar tênis novo', completedAt: ago(2)},
+    {title:'Agendar fisioterapia', completedAt: ago(5)},
+    {title:'Montar plano de treino', completedAt: ago(9)},
+    {title:'Renovar inscrição da academia', completedAt: ago(20)}
+  ];
+  planets.push(p1);
+
+  const p2 = makePlanet({name:'Leitura', hue:212, type:'anelado', meta:4, size:20, hasRecursos:true,
+    objective:'Ler 12 livros no ano', description:'Cultivar leitura diária antes de dormir.'});
+  p2.createdAt = ago(60);
+  p2.events = [
+    {id:'e3', title:'Ler Dom Quixote em 1 mês', icon:'book', hue:48, status:'active',
+     createdAt: ago(12), deadline: Date.now() + 18 * DAY,
+     checklist:[
+       {text:'Terminar a Parte 1', proof:{t: ago(1.2), text:'Li 30 páginas de O Hobbit antes de dormir.'}},
+       {text:'Terminar a Parte 2', proof:null},
+       {text:'Escrever a resenha final', proof:null}
+     ]}
+  ];
+  p2.reports = [
+    {t: ago(1.2), text:'Li 30 páginas de O Hobbit antes de dormir.'},
+    {t: ago(3.8), text:'Capítulo 4 de Clean Code, anotei bastante coisa.'}
+  ];
+  p2.resources = [
+    {name:'O Hobbit', kind:'Livro · epub'},
+    {name:'Clean Code', kind:'Livro · pdf'},
+    {name:'Meditações — Marco Aurélio', kind:'Livro · epub'}
+  ];
+  p2.tasks = [
+    {title:'Terminar resenha do livro', completedAt: ago(3)},
+    {title:'Organizar estante', completedAt: ago(12)}
+  ];
+  planets.push(p2);
+
+  const p3 = makePlanet({name:'Música', hue:330, type:'gasoso', meta:3, size:15, hasFotos:true,
+    objective:'Aprender violão', description:'Tocar três músicas completas de cor.'});
+  p3.createdAt = ago(35);
+  p3.events = [
+    {id:'e4', title:'Compor uma melodia própria', icon:'music', hue:268, status:'failed',
+     createdAt: ago(25), deadline: ago(2),
+     checklist:[
+       {text:'Escolher a progressão de acordes', proof:{t: ago(20), text:'Testei progressões no violão.'}},
+       {text:'Gravar um demo', proof:null}
+     ]}
+  ];
+  planets.push(p3);
+})();
+
+/* ============================== regra de saúde ============================== */
+function weeklyCount(p){
+  const cut = Date.now() - 7 * DAY;
+  return p.reports.filter(r => r.t > cut).length;
+}
+function health(p){
+  let h = Math.min(1, weeklyCount(p) / p.meta);
+  // carência: planeta novo nasce saudável e a proteção esvai em 7 dias
+  const age = Date.now() - p.createdAt;
+  if (age < 7 * DAY) h = Math.max(h, 1 - age / (7 * DAY));
+  return h;
+}
+
+/* ============================== tarefas concluídas ============================== */
+function weeklyTasks(p){
+  const cut = Date.now() - 7 * DAY;
+  return p.tasks.filter(x => x.completedAt > cut).sort((a, b) => b.completedAt - a.completedAt);
+}
+function monthlyTaskCount(p){
+  const cut = Date.now() - 30 * DAY;
+  return p.tasks.filter(x => x.completedAt > cut).length;
+}
+
+/* ============================== eventos (metas) ============================== */
+function activeEventsOf(p){ return p.events.filter(ev => ev.status === 'active'); }
+function eventProgress(ev){
+  const done = ev.checklist.filter(c => c.proof).length;
+  return {done, total: ev.checklist.length, pct: done / Math.max(1, ev.checklist.length)};
+}
+function fmtRemaining(deadline){
+  const ms = deadline - Date.now();
+  if (ms <= 0) return 'expirado';
+  const d = Math.floor(ms / DAY);
+  if (d >= 1) return d + 'd';
+  return Math.max(1, Math.floor(ms / 3600000)) + 'h';
+}
+function urgencyClass(deadline){
+  const d = (deadline - Date.now()) / DAY;
+  if (d < 3) return 'urgent';
+  if (d < 7) return 'warn';
+  return '';
+}
+// metas expiradas com checklist incompleto viram falhas
+function sweepEvents(){
+  const now = Date.now();
+  for (const p of planets)
+    for (const ev of p.events)
+      if (ev.status === 'active' && ev.deadline < now){ ev.status = 'failed'; ev.failedAt = now; }
+}
+
+/* ============================== empolgação ==============================
+   Um planeta fica "empolgado" quando tem eventos ativos: brilho pulsante e
+   faíscas na órbita. Concluir uma meta liga o modo festinha por alguns
+   segundos (empolgação máxima + confete). */
+function excitement(p){
+  if (Date.now() < p.partyUntil) return 1;
+  return Math.min(1, activeEventsOf(p).length * .5);
+}
+
+/* ============================== recompensa visual (partículas) ============================== */
+const bursts = [];
+function spawnBurst(p){
+  const pp = planetPos(p);
+  bursts.push({
+    x: pp.x, y: pp.y, hue: p.hue, r: p.size, t0: performance.now(),
+    particles: Array.from({length:16}, () => ({
+      ang: Math.random() * TAU, speed: 26 + Math.random() * 34, size: 1.3 + Math.random() * 1.8
+    }))
+  });
+}
+function drawBursts(){
+  const now = performance.now();
+  for (let i = bursts.length - 1; i >= 0; i--){
+    const b = bursts[i];
+    const age = (now - b.t0) / 1000;
+    if (age > 1.3){ bursts.splice(i, 1); continue; }
+    const k = age / 1.3;
+    ctx.lineWidth = 2 / cam.s;
+    ctx.strokeStyle = hsla(b.hue, 75, 72, (1 - k) * .6);
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r + k * 50, 0, TAU); ctx.stroke();
+    for (const pt of b.particles){
+      const dist = pt.speed * age;
+      const px = b.x + Math.cos(pt.ang) * dist, py = b.y + Math.sin(pt.ang) * dist;
+      ctx.fillStyle = hsla(b.hue, 85, 82, Math.max(0, 1 - k));
+      ctx.beginPath(); ctx.arc(px, py, pt.size * (1 - k * .5), 0, TAU); ctx.fill();
+    }
+  }
+}
+
+/* ============================== festinha (confete) ============================== */
+const confetti = [];
+function spawnParty(p){
+  p.partyUntil = Date.now() + 4500;
+  const pp = planetPos(p);
+  const hues = [p.hue, (p.hue + 40) % 360, 48, 200, 330];
+  spawnBurst(p);
+  setTimeout(() => { if (planets.includes(p)) spawnBurst(p); }, 300);
+  for (let i = 0; i < 48; i++) confetti.push({
+    x: pp.x, y: pp.y,
+    ang: Math.random() * TAU, speed: 18 + Math.random() * 58,
+    hue: hues[(Math.random() * hues.length) | 0],
+    w: 2 + Math.random() * 2.6, h: 1.2 + Math.random() * 1.6,
+    rot: Math.random() * TAU, rotSpeed: (Math.random() - .5) * 9,
+    t0: performance.now(), life: 2000 + Math.random() * 900
+  });
+}
+function drawConfetti(){
+  const now = performance.now();
+  for (let i = confetti.length - 1; i >= 0; i--){
+    const c = confetti[i];
+    const age = (now - c.t0) / 1000;
+    const k = (now - c.t0) / c.life;
+    if (k > 1){ confetti.splice(i, 1); continue; }
+    const px = c.x + Math.cos(c.ang) * c.speed * age;
+    const py = c.y + Math.sin(c.ang) * c.speed * age + age * age * 6;  // leve gravidade
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(c.rot + c.rotSpeed * age);
+    ctx.fillStyle = hsla(c.hue, 85, 70, Math.max(0, 1 - k));
+    ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h);
+    ctx.restore();
+  }
+}
+
+// faíscas orbitando planetas empolgados
+function drawExcitement(t){
+  for (const p of planets){
+    const e = excitement(p);
+    if (e <= 0) continue;
+    const pp = planetPos(p);
+    const n = Math.round(3 + 4 * e);
+    for (let i = 0; i < n; i++){
+      const ang = t * 1.1 + i * TAU / n + p.spin;
+      const rad = p.size * (1.7 + .25 * Math.sin(t * 2.2 + i * 1.7));
+      const sx = pp.x + Math.cos(ang) * rad, sy = pp.y + Math.sin(ang) * rad * .82;
+      const a = e * (.25 + .3 * Math.max(0, Math.sin(t * 3 + i * 2.1)));
+      ctx.fillStyle = hsla(p.hue, 80, 82, a);
+      ctx.beginPath(); ctx.arc(sx, sy, 1.1 + .5 * e, 0, TAU); ctx.fill();
+    }
+  }
+}
+
+/* ============================== câmera / estado ============================== */
+const cam = {x:0, y:0, s:1};
+const camT = {x:0, y:0, s:1};
+let mode = 'system';   // 'system' | 'planet'
+let focus = null;
+let hover = null;      // {kind:'planet'|'moon', ...}
+
+function fitScale(){
+  const maxD = planets.length ? Math.max(...planets.map(p => p.dist)) + 90 : 260;
+  return Math.min(1.05, Math.min(W, H) / 2 / maxD * .95);
+}
+function planetPos(p){ return {x: Math.cos(p.angle) * p.dist, y: Math.sin(p.angle) * p.dist}; }
+function worldToScreen(wx, wy){ return {x:(wx - cam.x) * cam.s + W / 2, y:(wy - cam.y) * cam.s + H / 2}; }
+function screenToWorld(sx, sy){ return {x:(sx - W / 2) / cam.s + cam.x, y:(sy - H / 2) / cam.s + cam.y}; }
+
+function moonsOf(p){
+  const arr = [{id:'relatorio'}];
+  if (p.hasRecursos) arr.push({id:'recursos'});
+  if (p.hasFotos) arr.push({id:'fotos'});
+  return arr.map((m, i) => Object.assign({}, MOON_STYLE[m.id], {
+    id: m.id, orbit: p.size + 30 + i * 18, speed: .55 - i * .13, phase: i * 2.4
+  }));
+}
+function moonPos(p, m, t){
+  const pp = planetPos(p);
+  const a = t * m.speed + m.phase;
+  return {x: pp.x + Math.cos(a) * m.orbit, y: pp.y + Math.sin(a) * m.orbit};
+}
+
+/* ============================== estrelas ============================== */
+const stars = [];
+for (let i = 0; i < 240; i++) stars.push({
+  x: Math.random(), y: Math.random(),
+  r: Math.random() < .85 ? .7 + Math.random() * .8 : 1.6 + Math.random() * .9,
+  a: .25 + Math.random() * .55, ph: Math.random() * TAU, w: .3 + Math.random() * 1.2
+});
+
+/* ============================== desenho ============================== */
+function hsla(h, s, l, a){ return `hsla(${h},${s}%,${l}%,${a})`; }
+
+function drawStars(t){
+  for (const s of stars){
+    const px = (((s.x * W - cam.x * cam.s * .06) % W) + W) % W;
+    const py = (((s.y * H - cam.y * cam.s * .06) % H) + H) % H;
+    const tw = s.a * (.65 + .35 * Math.sin(t * s.w + s.ph));
+    ctx.fillStyle = `rgba(210,225,255,${tw})`;
+    ctx.beginPath(); ctx.arc(px, py, s.r, 0, TAU); ctx.fill();
+  }
+}
+
+function drawSun(t){
+  const r = 42 * (1 + .015 * Math.sin(t * 1.2));
+  let g = ctx.createRadialGradient(0, 0, r * .4, 0, 0, r * 3.6);
+  g.addColorStop(0, 'rgba(255,214,130,.32)');
+  g.addColorStop(.5, 'rgba(255,170,90,.10)');
+  g.addColorStop(1, 'rgba(255,170,90,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, r * 3.6, 0, TAU); ctx.fill();
+
+  g = ctx.createRadialGradient(-r * .3, -r * .3, r * .1, 0, 0, r);
+  g.addColorStop(0, '#fff9e8');
+  g.addColorStop(.55, '#ffd98a');
+  g.addColorStop(1, '#ff9d4d');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+}
+
+function ringPath(x, y, r){
+  ctx.beginPath();
+  ctx.ellipse(x, y, r * 1.85, r * .52, -.42, 0, TAU);
+}
+
+function drawPlanet(p, t){
+  const {x, y} = planetPos(p);
+  const h = health(p);
+  const sat = 12 + 68 * h;
+  const r = p.size;
+
+  // brilho externo (pulsa quando o planeta está empolgado)
+  const exc = excitement(p);
+  const pulse = exc > 0 ? exc * (.07 + .07 * Math.sin(t * 2.6)) : 0;
+  let g = ctx.createRadialGradient(x, y, r * .5, x, y, r * 2.5);
+  g.addColorStop(0, hsla(p.hue, sat, 62, .08 + .28 * h + pulse));
+  g.addColorStop(1, hsla(p.hue, sat, 62, 0));
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r * 2.5, 0, TAU); ctx.fill();
+
+  // anel (metade de trás)
+  if (p.type === 'anelado'){
+    ctx.strokeStyle = hsla(p.hue, sat, 74, .18 + .25 * h);
+    ctx.lineWidth = r * .22;
+    ringPath(x, y, r); ctx.stroke();
+  }
+
+  // corpo
+  ctx.save();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.clip();
+  g = ctx.createRadialGradient(x - r * .45, y - r * .5, r * .15, x, y, r * 1.3);
+  g.addColorStop(0, hsla(p.hue, sat, 64, 1));
+  g.addColorStop(1, hsla(p.hue, Math.max(8, sat * .85), 28, 1));
+  ctx.fillStyle = g;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+
+  // calotas polares (gelado)
+  if (p.type === 'gelado'){
+    ctx.fillStyle = `rgba(240,248,255,${.45 + .3 * h})`;
+    ctx.beginPath(); ctx.ellipse(x, y - r * .82, r * .6, r * .28, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x, y + r * .85, r * .52, r * .24, 0, 0, TAU); ctx.fill();
+  }
+
+  // faixas (gasoso)
+  for (const f of p.features){
+    if (!f.band) continue;
+    ctx.fillStyle = f.light ? `rgba(255,255,255,${f.a * (.4 + .6 * h)})` : `rgba(4,8,22,${f.a})`;
+    ctx.fillRect(x - r, y + (f.fy - f.th / 2) * r, r * 2, f.th * r);
+  }
+
+  // manchas / crateras / tempestades — deslocam com a rotação própria
+  const spinFrac = (p.spin / Math.PI) % 2;
+  for (const f of p.features){
+    if (f.band) continue;
+    let u = ((f.fx + spinFrac + 3) % 2) - 1;              // -1..1 na esfera
+    const limb = Math.sqrt(Math.max(0, 1 - u * u));       // some no horizonte
+    if (limb < .08) continue;
+    const fx = x + u * r * .92, fy = y + f.fy * r;
+    ctx.globalAlpha = limb * (f.storm ? .55 : .45);
+    ctx.fillStyle = f.light ? 'rgba(255,255,255,.55)' : 'rgba(3,7,20,.6)';
+    ctx.beginPath();
+    ctx.ellipse(fx, fy, f.s * r * Math.max(.25, limb), f.s * r * (f.storm ? .55 : .85), 0, 0, TAU);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // sombreamento (terminador)
+  g = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
+  g.addColorStop(0, 'rgba(255,255,255,.09)');
+  g.addColorStop(.4, 'rgba(255,255,255,0)');
+  g.addColorStop(1, 'rgba(2,6,18,.55)');
+  ctx.fillStyle = g;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  ctx.restore();
+
+  // anel (metade da frente)
+  if (p.type === 'anelado'){
+    ctx.strokeStyle = hsla(p.hue, sat, 76, .35 + .35 * h);
+    ctx.lineWidth = r * .22;
+    ctx.beginPath();
+    ctx.ellipse(x, y, r * 1.85, r * .52, -.42, 0, Math.PI);
+    ctx.stroke();
+  }
+}
+
+function drawMoons(t){
+  if (!focus) return;
+  const alpha = Math.min(1, Math.max(0, (cam.s - 1.5) / 1.1));
+  if (alpha <= 0) return;
+  const pp = planetPos(focus);
+  for (const m of moonsOf(focus)){
+    // órbita da lua
+    ctx.strokeStyle = `rgba(148,180,255,${.10 * alpha})`;
+    ctx.lineWidth = 1 / cam.s;
+    ctx.beginPath(); ctx.arc(pp.x, pp.y, m.orbit, 0, TAU); ctx.stroke();
+
+    const mp = moonPos(focus, m, t);
+    const mr = 7.5;
+    let g = ctx.createRadialGradient(mp.x, mp.y, mr * .3, mp.x, mp.y, mr * 2);
+    g.addColorStop(0, m.col + '55'); g.addColorStop(1, m.col + '00');
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(mp.x, mp.y, mr * 2, 0, TAU); ctx.fill();
+    g = ctx.createRadialGradient(mp.x - 2, mp.y - 2, 1, mp.x, mp.y, mr);
+    g.addColorStop(0, '#f2f7ff'); g.addColorStop(1, m.col);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(mp.x, mp.y, mr, 0, TAU); ctx.fill();
+    const iconImg = MOON_ICON_IMG[m.icon];
+    if (iconImg && iconImg.complete){
+      const isz = mr * .95;
+      ctx.drawImage(iconImg, mp.x - isz / 2, mp.y - isz / 2, isz, isz);
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawOverlay(t){
+  // nomes dos planetas (visão de sistema)
+  const lbA = Math.min(1, Math.max(0, (1.7 - cam.s) / .7));
+  if (lbA > 0){
+    ctx.textAlign = 'center'; ctx.font = '12px -apple-system, "Segoe UI", sans-serif';
+    for (const p of planets){
+      const h = health(p);
+      const pp = planetPos(p), sc = worldToScreen(pp.x, pp.y);
+      ctx.fillStyle = hsla(p.hue, 12 + 60 * h, 82, .92 * lbA);
+      ctx.fillText(p.name, sc.x, sc.y + p.size * cam.s + 17);
+    }
+  }
+}
+
+/* ============================== loop ============================== */
+let last = performance.now();
+function frame(now){
+  const t = now / 1000;
+  const dt = Math.min(.05, (now - last) / 1000);
+  last = now;
+
+  // física — empolgação dá um gás extra na órbita
+  for (const p of planets){
+    const h = health(p);
+    p.angle += p.baseSpeed * (.25 + .75 * h) * (1 + .2 * excitement(p)) * dt;
+    p.spin += p.spinSpeed * dt;
+  }
+
+  // câmera
+  if (mode === 'planet' && focus){
+    const pp = planetPos(focus);
+    camT.x = pp.x; camT.y = pp.y; camT.s = 3;
+  } else {
+    camT.x = 0; camT.y = 0; camT.s = fitScale();
+  }
+  const k = Math.min(1, dt * 3.5);
+  cam.x += (camT.x - cam.x) * k;
+  cam.y += (camT.y - cam.y) * k;
+  cam.s += (camT.s - cam.s) * k;
+
+  // render
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  drawStars(t);
+
+  ctx.save();
+  ctx.translate(W / 2, H / 2);
+  ctx.scale(cam.s, cam.s);
+  ctx.translate(-cam.x, -cam.y);
+
+  // órbitas
+  ctx.lineWidth = 1 / cam.s;
+  for (const p of planets){
+    ctx.strokeStyle = 'rgba(140,170,255,.08)';
+    ctx.beginPath(); ctx.arc(0, 0, p.dist, 0, TAU); ctx.stroke();
+  }
+  drawSun(t);
+  for (const p of planets) drawPlanet(p, t);
+  drawExcitement(t);
+  drawMoons(t);
+  drawBursts();
+  drawConfetti();
+  ctx.restore();
+
+  drawOverlay(t);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ============================== interação ============================== */
+const tooltip = document.getElementById('tooltip');
+const hintEl = document.getElementById('hint');
+
+function hitTest(sx, sy){
+  const w = screenToWorld(sx, sy);
+  const tNow = performance.now() / 1000;
+  if (mode === 'planet' && focus && cam.s > 2){
+    for (const m of moonsOf(focus)){
+      const mp = moonPos(focus, m, tNow);
+      if (Math.hypot(w.x - mp.x, w.y - mp.y) < 14) return {kind:'moon', moon:m};
+    }
+    return null;
+  }
+  if (mode === 'system'){
+    for (const p of planets){
+      const pp = planetPos(p);
+      if (Math.hypot(w.x - pp.x, w.y - pp.y) < p.size + 10 / cam.s) return {kind:'planet', planet:p};
+    }
+  }
+  return null;
+}
+
+canvas.addEventListener('mousemove', e => {
+  hover = hitTest(e.clientX, e.clientY);
+  canvas.style.cursor = hover ? 'pointer' : 'default';
+  if (hover && hover.kind === 'planet'){
+    const p = hover.planet, h = health(p);
+    tooltip.innerHTML = `<b>${p.name}</b> <span class="tt-muted">· saúde ${Math.round(h * 100)}%</span><br>
+      <span class="tt-muted">${weeklyCount(p)}/${p.meta} relatórios nesta semana</span>`;
+    tooltip.style.display = 'block';
+    tooltip.style.left = Math.min(W - 220, e.clientX + 16) + 'px';
+    tooltip.style.top = (e.clientY + 16) + 'px';
+  } else if (hover && hover.kind === 'moon'){
+    const m = hover.moon;
+    let label = m.label;
+    if (m.id === 'relatorio') label += ` · ${weeklyCount(focus)}/${focus.meta}`;
+    tooltip.innerHTML = `<b>${label}</b>`;
+    tooltip.style.display = 'block';
+    tooltip.style.left = Math.min(W - 220, e.clientX + 16) + 'px';
+    tooltip.style.top = (e.clientY + 16) + 'px';
+  } else tooltip.style.display = 'none';
+});
+
+canvas.addEventListener('click', e => {
+  const hit = hitTest(e.clientX, e.clientY);
+  if (!hit) return;
+  if (hit.kind === 'planet') focusOn(hit.planet);
+  else if (hit.kind === 'moon') openDrawer(hit.moon.id);
+});
+
+const backBtn = document.getElementById('backBtn');
+const focusCard = document.getElementById('focusCard');
+
+function focusOn(p){
+  mode = 'planet'; focus = p;
+  backBtn.style.display = 'block';
+  focusCard.style.display = 'block';
+  hintEl.textContent = 'Clique numa lua para abrir';
+  tooltip.style.display = 'none';
+  updateFocusCard();
+}
+function backToSystem(){
+  mode = 'system'; focus = null;
+  backBtn.style.display = 'none';
+  focusCard.style.display = 'none';
+  hintEl.textContent = 'Clique num planeta para se aproximar';
+  closeDrawer();
+}
+backBtn.addEventListener('click', backToSystem);
+
+const confirmWrap = document.getElementById('confirmWrap');
+document.getElementById('deletePlanetBtn').addEventListener('click', () => {
+  if (!focus) return;
+  document.getElementById('confirmText').textContent =
+    `Todos os relatórios, recursos, fotos e metas de "${focus.name}" serão perdidos. Essa ação não pode ser desfeita.`;
+  confirmWrap.classList.add('open');
+});
+document.getElementById('confirmCancel').addEventListener('click', () => confirmWrap.classList.remove('open'));
+confirmWrap.addEventListener('click', e => { if (e.target === confirmWrap) confirmWrap.classList.remove('open'); });
+document.getElementById('confirmOk').addEventListener('click', () => {
+  planets = planets.filter(p => p !== focus);
+  confirmWrap.classList.remove('open');
+  backToSystem();
+});
+
+function statusText(h){
+  if (h >= .99) return ['Órbita estável ✦', '#7ef0b2'];
+  if (h >= .6)  return ['Órbita regular', '#9fc3ff'];
+  if (h > .25)  return ['Desacelerando…', '#ffd27d'];
+  if (h > 0)    return ['Perdendo a cor', '#ff9d7d'];
+  return ['Órbita quase parada', '#8fa3c8'];
+}
+function updateFocusCard(){
+  if (!focus) return;
+  const h = health(focus);
+  const sat = 12 + 68 * h;
+  focusCard.querySelector('.fc-dot').style.background = hsla(focus.hue, sat, 60, 1);
+  focusCard.querySelector('.fc-nm').textContent = focus.name;
+  focusCard.querySelector('.fc-type').textContent =
+    TYPES.find(tp => tp.id === focus.type).name + ' · ' + moonsOf(focus).length + (moonsOf(focus).length > 1 ? ' luas' : ' lua');
+  const bar = focusCard.querySelector('.fc-bar');
+  bar.style.width = (h * 100) + '%';
+  bar.style.background = hsla(focus.hue, sat, 58, 1);
+  focusCard.querySelector('.fc-meta').textContent = `${weeklyCount(focus)}/${focus.meta} relatórios nesta semana`;
+  focusCard.querySelector('.fc-ach').innerHTML = `${ICONS.award} ${monthlyTaskCount(focus)} tarefas concluídas este mês`;
+  const [txt, col] = statusText(h);
+  const st = focusCard.querySelector('.fc-status');
+  st.textContent = txt; st.style.color = col;
+
+  const objEl = focusCard.querySelector('.fc-obj');
+  const descEl = focusCard.querySelector('.fc-desc');
+  objEl.style.display = focus.objective ? 'flex' : 'none';
+  objEl.querySelector('.fc-obj-txt').textContent = focus.objective;
+  descEl.style.display = focus.description ? 'block' : 'none';
+  descEl.textContent = focus.description;
+}
+setInterval(updateFocusCard, 500);
+
+/* ============================== modal: novo planeta ============================== */
+const modalWrap = document.getElementById('modalWrap');
+let selHue = COLORS[0].h, selType = TYPES[0].id;
+
+const swatchesEl = document.getElementById('swatches');
+COLORS.forEach((c, i) => {
+  const b = document.createElement('div');
+  b.className = 'swatch' + (i === 0 ? ' sel' : '');
+  b.style.background = `hsl(${c.h},65%,55%)`;
+  b.title = c.name;
+  b.addEventListener('click', () => {
+    selHue = c.h;
+    swatchesEl.querySelectorAll('.swatch').forEach(s => s.classList.remove('sel'));
+    b.classList.add('sel');
+    typeGrid.style.setProperty('--ph', c.h);
+  });
+  swatchesEl.appendChild(b);
+});
+
+const typeGrid = document.getElementById('typeGrid');
+typeGrid.style.setProperty('--ph', selHue);
+TYPES.forEach((tp, i) => {
+  const card = document.createElement('div');
+  card.className = 'type-card' + (i === 0 ? ' sel' : '');
+  card.innerHTML = `<div class="tp tp-${tp.id}"></div><span>${tp.name}</span>`;
+  card.addEventListener('click', () => {
+    selType = tp.id;
+    typeGrid.querySelectorAll('.type-card').forEach(c => c.classList.remove('sel'));
+    card.classList.add('sel');
+  });
+  typeGrid.appendChild(card);
+});
+
+const pMeta = document.getElementById('pMeta');
+const metaVal = document.getElementById('metaVal');
+function syncMeta(){
+  const v = +pMeta.value;
+  metaVal.innerHTML = `<b>${v}×</b> por semana ${v === 7 ? '(todo dia)' : v === 1 ? '(bem tranquilo)' : ''}`;
+}
+pMeta.addEventListener('input', syncMeta); syncMeta();
+
+document.getElementById('addPlanetBtn').addEventListener('click', () => {
+  document.getElementById('pName').value = '';
+  document.getElementById('pObjective').value = '';
+  document.getElementById('pDescription').value = '';
+  modalWrap.classList.add('open');
+  setTimeout(() => document.getElementById('pName').focus(), 50);
+});
+document.getElementById('cancelPlanet').addEventListener('click', () => modalWrap.classList.remove('open'));
+modalWrap.addEventListener('click', e => { if (e.target === modalWrap) modalWrap.classList.remove('open'); });
+
+/* ============================== modal: estatísticas ============================== */
+const statsWrap = document.getElementById('statsWrap');
+const statsBars = document.getElementById('statsBars');
+function renderStats(){
+  const rows = planets.map(p => ({name: p.name, hue: p.hue, count: monthlyTaskCount(p)}));
+  const max = Math.max(1, ...rows.map(r => r.count));
+  statsBars.innerHTML = rows.length ? rows.map(r => `
+    <div style="margin-bottom:14px">
+      <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px">
+        <span>${r.name}</span><span style="color:var(--muted)">${r.count}</span>
+      </div>
+      <div style="height:8px; border-radius:99px; background:rgba(148,180,255,.1); overflow:hidden">
+        <div style="height:100%; border-radius:99px; width:${r.count / max * 100}%; background:hsl(${r.hue},60%,55%)"></div>
+      </div>
+    </div>`).join('') : '<div class="empty">Nenhum planeta criado ainda.</div>';
+}
+document.getElementById('statsBtn').addEventListener('click', () => { renderStats(); statsWrap.classList.add('open'); });
+document.getElementById('statsClose').addEventListener('click', () => statsWrap.classList.remove('open'));
+statsWrap.addEventListener('click', e => { if (e.target === statsWrap) statsWrap.classList.remove('open'); });
+
+/* ============================== toast ============================== */
+const toast = document.getElementById('toast');
+let toastTimer = null;
+function showToast(text){
+  toast.querySelector('.t-txt').textContent = text;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3800);
+}
+
+/* ============================== painel de eventos ============================== */
+const eventsPanel = document.getElementById('eventsPanel');
+const epBody = document.getElementById('epBody');
+let epTab = 'active';
+
+document.getElementById('epHead').addEventListener('click', () => eventsPanel.classList.toggle('collapsed'));
+document.querySelectorAll('.ep-tab').forEach(b => b.addEventListener('click', () => {
+  epTab = b.dataset.tab;
+  document.querySelectorAll('.ep-tab').forEach(x => x.classList.toggle('sel', x === b));
+  renderEventsPanel();
+}));
+
+function fmtShortDate(t){ return new Date(t).toLocaleDateString('pt-BR', {day:'2-digit', month:'short'}); }
+
+function renderEventsPanel(){
+  sweepEvents();
+  const rows = [];
+  for (const p of planets)
+    for (const ev of p.events)
+      rows.push({p, ev});
+
+  const active = rows.filter(r => r.ev.status === 'active')
+    .sort((a, b) => a.ev.deadline - b.ev.deadline);
+  document.getElementById('epCount').textContent = active.length;
+
+  if (epTab === 'active'){
+    epBody.innerHTML = active.length ? active.map(({p, ev}) => {
+      const pr = eventProgress(ev);
+      return `<div class="ep-row" data-ev="${ev.id}" style="--eh:${ev.hue}">
+        <span class="ep-chip">${ICONS[ev.icon]}</span>
+        <div class="ep-info">
+          <div class="ep-name">${ev.title}</div>
+          <div class="ep-sub">${p.name} · ${pr.done}/${pr.total} objetivos</div>
+          <div class="ep-prog"><div style="width:${pr.pct * 100}%"></div></div>
+        </div>
+        <span class="ep-time ${urgencyClass(ev.deadline)}">${fmtRemaining(ev.deadline)}</span>
+      </div>`;
+    }).join('') : `<div class="ep-empty">Nenhum evento ativo.<br>Crie uma meta dentro de um planeta!</div>`;
+  } else {
+    const hist = rows.filter(r => r.ev.status !== 'active')
+      .sort((a, b) => (b.ev.completedAt || b.ev.failedAt || 0) - (a.ev.completedAt || a.ev.failedAt || 0));
+    epBody.innerHTML = hist.length ? hist.map(({p, ev}) => `
+      <div class="ep-row" data-ev="${ev.id}" style="--eh:${ev.hue}">
+        <span class="ep-chip">${ICONS[ev.icon]}</span>
+        <div class="ep-info">
+          <div class="ep-name">${ev.title}</div>
+          <div class="ep-sub">${p.name} · ${fmtShortDate(ev.completedAt || ev.failedAt || ev.deadline)}</div>
+        </div>
+        <span class="ep-badge ${ev.status === 'done' ? 'done' : 'fail'}">${ev.status === 'done' ? 'Concluída' : 'Falhou'}</span>
+      </div>`).join('') : `<div class="ep-empty">Nenhuma meta finalizada ainda.</div>`;
+  }
+}
+epBody.addEventListener('click', e => {
+  const row = e.target.closest('.ep-row');
+  if (!row) return;
+  for (const p of planets){
+    const ev = p.events.find(x => x.id === row.dataset.ev);
+    if (ev){ focusOn(p); openEventDetail(p, ev); return; }
+  }
+});
+setInterval(renderEventsPanel, 5000);
+renderEventsPanel();
+
+/* ============================== modal: nova meta ============================== */
+const goalWrap = document.getElementById('goalWrap');
+const DEADLINES = [{d:7, l:'1 semana'}, {d:14, l:'2 semanas'}, {d:21, l:'3 semanas'}, {d:30, l:'1 mês'}, {d:60, l:'2 meses'}, {d:90, l:'3 meses'}];
+let gIcon = GOAL_ICONS[0], gHue = COLORS[0].h, gDays = 30, gItems = [];
+
+const gIconGrid = document.getElementById('gIconGrid');
+gIconGrid.style.setProperty('--gh', gHue);
+GOAL_ICONS.forEach((ic, i) => {
+  const b = document.createElement('div');
+  b.className = 'icon-opt' + (i === 0 ? ' sel' : '');
+  b.innerHTML = ICONS[ic];
+  b.addEventListener('click', () => {
+    gIcon = ic;
+    gIconGrid.querySelectorAll('.icon-opt').forEach(x => x.classList.remove('sel'));
+    b.classList.add('sel');
+  });
+  gIconGrid.appendChild(b);
+});
+
+const gSwatches = document.getElementById('gSwatches');
+COLORS.forEach((c, i) => {
+  const b = document.createElement('div');
+  b.className = 'swatch' + (i === 0 ? ' sel' : '');
+  b.style.background = `hsl(${c.h},65%,55%)`;
+  b.title = c.name;
+  b.addEventListener('click', () => {
+    gHue = c.h;
+    gSwatches.querySelectorAll('.swatch').forEach(s => s.classList.remove('sel'));
+    b.classList.add('sel');
+    gIconGrid.style.setProperty('--gh', c.h);
+  });
+  gSwatches.appendChild(b);
+});
+
+const gDeadlinesEl = document.getElementById('gDeadlines');
+DEADLINES.forEach(dl => {
+  const b = document.createElement('div');
+  b.className = 'dl-chip' + (dl.d === 30 ? ' sel' : '');
+  b.textContent = dl.l;
+  b.addEventListener('click', () => {
+    gDays = dl.d;
+    gDeadlinesEl.querySelectorAll('.dl-chip').forEach(x => x.classList.remove('sel'));
+    b.classList.add('sel');
+  });
+  gDeadlinesEl.appendChild(b);
+});
+
+const gChecklistEl = document.getElementById('gChecklist');
+function renderGChecklist(){
+  gChecklistEl.innerHTML = gItems.map((it, i) =>
+    `<div class="cl-item"><span style="color:var(--muted)">${i + 1}.</span> ${it}
+      <button class="cl-x" data-i="${i}">${ICONS.close}</button></div>`).join('');
+  gChecklistEl.querySelectorAll('.cl-x').forEach(b => b.addEventListener('click', () => {
+    gItems.splice(+b.dataset.i, 1); renderGChecklist();
+  }));
+}
+const gClInput = document.getElementById('gClInput');
+const addGItem = () => {
+  const v = gClInput.value.trim();
+  if (!v) return;
+  gItems.push(v); gClInput.value = ''; gClInput.focus();
+  renderGChecklist();
+};
+document.getElementById('gClAdd').addEventListener('click', addGItem);
+gClInput.addEventListener('keydown', e => { if (e.key === 'Enter') addGItem(); });
+
+document.getElementById('newGoalBtn').addEventListener('click', () => {
+  if (!focus) return;
+  document.getElementById('goalPlanetName').textContent = '· planeta ' + focus.name;
+  document.getElementById('gTitle').value = '';
+  gItems = []; renderGChecklist();
+  goalWrap.classList.add('open');
+  setTimeout(() => document.getElementById('gTitle').focus(), 50);
+});
+document.getElementById('goalCancel').addEventListener('click', () => goalWrap.classList.remove('open'));
+goalWrap.addEventListener('click', e => { if (e.target === goalWrap) goalWrap.classList.remove('open'); });
+
+document.getElementById('goalCreate').addEventListener('click', () => {
+  const title = document.getElementById('gTitle').value.trim();
+  if (!title){ document.getElementById('gTitle').focus(); return; }
+  if (!gItems.length){ gClInput.focus(); return; }
+  focus.events.push({
+    id: 'e' + Date.now(), title, icon: gIcon, hue: gHue, status: 'active',
+    createdAt: Date.now(), deadline: Date.now() + gDays * DAY,
+    checklist: gItems.map(text => ({text, proof: null}))
+  });
+  goalWrap.classList.remove('open');
+  renderEventsPanel();
+  showToast('Meta criada — boa sorte!');
+});
+
+/* ============================== modal: detalhe do evento ============================== */
+const eventWrap = document.getElementById('eventWrap');
+const eventModal = document.getElementById('eventModal');
+let evPlanet = null, evCurrent = null, evAttachIdx = null;
+
+eventWrap.addEventListener('click', e => { if (e.target === eventWrap) closeEventDetail(); });
+function closeEventDetail(){ eventWrap.classList.remove('open'); evPlanet = evCurrent = null; evAttachIdx = null; }
+
+function openEventDetail(p, ev){
+  evPlanet = p; evCurrent = ev; evAttachIdx = null;
+  renderEventDetail();
+  eventWrap.classList.add('open');
+}
+
+function renderEventDetail(){
+  const p = evPlanet, ev = evCurrent;
+  if (!p || !ev) return;
+  const pr = eventProgress(ev);
+  const statusChip = ev.status === 'active'
+    ? `<span class="ep-time ${urgencyClass(ev.deadline)}" style="font-size:11px">${ICONS.clock} ${fmtRemaining(ev.deadline)} restantes</span>`
+    : `<span class="ep-badge ${ev.status === 'done' ? 'done' : 'fail'}">${ev.status === 'done' ? 'Concluída em ' + fmtShortDate(ev.completedAt) : 'Falhou em ' + fmtShortDate(ev.failedAt || ev.deadline)}</span>`;
+
+  let html = `
+    <div class="ev-head" style="--eh:${ev.hue}">
+      <span class="ev-chip-lg">${ICONS[ev.icon]}</span>
+      <div style="flex:1">
+        <div class="ev-title">${ev.title}</div>
+        <div class="ev-sub">planeta ${p.name} · ${pr.done}/${pr.total} objetivos</div>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">${statusChip}</div>
+    <div style="height:6px; border-radius:99px; background:rgba(148,180,255,.12); overflow:hidden; margin-bottom:18px">
+      <div style="height:100%; border-radius:99px; width:${pr.pct * 100}%; background:hsl(${ev.hue},65%,58%); transition:width .4s"></div>
+    </div>`;
+
+  ev.checklist.forEach((c, i) => {
+    html += `<div class="ev-item ${c.proof ? 'done' : ''}" style="--eh:${ev.hue}">
+      <div class="ev-item-head">
+        <span class="ev-check">${ICONS.check}</span>
+        <span class="ev-item-text">${c.text}</span>
+        ${!c.proof && ev.status === 'active' ? `<button class="ev-attach" data-i="${i}">Anexar relatório</button>` : ''}
+      </div>`;
+    if (c.proof) html += `<div class="ev-proof">${ICONS.report} ${fmtShortDate(c.proof.t)} — “${c.proof.text.slice(0, 60)}${c.proof.text.length > 60 ? '…' : ''}”</div>`;
+    if (evAttachIdx === i){
+      const reps = [...p.reports].sort((a, b) => b.t - a.t).slice(0, 6);
+      html += `<div class="ev-picker">` + (reps.length
+        ? reps.map((r, ri) => `<div class="ev-pick" data-r="${ri}"><span class="pk-date">${fmtShortDate(r.t)}</span> ${r.text.slice(0, 64)}${r.text.length > 64 ? '…' : ''}</div>`).join('')
+        : `<div class="ep-empty">Nenhum relatório neste planeta ainda.<br>Escreva um na lua de Relatório!</div>`)
+        + `<button class="btn" style="width:100%; font-size:11.5px; padding:6px" data-cancel-pick>Cancelar</button></div>`;
+    }
+    html += `</div>`;
+  });
+
+  html += `<div class="actions"><button class="btn" data-close-ev>Fechar</button></div>`;
+  eventModal.innerHTML = html;
+
+  eventModal.querySelectorAll('.ev-attach').forEach(b => b.addEventListener('click', () => {
+    evAttachIdx = +b.dataset.i; renderEventDetail();
+  }));
+  eventModal.querySelectorAll('[data-cancel-pick]').forEach(b => b.addEventListener('click', () => {
+    evAttachIdx = null; renderEventDetail();
+  }));
+  eventModal.querySelectorAll('.ev-pick').forEach(b => b.addEventListener('click', () => {
+    const reps = [...p.reports].sort((x, y) => y.t - x.t).slice(0, 6);
+    const r = reps[+b.dataset.r];
+    ev.checklist[evAttachIdx].proof = {t: r.t, text: r.text};
+    evAttachIdx = null;
+    if (ev.checklist.every(c => c.proof)){
+      ev.status = 'done'; ev.completedAt = Date.now();
+      spawnParty(p);
+      showToast(`Meta concluída: ${ev.title}!`);
+      closeEventDetail();
+    } else renderEventDetail();
+    renderEventsPanel();
+  }));
+  const closeBtn = eventModal.querySelector('[data-close-ev]');
+  if (closeBtn) closeBtn.addEventListener('click', closeEventDetail);
+}
+
+document.getElementById('createPlanet').addEventListener('click', () => {
+  const name = document.getElementById('pName').value.trim() || `Planeta ${planets.length + 1}`;
+  const p = makePlanet({
+    name, hue: selHue, type: selType, meta: +pMeta.value,
+    objective: document.getElementById('pObjective').value.trim(),
+    description: document.getElementById('pDescription').value.trim(),
+    hasRecursos: document.getElementById('mRecursos').checked,
+    hasFotos: document.getElementById('mFotos').checked
+  });
+  planets.push(p);
+  modalWrap.classList.remove('open');
+  focusOn(p);
+});
+
+/* ============================== drawer: luas ============================== */
+const drawer = document.getElementById('drawer');
+const drBody = drawer.querySelector('.dr-body');
+const drFoot = drawer.querySelector('.dr-foot');
+let drawerMoon = null;
+
+document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+function closeDrawer(){ drawer.classList.remove('open'); drawerMoon = null; }
+
+function fmtDate(t){
+  return new Date(t).toLocaleDateString('pt-BR', {weekday:'short', day:'2-digit', month:'short'}) +
+    ' · ' + new Date(t).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+}
+
+function openDrawer(moonId){
+  if (!focus) return;
+  drawerMoon = moonId;
+  const st = MOON_STYLE[moonId];
+  drawer.querySelector('.dr-icon').innerHTML = ICONS[st.icon];
+  drawer.querySelector('.dr-title').textContent = 'Lua de ' + st.label;
+  drawer.querySelector('.dr-sub').textContent = 'Planeta ' + focus.name;
+  renderDrawer();
+  drawer.classList.add('open');
+}
+
+function renderDrawer(){
+  const p = focus;
+  if (!p || !drawerMoon) return;
+
+  if (drawerMoon === 'relatorio'){
+    const wk = weeklyCount(p), h = health(p);
+    const [txt, col] = statusText(h);
+    let html = `<div class="chip"><span class="cdot" style="background:${col}"></span>
+      ${wk}/${p.meta} nesta semana · <span style="color:${col}">${txt}</span></div>`;
+    const entries = [...p.reports].sort((a, b) => b.t - a.t);
+    if (!entries.length) html += `<div class="empty">Nenhum relatório ainda.<br>Escreva o primeiro e veja o planeta ganhar vida. ${ICONS.sparkle}</div>`;
+    else for (const e of entries) html += `<div class="entry"><div class="e-date">${fmtDate(e.t)}</div><div class="e-text">${e.text}</div></div>`;
+    drBody.innerHTML = html;
+
+    const wTasks = weeklyTasks(p);
+    let footHtml = '';
+    if (wTasks.length) footHtml += `
+      <div style="font-size:11px; color:var(--muted); letter-spacing:.3px; text-transform:uppercase; margin-bottom:8px">
+        Tarefas concluídas esta semana</div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px">
+        ${wTasks.map((tk, i) => `<span class="task-chip" data-i="${i}" style="cursor:pointer; font-size:11.5px; padding:5px 10px; border-radius:99px; border:1px solid var(--line); background:rgba(148,180,255,.08)">${ICONS.check} ${tk.title}</span>`).join('')}
+      </div>`;
+    footHtml += `
+      <div class="add-row" style="margin-bottom:14px">
+        <input type="text" id="taskQuick" placeholder="Nova tarefa concluída…">
+        <button class="btn" id="taskQuickAdd">${ICONS.check} Concluir</button>
+      </div>
+      <textarea id="repText" placeholder="Como foi hoje em ${p.name}?"></textarea>
+      <button class="btn primary" style="width:100%; margin-top:10px" id="repSend">Enviar relatório</button>`;
+    drFoot.innerHTML = footHtml;
+
+    drFoot.querySelectorAll('.task-chip').forEach(el => el.addEventListener('click', () => {
+      const tk = wTasks[+el.dataset.i];
+      const ta = drFoot.querySelector('#repText');
+      ta.value = (ta.value ? ta.value + ' ' : '') + `Concluí "${tk.title}".`;
+      ta.focus();
+    }));
+    const addTask = () => {
+      const inp = drFoot.querySelector('#taskQuick');
+      const v = inp.value.trim();
+      if (!v) return;
+      p.tasks.push({title: v, completedAt: Date.now()});
+      spawnBurst(p);
+      renderDrawer(); updateFocusCard();
+    };
+    drFoot.querySelector('#taskQuickAdd').addEventListener('click', addTask);
+    drFoot.querySelector('#taskQuick').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+    drFoot.querySelector('#repSend').addEventListener('click', () => {
+      const v = drFoot.querySelector('#repText').value.trim();
+      if (!v) return;
+      p.reports.push({t: Date.now(), text: v});
+      renderDrawer(); updateFocusCard();
+    });
+
+  } else if (drawerMoon === 'recursos'){
+    let html = '';
+    if (!p.resources.length) html = `<div class="empty">Biblioteca vazia.<br>Guarde livros e materiais para acessar de qualquer dispositivo.</div>`;
+    else for (const r of p.resources)
+      html += `<div class="res-item"><span class="r-icon">${ICONS.book}</span><div><div class="r-name">${r.name}</div><div class="r-kind">${r.kind}</div></div></div>`;
+    drBody.innerHTML = html;
+    drFoot.innerHTML = `<div class="add-row"><input type="text" id="resName" placeholder="Título do recurso">
+      <button class="btn primary" id="resAdd">Adicionar</button></div>`;
+    const add = () => {
+      const v = drFoot.querySelector('#resName').value.trim();
+      if (!v) return;
+      p.resources.push({name: v, kind: 'Arquivo'});
+      renderDrawer();
+    };
+    drFoot.querySelector('#resAdd').addEventListener('click', add);
+    drFoot.querySelector('#resName').addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
+
+  } else if (drawerMoon === 'fotos'){
+    let html = '';
+    if (!p.photos.length) html = `<div class="empty">Nenhuma foto ainda.<br>Registre suas atividades para lembrar delas no futuro. ${ICONS.camera}</div>`;
+    else {
+      html = '<div class="photo-grid">';
+      for (const ph of p.photos)
+        html += `<div class="photo" style="background:linear-gradient(${ph.ang}deg, hsl(${ph.h1},45%,38%), hsl(${ph.h2},55%,22%))"></div>`;
+      html += '</div>';
+    }
+    drBody.innerHTML = html;
+    drFoot.innerHTML = `<button class="btn primary" style="width:100%" id="phAdd">${ICONS.plus} Adicionar foto</button>`;
+    drFoot.querySelector('#phAdd').addEventListener('click', () => {
+      p.photos.unshift(randPhoto(p.hue));
+      renderDrawer();
+    });
+  }
+}
+
+/* ============================== teclado ============================== */
+addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (modalWrap.classList.contains('open')) modalWrap.classList.remove('open');
+  else if (goalWrap.classList.contains('open')) goalWrap.classList.remove('open');
+  else if (eventWrap.classList.contains('open')) closeEventDetail();
+  else if (statsWrap.classList.contains('open')) statsWrap.classList.remove('open');
+  else if (confirmWrap.classList.contains('open')) confirmWrap.classList.remove('open');
+  else if (drawer.classList.contains('open')) closeDrawer();
+  else if (mode === 'planet') backToSystem();
+});
+</script>
+</body>
+</html>
