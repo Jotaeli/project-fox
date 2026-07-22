@@ -1,0 +1,29 @@
+.app-shell { min-height: 100%; display: flex; flex-direction: column; }
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  padding: 14px 22px; backdrop-filter: blur(10px);
+  background: rgba(5, 9, 24, .55); border-bottom: 1px solid rgba(148, 180, 255, .07);
+}
+.topbar h1 { font-size: 15px; font-weight: 600; letter-spacing: .4px; flex: none; }
+
+.subtabs {
+  display: flex; gap: 4px; background: rgba(8, 14, 32, .7); border: 1px solid var(--line);
+  border-radius: 99px; padding: 4px;
+}
+.subtab {
+  border: none; background: none; color: var(--muted); font-size: 13px; font-weight: 500;
+  padding: 7px 18px; border-radius: 99px; cursor: pointer; text-decoration: none;
+  transition: color .2s, background .2s;
+}
+.subtab:hover { color: var(--text); }
+.subtab.sel { background: linear-gradient(135deg, #3667c4, #274a95); color: #fff; }
+
+.topbar-right { display: flex; align-items: center; gap: 12px; flex: none; }
+.user-email { font-size: 12px; color: var(--muted); }
+
+.app-main { flex: 1; }
+
+.placeholder-pane { max-width: 1080px; margin: 0 auto; padding: 80px 22px; text-align: center; }
+.placeholder-pane h2 { font-size: 20px; font-weight: 600; margin-bottom: 10px; }
+.placeholder-pane p { color: var(--muted); font-size: 13.5px; }
