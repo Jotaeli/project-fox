@@ -5,7 +5,11 @@ import { fmtBRL } from "../../../lib/currentMonth.js";
 import { useWishlist } from "../wishlist/useWishlist.js";
 import { useTarefas } from "./useTarefas.js";
 
-export function TaskModal({ secoes, defaultSecaoId, onClose }: { secoes: SecaoTarefas[]; defaultSecaoId: string; onClose: () => void }) {
+export function TaskModal({
+  secoes, defaultSecaoId, defaultOrigemPlanetaId, onClose,
+}: {
+  secoes: SecaoTarefas[]; defaultSecaoId: string; defaultOrigemPlanetaId?: string; onClose: () => void;
+}) {
   const { addTarefa } = useTarefas();
   const { items } = useWishlist();
   const [titulo, setTitulo] = useState("");
@@ -32,6 +36,7 @@ export function TaskModal({ secoes, defaultSecaoId, onClose }: { secoes: SecaoTa
       {
         titulo: title, secaoId, prazo: prazo || undefined, etapas: cleanStages,
         financeira, valorAlvo: financeira ? Number(valor) || 0 : undefined, wishlistRefId: financeira && wishId ? wishId : undefined,
+        origemPlanetaId: defaultOrigemPlanetaId,
       },
       { onSuccess: onClose },
     );

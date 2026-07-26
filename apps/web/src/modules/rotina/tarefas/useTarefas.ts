@@ -16,6 +16,7 @@ function mapTarefa(t: any, etapas: EtapaTarefa[]): Tarefa {
     ordem: t.ordem, prazo: t.prazo ?? undefined, etapas, financeira: t.financeira,
     valorAlvo: t.valor_alvo != null ? Number(t.valor_alvo) : undefined,
     wishlistRefId: t.wishlist_ref_id ?? undefined, origemPlanetaId: t.origem_planeta_id ?? undefined,
+    concluidaAt: t.concluida_at ?? undefined,
     createdAt: t.created_at,
   };
 }
@@ -98,7 +99,7 @@ export function useTarefas() {
   const addTarefa = useMutation({
     mutationFn: async (input: {
       titulo: string; secaoId: string; prazo?: string; etapas: string[];
-      financeira: boolean; valorAlvo?: number; wishlistRefId?: string;
+      financeira: boolean; valorAlvo?: number; wishlistRefId?: string; origemPlanetaId?: string;
     }) => {
       const maxOrdem = Math.max(0, ...(tarefasQ.data ?? []).filter((t) => t.secaoId === input.secaoId).map((t) => t.ordem + 1));
       const { data: t, error } = await supabase.from("tarefas").insert({
@@ -106,6 +107,7 @@ export function useTarefas() {
         prazo: input.prazo || null, financeira: input.financeira,
         valor_alvo: input.financeira ? input.valorAlvo ?? 0 : null,
         wishlist_ref_id: input.wishlistRefId || null,
+        origem_planeta_id: input.origemPlanetaId || null,
       }).select().single();
       if (error) throw error;
       const rows = input.etapas.map((titulo, i) => ({ tarefa_id: t.id, titulo, ordem: i, concluida: false }));
@@ -147,6 +149,10 @@ export function useTarefas() {
       const { error } = await supabase.from("etapas_tarefa").update({ concluida: true }).eq("id", next.id);
       if (error) throw error;
       const allDone = tarefa.etapas.every((e) => e.id === next.id || e.concluida);
+      if (allDone) {
+        const { error: cErr } = await supabase.from("tarefas").update({ concluida_at: new Date().toISOString() }).eq("id", tarefa.id);
+        if (cErr) throw cErr;
+      }
       if (allDone && tarefa.financeira) {
         const { data: existing } = await supabase.from("rendas_mensais").select("id").eq("origem_tarefa_id", tarefa.id).limit(1);
         if (!existing || existing.length === 0) {
@@ -169,6 +175,8 @@ export function useTarefas() {
     mutationFn: async (input: { tarefa: Tarefa; etapaOrdem: number }) => {
       const idsToRevert = input.tarefa.etapas.filter((e) => e.ordem >= input.etapaOrdem).map((e) => e.id);
       await Promise.all(idsToRevert.map((id) => supabase.from("etapas_tarefa").update({ concluida: false }).eq("id", id)));
+      const { error } = await supabase.from("tarefas").update({ concluida_at: null }).eq("id", input.tarefa.id);
+      if (error) throw error;
     },
     onSuccess: invalidateTarefas,
   });

@@ -11,6 +11,8 @@ export interface Planeta {
   objetivoPrincipal: string;
   descricao?: string;
   metaSemanal: number; // relatórios por semana, 1-7
+  temRecursos: boolean;
+  temFotos: boolean;
   createdAt: ISODateTime;
 }
 
@@ -57,5 +59,7 @@ export interface Evento {
   prazo: ISODate;
   status: StatusEvento;
   checklist: ChecklistItemEvento[];
+  concluidoEm?: ISODateTime;
+  falhouEm?: ISODateTime;
   createdAt: ISODateTime;
 }

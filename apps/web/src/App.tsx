@@ -6,7 +6,7 @@ import { AppShell } from "./layout/AppShell.js";
 import { ProtectedRoute } from "./layout/ProtectedRoute.js";
 import { ToastProvider } from "./lib/toast.js";
 import { AnotarPage } from "./modules/anotar/AnotarPage.js";
-import { ModulePlaceholder } from "./modules/placeholder/ModulePlaceholder.js";
+import { CriarPage } from "./modules/criar/CriarPage.js";
 import { RotinaPage } from "./modules/rotina/RotinaPage.js";
 
 const queryClient = new QueryClient();
@@ -36,7 +36,7 @@ export function App() {
                 <Route path="/" element={<Navigate to="/rotina" replace />} />
                 <Route path="/rotina" element={<RotinaPage />} />
                 <Route path="/anotar" element={<AnotarPage />} />
-                <Route path="/criar" element={<ModulePlaceholder title="Desenvolver/Criar" />} />
+                <Route path="/criar" element={<CriarPage />} />
                 <Route path="*" element={<Navigate to="/rotina" replace />} />
               </Route>
             </Routes>

@@ -81,5 +81,6 @@ export interface Tarefa {
   valorAlvo?: number;
   wishlistRefId?: UUID;
   origemPlanetaId?: UUID; // tarefa criada a partir de Desenvolver/Criar
+  concluidaAt?: ISODateTime;
   createdAt: ISODateTime;
 }
