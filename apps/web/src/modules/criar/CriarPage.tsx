@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import type { Evento, Planeta } from "@project-fox/types";
 import {
   AwardIcon, BackIcon, BarChartIcon, CameraIcon, LibraryIcon, PlusIcon, ReportIcon, TargetIcon, TrashIcon,
@@ -114,6 +115,14 @@ export function CriarPage() {
     setFocusId(null); setOpenMoonId(null);
     setHint();
   }
+
+  // deep link vindo da Home (faixa de urgentes): abre direto no planeta
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const pid = searchParams.get("planeta");
+    if (pid && planetas.some((p) => p.id === pid)) focusOn(pid);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, planetas.length]);
 
   function spawnBurst(sp: SimPlanet, hue: number) {
     const pp = { x: Math.cos(sp.angle) * sp.dist, y: Math.sin(sp.angle) * sp.dist };

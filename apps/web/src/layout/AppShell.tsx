@@ -12,6 +12,7 @@ export function AppShell() {
       <header className="topbar">
         <h1>Project Fox</h1>
         <nav className="subtabs">
+          <NavLink to="/" end className={({ isActive }) => `subtab${isActive ? " sel" : ""}`}>Início</NavLink>
           <NavLink to="/rotina" className={({ isActive }) => `subtab${isActive ? " sel" : ""}`}>Rotina</NavLink>
           <NavLink to="/anotar" className={({ isActive }) => `subtab${isActive ? " sel" : ""}`}>Anotar</NavLink>
           <NavLink to="/criar" className={({ isActive }) => `subtab${isActive ? " sel" : ""}`}>Desenvolver/Criar</NavLink>

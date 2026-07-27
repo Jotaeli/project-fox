@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Fox — Home (protótipo)</title>
+<style>
+  :root{
+    --bg0:#04081a; --bg1:#0a1230; --panel:rgba(13,22,48,.92); --panel-solid:#0d1630;
+    --line:rgba(148,180,255,.16); --text:#dce6ff; --muted:#8fa3c8; --accent:#6ea8ff;
+    --green:#4ade80; --blue:#60a5fa; --pink:#f472b6; --gold:#ffd66e;
+    --red:#ff6b6b; --orange:#ffb26b;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+    background:radial-gradient(130% 100% at 50% 0%, var(--bg1) 0%, var(--bg0) 60%, #020510 100%);
+    background-attachment:fixed;
+    color:var(--text); user-select:none; overflow-x:hidden;
+  }
+
+  /* ---------- topo ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 26px; backdrop-filter:blur(10px);
+    background:rgba(5,9,24,.55); border-bottom:1px solid rgba(148,180,255,.07);
+  }
+  .brand{display:flex; align-items:center; gap:10px}
+  .brand .mark{width:26px; height:26px; color:var(--accent); filter:drop-shadow(0 0 8px rgba(110,168,255,.5))}
+  .brand h1{font-size:15px; font-weight:600; letter-spacing:.4px}
+  .brand h1 span{color:var(--muted); font-weight:400}
+
+  .subtabs{
+    display:flex; gap:4px; background:rgba(8,14,32,.7); border:1px solid var(--line);
+    border-radius:99px; padding:4px;
+  }
+  .subtab{
+    border:none; background:none; color:var(--muted); font-size:13px; font-weight:500;
+    padding:7px 16px; border-radius:99px; cursor:pointer; font-family:inherit;
+    transition:color .2s, background .2s;
+  }
+  .subtab:hover{color:var(--text)}
+  .subtab.sel{background:linear-gradient(135deg,#3667c4,#274a95); color:#fff}
+  .top-avatar{
+    width:32px; height:32px; border-radius:50%; flex:none;
+    background:linear-gradient(135deg,#3667c4,#274a95); border:1px solid rgba(148,180,255,.3);
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:#fff;
+  }
+
+  /* ---------- container ---------- */
+  .wrap{max-width:1180px; margin:0 auto; padding:30px 26px 90px; animation:paneIn .4s cubic-bezier(.3,.8,.3,1)}
+  @keyframes paneIn{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none}}
+
+  /* ---------- saudação ---------- */
+  .hero{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:30px}
+  .hi-greet{font-size:30px; font-weight:650; letter-spacing:-.4px; line-height:1.15}
+  .hi-greet b{background:linear-gradient(120deg,#8fc0ff,#c9b6ff); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent}
+  .hi-date{font-size:13.5px; color:var(--muted); margin-top:8px; text-transform:capitalize}
+  .quick{display:flex; gap:9px; flex-wrap:wrap}
+  .q-btn{
+    cursor:pointer; border:1px solid var(--line); color:var(--text);
+    background:rgba(20,32,66,.55); padding:9px 14px; border-radius:12px;
+    font-size:12.5px; font-weight:500; display:inline-flex; align-items:center; gap:7px;
+    transition:background .15s, border-color .15s, transform .1s;
+  }
+  .q-btn:hover{background:rgba(38,56,105,.85); border-color:rgba(148,180,255,.4); transform:translateY(-1px)}
+  .q-btn:active{transform:scale(.97)}
+  .q-btn svg{width:14px; height:14px; opacity:.85}
+  .q-btn .pl{color:var(--accent); font-weight:700}
+
+  /* ---------- seções ---------- */
+  .sec-head{display:flex; align-items:center; gap:10px; margin-bottom:16px}
+  .sec-head h2{font-size:14px; font-weight:600; letter-spacing:.3px}
+  .sec-head .ico{width:16px; height:16px; color:var(--muted)}
+  .sec-head .count{
+    font-size:11px; color:var(--muted); border:1px solid var(--line);
+    padding:2px 9px; border-radius:99px;
+  }
+
+  /* ---------- faixa de urgentes ---------- */
+  .urgent-strip{display:flex; gap:14px; overflow-x:auto; padding:4px 2px 10px; margin-bottom:38px; scrollbar-width:thin}
+  .urgent-strip::-webkit-scrollbar{height:6px}
+  .urgent-strip::-webkit-scrollbar-thumb{background:rgba(148,180,255,.18); border-radius:99px}
+  .u-card{
+    flex:0 0 268px; position:relative; overflow:hidden;
+    border:1px solid var(--uc-line, var(--line)); border-radius:16px;
+    background:linear-gradient(150deg, var(--uc-bg, rgba(20,32,66,.5)), rgba(10,17,38,.5));
+    padding:15px 17px 15px 20px; cursor:pointer;
+    transition:transform .18s, box-shadow .18s, border-color .18s;
+    animation:uIn .5s backwards;
+  }
+  @keyframes uIn{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
+  .u-card::before{content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--uc, var(--accent)); box-shadow:0 0 14px var(--uc, var(--accent))}
+  .u-card:hover{transform:translateY(-3px); box-shadow:0 10px 30px rgba(0,0,0,.4), 0 0 20px var(--uc-glow, transparent); border-color:var(--uc, rgba(148,180,255,.4))}
+  .u-top{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px}
+  .u-mod{display:inline-flex; align-items:center; gap:6px; font-size:10.5px; color:var(--muted); letter-spacing:.3px; text-transform:uppercase}
+  .u-mod svg{width:12px; height:12px}
+  .u-due{
+    font-size:10.5px; font-weight:700; color:var(--uc, var(--accent));
+    background:var(--uc-chip, rgba(110,168,255,.12)); border:1px solid var(--uc-line, var(--line));
+    padding:3px 9px; border-radius:99px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
+  }
+  .u-due svg{width:10px; height:10px}
+  .u-title{font-size:14.5px; font-weight:600; line-height:1.35}
+  .u-sub{font-size:11.5px; color:var(--muted); margin-top:6px}
+  .u-card.pulse::after{
+    content:''; position:absolute; inset:0; border-radius:16px; pointer-events:none;
+    box-shadow:inset 0 0 0 1px var(--uc); opacity:0; animation:redPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes redPulse{0%,100%{opacity:0} 50%{opacity:.6}}
+
+  /* ---------- vitrine (bento) ---------- */
+  .vitrine{display:grid; grid-template-columns:repeat(12,1fr); gap:18px}
+  .card{
+    position:relative; border:1px solid var(--line); border-radius:20px;
+    background:linear-gradient(160deg, rgba(16,26,56,.6), rgba(9,15,34,.55));
+    backdrop-filter:blur(6px); padding:20px 22px; overflow:hidden;
+    animation:cardIn .55s backwards;
+  }
+  @keyframes cardIn{from{opacity:0; transform:translateY(14px) scale(.99)} to{opacity:1; transform:none}}
+  .card-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px}
+  .card-tag{display:inline-flex; align-items:center; gap:8px; font-size:11px; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); font-weight:600}
+  .card-tag .dot{width:8px; height:8px; border-radius:50%; box-shadow:0 0 8px currentColor}
+  .card-tag svg{width:14px; height:14px}
+  .card-link{font-size:11.5px; color:var(--muted); display:inline-flex; align-items:center; gap:4px; cursor:pointer; transition:color .15s}
+  .card-link:hover{color:var(--accent)}
+  .card-link svg{width:12px; height:12px}
+
+  .c-cofrinho{grid-column:span 5}
+  .c-planetas{grid-column:span 7}
+  .c-wish{grid-column:span 4}
+  .c-notas{grid-column:span 8}
+  @media(max-width:880px){
+    .c-cofrinho,.c-planetas,.c-wish,.c-notas{grid-column:span 12}
+  }
+
+  /* --- cofrinho --- */
+  .cofrinho-body{display:flex; align-items:center; gap:18px}
+  #piggyWrap{position:relative; flex:none}
+  .pig-coin{transition:transform .5s cubic-bezier(.5,1.6,.4,1); transform-box:fill-box; transform-origin:center}
+  .pig-coin.hid{transform:scale(0)}
+  .cofrinho-info{flex:1; min-width:0}
+  .cofrinho-avail{font-size:26px; font-weight:700; color:var(--gold); text-shadow:0 0 18px rgba(255,214,110,.35)}
+  .cofrinho-sub{font-size:12px; color:var(--muted); margin-top:4px}
+  .cofrinho-bar{height:9px; border-radius:99px; background:rgba(148,180,255,.12); margin-top:14px; overflow:hidden}
+  .cofrinho-bar > i{display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#ffd66e,#f0b93c); box-shadow:0 0 12px rgba(255,214,110,.5); width:0; transition:width 1.1s cubic-bezier(.3,.9,.3,1)}
+  .cofrinho-legend{display:flex; gap:16px; margin-top:16px; flex-wrap:wrap}
+  .cl-item{display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--muted)}
+  .cl-item .cl-dot{width:9px; height:9px; border-radius:2px}
+  .cl-item b{color:var(--text); font-weight:600}
+
+  /* --- planetas --- */
+  .space{position:relative; height:210px; margin:-4px -6px 0; border-radius:16px; overflow:hidden;
+    background:radial-gradient(120% 90% at 78% 42%, rgba(28,44,92,.5), transparent 62%)}
+  .stars{position:absolute; inset:0; opacity:.5;
+    background-image:radial-gradient(1px 1px at 20% 30%,#fff,transparent),radial-gradient(1px 1px at 70% 20%,#cfe0ff,transparent),
+      radial-gradient(1px 1px at 40% 70%,#fff,transparent),radial-gradient(1px 1px at 85% 65%,#bcd0ff,transparent),
+      radial-gradient(1px 1px at 55% 45%,#fff,transparent),radial-gradient(1px 1px at 12% 80%,#cfe0ff,transparent);}
+  .sun{position:absolute; left:8%; top:50%; transform:translateY(-50%); width:46px; height:46px; border-radius:50%;
+    background:radial-gradient(circle at 40% 38%, #fff2c8, #ffcf6e 45%, #ff9d3c);
+    box-shadow:0 0 34px 8px rgba(255,183,80,.55), 0 0 70px 20px rgba(255,150,60,.2)}
+  .orbit{position:absolute; left:8%; top:50%; border:1px dashed rgba(148,180,255,.14); border-radius:50%; transform:translate(-50%,-50%)}
+  .o1{width:150px; height:150px; animation:spin 26s linear infinite}
+  .o2{width:250px; height:250px; animation:spin 40s linear infinite}
+  .o3{width:360px; height:360px; animation:spin 60s linear infinite}
+  @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+  .planet-slot{position:absolute; top:50%; right:-1px; transform:translateY(-50%)}
+  .p-ring{border-radius:50%; padding:3px; display:flex;
+    background:conic-gradient(from -90deg, var(--hc) calc(var(--hp)*1%), rgba(148,180,255,.14) 0);
+    filter:drop-shadow(0 0 7px var(--hglow))}
+  .planet{width:var(--sz); height:var(--sz); border-radius:50%; position:relative}
+  .p-ring, .planet-lbl{animation:spinrev var(--rev) linear infinite}
+  @keyframes spinrev{to{transform:rotate(-360deg)}}
+  .planet-lbl{position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:6px;
+    font-size:10px; color:var(--text); white-space:nowrap; text-shadow:0 1px 4px #000; font-weight:600}
+  /* tipos de planeta (do protótipo solar-system) */
+  .tp-rochoso{background:radial-gradient(circle at 32% 30%, hsl(var(--ph),55%,68%), hsl(var(--ph),50%,34%));}
+  .tp-rochoso::after{content:''; position:absolute; inset:0; border-radius:50%;
+    background:radial-gradient(circle at 62% 55%, rgba(0,0,0,.35) 0 4px, transparent 5px),
+               radial-gradient(circle at 30% 68%, rgba(0,0,0,.3) 0 3px, transparent 4px),
+               radial-gradient(circle at 55% 22%, rgba(255,255,255,.25) 0 2.5px, transparent 3.5px);}
+  .tp-gasoso{background:radial-gradient(circle at 32% 30%, hsl(var(--ph),55%,70%), hsl(var(--ph),50%,36%)); overflow:hidden; border-radius:50%}
+  .tp-gasoso::after{content:''; position:absolute; inset:0;
+    background:repeating-linear-gradient(0deg, transparent 0 4px, rgba(0,0,0,.22) 4px 7px, transparent 7px 10px, rgba(255,255,255,.14) 10px 12px);}
+  .tp-anelado{background:radial-gradient(circle at 32% 30%, hsl(var(--ph),55%,68%), hsl(var(--ph),50%,34%));}
+  .tp-anelado::after{content:''; position:absolute; left:-8px; right:-8px; top:42%; height:9px;
+    border:2.5px solid hsla(var(--ph),60%,75%,.75); border-radius:50%; transform:rotate(-14deg);}
+  .p-health-legend{position:absolute; right:16px; bottom:12px; display:flex; flex-direction:column; gap:6px; align-items:flex-end}
+  .phl{display:flex; align-items:center; gap:7px; font-size:10.5px; color:var(--muted)}
+  .phl b{color:var(--text); font-weight:600}
+  .phl .pd{width:8px; height:8px; border-radius:50%; box-shadow:0 0 7px currentColor}
+
+  /* --- wishlist loot card --- */
+  .c-wish{--wc:rgba(255,214,110,.55); --wc-glow:rgba(255,214,110,.35)}
+  .loot{
+    position:relative; overflow:hidden; border-radius:16px; border:1px solid var(--wc);
+    background:rgba(8,14,32,.75); box-shadow:0 0 24px var(--wc-glow); cursor:pointer;
+    transition:transform .18s;
+  }
+  .loot:hover{transform:translateY(-3px)}
+  .loot::before{
+    content:''; position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:linear-gradient(115deg, transparent 30%, rgba(255,214,110,.16) 46%, rgba(255,255,255,.22) 50%, rgba(255,214,110,.16) 54%, transparent 70%);
+    background-size:280% 100%; animation:shine 4.2s ease-in-out infinite;
+  }
+  @keyframes shine{0%,55%{background-position:120% 0} 90%,100%{background-position:-140% 0}}
+  .loot-photo{height:112px; position:relative; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(circle at 50% 35%, hsl(40,80%,60%), hsl(38,70%,34%)); color:rgba(255,255,255,.7)}
+  .loot-photo svg{width:34px; height:34px}
+  .loot-tier{position:absolute; top:9px; left:9px; z-index:3; font-size:10px; font-weight:700; letter-spacing:.5px;
+    color:#3a2c00; background:linear-gradient(135deg,#ffe9a8,#ffd66e); padding:3px 9px; border-radius:99px; box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .loot-info{padding:13px 15px 15px}
+  .loot-name{font-size:14px; font-weight:600; line-height:1.3}
+  .loot-price{font-size:13px; color:var(--gold); font-weight:700; margin-top:7px; display:flex; align-items:center; gap:5px}
+  .loot-price svg{width:13px; height:13px}
+  .loot-chips{display:flex; gap:6px; margin-top:11px; flex-wrap:wrap}
+  .chip{font-size:9.5px; padding:3px 9px; border-radius:99px; border:1px solid var(--line);
+    color:var(--muted); display:inline-flex; align-items:center; gap:4px; letter-spacing:.2px}
+  .chip svg{width:9px; height:9px}
+  .chip.planet{color:#c9b6ff; border-color:rgba(160,130,255,.35)}
+  .chip.gold{color:var(--gold); border-color:rgba(255,214,110,.4)}
+
+  /* --- notas --- */
+  .notas-list{display:flex; flex-direction:column; gap:9px}
+  .note-row{
+    display:flex; align-items:center; gap:14px; padding:12px 14px; border-radius:14px;
+    border:1px solid var(--line); background:rgba(8,14,32,.4); cursor:pointer;
+    transition:background .15s, border-color .15s, transform .12s;
+  }
+  .note-row:hover{background:rgba(20,32,66,.55); border-color:rgba(148,180,255,.35); transform:translateX(3px)}
+  .note-orb{width:26px; height:26px; border-radius:50%; flex:none; position:relative}
+  .note-body{flex:1; min-width:0}
+  .note-title{font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .note-badges{display:flex; gap:5px; margin-top:5px}
+  .nb{width:7px; height:7px; border-radius:50%; box-shadow:0 0 6px currentColor}
+  .note-time{font-size:10.5px; color:var(--muted); flex:none}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 4l5 4 3-2 3 2 5-4-2 9c-.6 3-3 5-6 5s-5.4-2-6-5L4 4z"/><path d="M9 13c.8.8 1.9 1.2 3 1.2s2.2-.4 3-1.2"/>
+    </svg>
+    <h1>Project Fox <span>· Home</span></h1>
+  </div>
+  <nav class="subtabs">
+    <button class="subtab sel">Home</button>
+    <button class="subtab">Rotina</button>
+    <button class="subtab">Anotar</button>
+    <button class="subtab">Desenvolver·Criar</button>
+  </nav>
+  <div class="top-avatar">J</div>
+</header>
+
+<div class="wrap">
+
+  <!-- saudação -->
+  <div class="hero">
+    <div>
+      <div class="hi-greet" id="greet">Olá, <b>João</b></div>
+      <div class="hi-date" id="today">—</div>
+    </div>
+    <div class="quick">
+      <button class="q-btn"><span class="pl">＋</span> Nova tarefa</button>
+      <button class="q-btn"><span class="pl">＋</span> Novo gasto</button>
+      <button class="q-btn"><span class="pl">＋</span> Nova nota</button>
+      <button class="q-btn"><span class="pl">＋</span> Novo planeta</button>
+    </div>
+  </div>
+
+  <!-- faixa de urgentes -->
+  <div class="sec-head">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+    <h2>Precisa de atenção</h2>
+    <span class="count" id="urgentCount">—</span>
+  </div>
+  <div class="urgent-strip" id="urgentStrip"></div>
+
+  <!-- vitrine -->
+  <div class="sec-head">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+    <h2>Sua vitrine</h2>
+  </div>
+
+  <div class="vitrine">
+
+    <!-- COFRINHO -->
+    <div class="card c-cofrinho" style="animation-delay:.05s">
+      <div class="card-head">
+        <span class="card-tag" style="color:var(--gold)"><span class="dot"></span>Finanças</span>
+        <span class="card-link">ver módulo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+      <div class="cofrinho-body">
+        <div id="piggyWrap">
+          <svg id="piggySvg" viewBox="60 180 1130 900" width="220" height="175"></svg>
+        </div>
+        <div class="cofrinho-info">
+          <div class="cofrinho-avail" id="cofAvail">R$ 2.480</div>
+          <div class="cofrinho-sub">disponíveis de R$ 4.000 · 62% do cofrinho</div>
+          <div class="cofrinho-bar"><i id="cofBar"></i></div>
+          <div class="cofrinho-legend">
+            <div class="cl-item"><span class="cl-dot" style="background:hsl(212,62%,58%)"></span> Contas <b>R$ 780</b></div>
+            <div class="cl-item"><span class="cl-dot" style="background:hsl(330,62%,58%)"></span> Wishlist <b>R$ 540</b></div>
+            <div class="cl-item"><span class="cl-dot" style="background:hsl(145,62%,58%)"></span> Comida <b>R$ 200</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLANETAS -->
+    <div class="card c-planetas" style="animation-delay:.12s">
+      <div class="card-head">
+        <span class="card-tag" style="color:#c9b6ff"><span class="dot"></span>Desenvolver · Criar</span>
+        <span class="card-link">ver módulo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+      <div class="space">
+        <div class="stars"></div>
+        <div class="sun"></div>
+        <div class="orbit o1"></div>
+        <div class="orbit o2"></div>
+        <div class="orbit o3"></div>
+        <!-- planetas: cada um preso na borda direita de uma órbita giratória -->
+        <div class="orbit o1" style="border:none">
+          <div class="planet-slot">
+            <div class="p-ring" style="--hc:hsl(145,70%,55%); --hp:88; --hglow:rgba(74,222,128,.6); --rev:26s">
+              <div class="planet tp-rochoso" style="--ph:145; --sz:30px"></div>
+              <div class="planet-lbl">Esporte</div>
+            </div>
+          </div>
+        </div>
+        <div class="orbit o2" style="border:none">
+          <div class="planet-slot">
+            <div class="p-ring" style="--hc:hsl(212,70%,58%); --hp:64; --hglow:rgba(96,165,250,.45); --rev:40s">
+              <div class="planet tp-anelado" style="--ph:212; --sz:36px"></div>
+              <div class="planet-lbl">Leitura</div>
+            </div>
+          </div>
+        </div>
+        <div class="orbit o3" style="border:none">
+          <div class="planet-slot">
+            <div class="p-ring" style="--hc:hsl(330,70%,60%); --hp:41; --hglow:rgba(244,114,182,.3); --rev:60s">
+              <div class="planet tp-gasoso" style="--ph:330; --sz:28px"></div>
+              <div class="planet-lbl">Música</div>
+            </div>
+          </div>
+        </div>
+        <div class="p-health-legend">
+          <div class="phl"><span class="pd" style="color:hsl(145,70%,55%)"></span>Esporte <b>88%</b></div>
+          <div class="phl"><span class="pd" style="color:hsl(212,70%,58%)"></span>Leitura <b>64%</b></div>
+          <div class="phl"><span class="pd" style="color:hsl(330,70%,60%)"></span>Música <b>41%</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WISHLIST S -->
+    <div class="card c-wish" style="animation-delay:.19s">
+      <div class="card-head">
+        <span class="card-tag" style="color:var(--green)"><span class="dot"></span>Wishlist</span>
+        <span class="card-link">ver módulo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+      <div class="loot">
+        <div class="loot-tier">S · OBSESSÃO</div>
+        <div class="loot-photo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4M8 22h8"/></svg>
+        </div>
+        <div class="loot-info">
+          <div class="loot-name">Microfone Shure MV7</div>
+          <div class="loot-price"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.2v9.6M14.6 9.3c-.5-.8-1.5-1.3-2.6-1.3-1.6 0-2.8.9-2.8 2.1s1.2 1.7 2.8 2c1.6.3 2.8.8 2.8 2s-1.2 2.1-2.8 2.1c-1.1 0-2.1-.5-2.6-1.3"/></svg> R$ 1.400</div>
+          <div class="loot-chips">
+            <span class="chip planet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5.5"/><ellipse cx="12" cy="12" rx="10.5" ry="3.6" transform="rotate(-18 12 12)"/></svg> Música</span>
+            <span class="chip gold">meta ativa</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTAS -->
+    <div class="card c-notas" style="animation-delay:.26s">
+      <div class="card-head">
+        <span class="card-tag" style="color:#cdd8ff"><span class="dot"></span>Anotar</span>
+        <span class="card-link">ver módulo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+      <div class="notas-list" id="notasList"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ====================== saudação por horário ====================== */
+(function(){
+  const h = new Date().getHours();
+  let g;
+  if (h < 5) g = 'Boa madrugada';
+  else if (h < 12) g = 'Bom dia';
+  else if (h < 18) g = 'Boa tarde';
+  else g = 'Boa noite';
+  document.getElementById('greet').innerHTML = `${g}, <b>João</b>`;
+  const fmt = new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  document.getElementById('today').textContent = fmt;
+})();
+
+/* ====================== faixa de urgentes ====================== */
+// mock: dueInDays relativo a hoje → cor/urgência derivadas em JS
+const MODS = {
+  tarefa:  {label:'Tarefas',  icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>'},
+  financa: {label:'Finanças', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.2v9.6M14.6 9.3c-.5-.8-1.5-1.3-2.6-1.3-1.6 0-2.8.9-2.8 2.1s1.2 1.7 2.8 2c1.6.3 2.8.8 2.8 2s-1.2 2.1-2.8 2.1c-1.1 0-2.1-.5-2.6-1.3"/></svg>'},
+  evento:  {label:'Criar',    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5.5"/><ellipse cx="12" cy="12" rx="10.5" ry="3.6" transform="rotate(-18 12 12)"/></svg>'}
+};
+const urgents = [
+  {mod:'tarefa',  title:'Entregar roteiro do vídeo', sub:'Trabalho · etapa 3 de 4',  due:0},
+  {mod:'evento',  title:'Meta: Lançar o EP',         sub:'Planeta Música · 2 de 5',  due:1},
+  {mod:'financa', title:'Pagar fatura do cartão',    sub:'Modalidade Contas',        due:2},
+  {mod:'evento',  title:'Meta: Meia maratona',       sub:'Planeta Esporte · 4 de 6', due:3},
+  {mod:'tarefa',  title:'Revisar anotações da aula', sub:'Geral',                    due:6},
+];
+function dueMeta(d){
+  if (d <= 1) return {c:'#ff6b6b', chip:'rgba(255,107,107,.14)', line:'rgba(255,107,107,.4)', glow:'rgba(255,107,107,.3)', pulse:true};
+  if (d <= 3) return {c:'#ffb26b', chip:'rgba(255,178,107,.14)', line:'rgba(255,178,107,.38)', glow:'rgba(255,178,107,.22)', pulse:false};
+  return {c:'var(--accent)', chip:'rgba(110,168,255,.12)', line:'rgba(148,180,255,.16)', glow:'transparent', pulse:false};
+}
+function dueLabel(d){
+  if (d === 0) return 'hoje';
+  if (d === 1) return 'amanhã';
+  return `em ${d} dias`;
+}
+const clockIco = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 13.5"/></svg>';
+const strip = document.getElementById('urgentStrip');
+strip.innerHTML = urgents.map((u,i) => {
+  const m = dueMeta(u.due), mod = MODS[u.mod];
+  return `<div class="u-card ${m.pulse?'pulse':''}" style="--uc:${m.c}; --uc-chip:${m.chip}; --uc-line:${m.line}; --uc-glow:${m.glow}; animation-delay:${i*70}ms">
+    <div class="u-top">
+      <span class="u-mod">${mod.icon} ${mod.label}</span>
+      <span class="u-due">${clockIco} ${dueLabel(u.due)}</span>
+    </div>
+    <div class="u-title">${u.title}</div>
+    <div class="u-sub">${u.sub}</div>
+  </div>`;
+}).join('');
+document.getElementById('urgentCount').textContent = urgents.length;
+
+/* ====================== notas recentes (halo por badge) ====================== */
+const BADGES = {
+  wishlist:{rgb:[74,222,128]}, task:{rgb:[96,165,250]}, create:{rgb:[244,114,182]}
+};
+const INDEP=[205,220,255];
+const rgba=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+const noteData = [
+  {title:'Ideias de thumbnail pro EP', badges:['create','task'], time:'há 2h'},
+  {title:'Comparativo de microfones',   badges:['wishlist','create'], time:'ontem'},
+  {title:'Plano de treino da semana',   badges:['task'], time:'ontem'},
+  {title:'Rascunho — capítulo 3',       badges:[], time:'2 dias'},
+];
+document.getElementById('notasList').innerHTML = noteData.map(n => {
+  const cols = n.badges.length ? n.badges.map(b=>BADGES[b].rgb) : [INDEP];
+  const core = cols[0];
+  // halo = blend aditivo de todas as badges (várias sombras sobrepostas)
+  const halo = cols.map((c,i)=>`0 0 ${10+i*6}px ${rgba(c,.55)}`).join(', ');
+  const dots = (n.badges.length?n.badges:['indep']).map(b=>{
+    const c = b==='indep'?INDEP:BADGES[b].rgb;
+    return `<span class="nb" style="background:${rgba(c,.9)}; color:${rgba(c,.9)}"></span>`;
+  }).join('');
+  return `<div class="note-row">
+    <span class="note-orb" style="background:${rgba(core,.9)}; box-shadow:${halo}"></span>
+    <div class="note-body">
+      <div class="note-title">${n.title}</div>
+      <div class="note-badges">${dots}</div>
+    </div>
+    <span class="note-time">${n.time}</span>
+  </div>`;
+}).join('');
+
+/* ====================== barra do cofrinho ====================== */
+setTimeout(()=>{ document.getElementById('cofBar').style.width = '62%'; }, 200);
+
+/* ====================== porquinho (arte do usuário, reaproveitada da Rotina) ====================== */
+const PIG_ART = `
+<path fill="#FD9DBA" stroke="none" d="M1113.987305,736.855713C1106.735352,738.225952 1099.515869,739.808716 1092.224609,740.921509C1077.973999,743.096375 1063.672485,744.937622 1049.425903,747.136597C1047.954102,747.363831 1046.139282,748.783630 1045.447754,750.141174C1034.240967,772.136414 1020.900391,792.720154 1005.136658,811.719666C991.085938,828.654419 975.513489,844.072937 958.308838,857.783142C949.752991,864.601135 940.833557,870.962891 931.545654,877.842712C930.251465,878.479858 929.462158,878.752441 928.733032,879.138672C912.151855,887.920959 895.548645,896.662659 879.049194,905.596191C877.527649,906.419983 876.085693,908.315369 875.613953,909.995911C873.376648,917.965698 871.463867,926.027466 869.481323,934.067749C864.012024,956.248657 858.565491,978.435242 853.109985,1000.619568C844.896667,1011.777649 832.870300,1013.731934 820.285583,1013.915100C806.176208,1014.120422 792.056641,1014.161377 777.951050,1013.846130C772.178040,1013.717163 766.319580,1012.939758 760.694336,1011.625549C749.924683,1009.109253 743.692078,1001.826660 741.055481,991.223267C736.607910,973.337585 732.093384,955.468567 727.449707,936.965698C662.052551,951.142090 596.308411,952.630432 529.525879,943.930908C507.740479,938.892029 486.603210,934.359192 465.633270,929.152466C460.812836,927.955566 459.185944,928.751831 458.046997,933.315063C452.523590,955.445312 446.786530,977.522156 441.125153,999.617920C434.336426,1010.388550 423.591797,1013.486267 411.933594,1013.798828C396.001770,1014.225830 380.048218,1014.052917 364.108063,1013.836792C358.998413,1013.767517 353.843292,1013.052734 348.811493,1012.094910C339.023621,1010.231750 333.208069,1003.567749 331.218689,994.376953C321.593903,949.911255 312.401306,905.352112 302.900269,860.859192C302.437469,858.691895 300.962860,856.218506 299.198486,854.927612C254.262970,822.049805 222.573563,779.224548 202.909744,727.305969C192.826202,700.682312 187.213348,673.136292 185.889236,644.704712C185.642014,639.396362 185.304138,634.092285 184.999115,627.858154C184.993835,619.622925 184.997543,612.315857 185.001251,605.008728C186.793274,563.179688 196.265686,523.185486 213.459671,484.995087C232.382812,442.963959 258.893677,406.439209 293.088501,375.587891C320.632477,350.737030 351.893707,331.487335 385.655792,316.346710C419.794800,301.037109 455.415070,290.160675 492.216034,283.604401C512.946228,279.911285 533.899536,277.243073 554.853516,275.105896C571.856262,273.371735 589.020325,272.236237 606.093872,272.438843C625.831665,272.673157 645.580200,274.295197 665.266968,275.981201C692.778992,278.337402 719.987366,282.921997 746.661377,290.080780C762.862793,294.428864 778.817261,299.722687 794.788696,304.882568C798.476440,306.073944 800.274475,305.712860 802.151489,302.041534C812.376953,282.041199 825.526978,264.054138 841.502563,248.305176C851.333679,238.613556 861.968079,229.760849 874.570312,223.634415C892.721924,214.810120 898.738586,222.073471 904.647095,234.931763C911.757996,250.406998 915.410583,267.028687 917.984619,283.845886C918.536377,287.450745 919.020508,291.065887 919.781250,295.433838C920.686035,310.596283 921.756592,324.999146 921.828796,339.407013C921.864136,346.452179 922.557495,351.819397 930.619446,353.523376C932.786682,353.981537 934.785522,355.567902 936.690186,356.884460C951.668762,367.238800 966.604614,377.654877 981.556152,388.048431C985.410828,390.728027 989.273926,393.395477 993.133240,396.068481C993.941711,397.437805 994.510071,399.044159 995.593567,400.142090C1029.519531,434.520874 1053.965210,474.488342 1067.247437,521.100952C1069.479980,528.936218 1077.047485,534.254211 1086.147461,535.010803C1095.236206,535.766479 1104.315308,536.639343 1113.649658,538.079956C1111.156982,540.751038 1108.130859,542.518555 1105.721313,544.907654C1098.002930,552.560669 1093.248047,562.065491 1089.859985,572.238098C1080.516235,600.293457 1077.073364,629.015747 1079.905029,658.534119C1081.448242,674.620178 1084.299072,690.341980 1090.011963,705.485718C1093.554443,714.876587 1097.748413,723.929810 1105.382446,730.788635C1107.974976,733.117920 1111.103638,734.850464 1113.987305,736.855713M673.109436,361.212891C683.443909,362.845581 693.837708,364.177979 704.094360,366.204620C712.520691,367.869568 717.504395,361.828217 718.693542,356.127197C720.122192,349.278656 715.610291,342.515381 708.680359,341.252563C677.400879,335.552551 645.865845,332.068481 614.087219,331.204285C580.958740,330.303345 547.866089,331.201874 514.926331,335.143646C501.078461,336.800720 487.285553,338.928131 473.482941,340.946045C468.786987,341.632599 465.722656,344.621643 463.997772,348.889374C462.020844,353.780670 462.816742,358.384857 466.161621,362.455688C470.093750,367.241211 475.349915,366.377960 480.483429,365.512787C511.331970,360.313660 542.398193,357.134003 573.650024,356.132904C606.623962,355.076660 639.484314,357.078674 673.109436,361.212891M877.092957,383.541229C882.432617,380.495728 887.869263,377.602539 893.047058,374.303070C894.428833,373.422577 895.794922,371.329315 895.856506,369.741943C896.949280,341.589050 894.967712,313.699097 887.832336,286.337891C886.311096,280.504608 884.293701,274.800720 882.183167,268.000397C879.381042,270.078918 877.542969,271.137085 876.079834,272.576324C865.309204,283.171082 857.024048,295.645782 850.149780,308.943817C832.828735,342.450531 824.793152,377.842621 830.038208,415.652039C830.285889,417.437592 831.281677,419.119385 831.929016,420.849487C833.519653,419.818146 835.383789,419.048248 836.658447,417.714844C848.756897,405.058380 861.771851,393.504211 877.092957,383.541229M924.383179,545.570862C926.222229,552.383484 926.829956,559.874451 930.137329,565.878235C939.127563,582.198059 960.368652,584.355530 973.412598,571.046875C983.577515,560.675720 985.995728,543.154846 979.238464,529.209412C973.955994,518.307617 965.375732,512.225586 953.194580,512.388733C940.923706,512.552979 932.504272,519.148071 927.906860,530.226990C926.031555,534.746155 925.545715,539.841919 924.383179,545.570862z"/>
+<path fill="#EE729D" stroke="none" d="M1114.429810,736.890259C1111.103638,734.850464 1107.974976,733.117920 1105.382446,730.788635C1097.748413,723.929810 1093.554443,714.876587 1090.011963,705.485718C1084.299072,690.341980 1081.448242,674.620178 1079.905029,658.534119C1077.073364,629.015747 1080.516235,600.293457 1089.859985,572.238098C1093.248047,562.065491 1098.002930,552.560669 1105.721313,544.907654C1108.130859,542.518555 1111.156982,540.751038 1113.950439,538.355408C1127.426392,536.832764 1135.957397,543.945312 1142.231689,554.771484C1151.157349,570.172607 1155.218140,587.134033 1157.668213,604.519531C1161.539062,631.987183 1160.392822,659.306641 1154.016724,686.313538C1150.792358,699.970398 1146.326172,713.210266 1138.020508,724.800537C1132.342285,732.724304 1125.111450,737.700806 1114.429810,736.890259M1128.123535,650.313599C1128.908447,652.835083 1129.378174,655.516541 1130.556763,657.838135C1132.090210,660.858643 1134.932007,660.871704 1136.780518,658.047180C1137.578125,656.828308 1138.120605,655.356323 1138.438843,653.923767C1140.992554,642.425171 1141.171021,630.850098 1138.544556,619.384705C1138.013306,617.065308 1135.512085,615.197144 1133.919067,613.120911C1132.328003,615.035034 1129.953857,616.708862 1129.280029,618.904480C1126.205933,628.923157 1126.503174,639.195801 1128.123535,650.313599M1099.811035,624.389465C1099.815430,632.828247 1099.694336,641.270203 1099.908081,649.703674C1099.965088,651.957825 1100.738647,654.338867 1101.756958,656.374695C1102.483765,657.827698 1104.382202,659.919250 1105.378662,659.729980C1106.929688,659.435425 1108.321167,657.573669 1109.462402,656.125427C1110.130859,655.277100 1110.451172,653.947083 1110.469971,652.826111C1110.653320,641.916687 1110.794067,631.005615 1110.786865,620.095154C1110.785889,618.686279 1110.059937,617.177185 1109.352661,615.888550C1107.309326,612.166382 1104.171143,612.126648 1102.307373,615.953369C1101.161133,618.306458 1100.717407,621.001648 1099.811035,624.389465z"/>
+<path fill="#F685AA" stroke="none" d="M993.378235,395.830444C989.273926,393.395477 985.410828,390.728027 981.556152,388.048431C966.604614,377.654877 951.668762,367.238800 936.690186,356.884460C934.785522,355.567902 932.786682,353.981537 930.619446,353.523376C922.557495,351.819397 921.864136,346.452179 921.828796,339.407013C921.756592,324.999146 920.686035,310.596283 920.049072,295.759186C933.161926,279.833649 947.881897,266.205872 965.536255,256.009979C975.356323,250.338669 985.407593,245.251709 996.872070,243.570633C1005.580872,242.293625 1011.380920,245.126572 1013.785828,253.572815C1015.498413,259.587921 1016.799866,265.985748 1016.721375,272.192993C1016.523804,287.799683 1016.617065,303.564514 1014.402527,318.950592C1011.857178,336.635223 1007.357971,354.084229 1002.900940,371.428345C1000.767761,379.729523 996.774170,387.552704 993.378235,395.830444z"/>
+<path fill="#F178A1" stroke="none" d="M853.565186,1000.690063C858.565491,978.435242 864.012024,956.248657 869.481323,934.067749C871.463867,926.027466 873.376648,917.965698 875.613953,909.995911C876.085693,908.315369 877.527649,906.419983 879.049194,905.596191C895.548645,896.662659 912.151855,887.920959 928.733032,879.138672C929.462158,878.752441 930.251465,878.479858 931.340210,878.135010C925.653870,906.251709 919.660339,934.392029 913.609436,962.520081C912.385559,968.209412 911.092773,973.892212 909.573303,979.507996C906.145752,992.176086 897.596191,999.210571 884.453003,999.891113C874.320984,1000.415771 864.165466,1000.487427 853.565186,1000.690063z"/>
+<path fill="#F380A6" stroke="none" d="M184.627441,605.063965C184.997543,612.315857 184.993835,619.622925 185.006653,627.382202C177.642242,628.863464 170.249191,630.768066 162.883987,630.665894C156.047455,630.571045 149.267853,628.151245 142.407349,627.130188C139.675110,626.723572 136.449051,626.540161 134.036530,627.597900C121.376549,633.148499 108.437035,634.999817 95.211136,630.622864C91.556358,629.413330 88.013817,626.554749 85.501633,623.548706C82.640388,620.125061 83.773659,615.843689 86.514458,612.499329C89.170563,609.258240 92.635498,608.169983 96.799324,609.778687C103.576576,612.396912 110.543831,612.809937 118.084694,611.452087C114.912651,607.246765 111.721672,603.652344 109.246849,599.618530C101.207970,586.515625 98.687477,572.651367 105.547234,558.297974C111.367851,546.118896 121.447609,540.346985 134.961578,540.879089C147.992706,541.392334 157.224609,547.739685 162.869064,559.443298C169.828293,573.873108 166.399460,587.615662 160.074768,601.130493C158.960175,603.512146 157.399231,605.684937 155.691696,608.544922C166.050034,611.925354 175.109589,608.116211 184.627441,605.063965M142.497787,589.889709C143.625397,585.246765 145.507416,580.635559 145.704285,575.953491C146.001663,568.881531 139.915771,562.246582 134.336349,562.293457C127.681679,562.349304 122.609726,568.585693 123.005302,576.707458C123.477966,586.412170 129.446426,592.907959 136.530396,599.583923C138.667191,596.156250 140.411026,593.358948 142.497787,589.889709z"/>
+<path fill="#F17AA2" stroke="none" d="M441.571106,999.697876C446.786530,977.522156 452.523590,955.445312 458.046997,933.315063C459.185944,928.751831 460.812836,927.955566 465.633270,929.152466C486.603210,934.359192 507.740479,938.892029 529.135254,943.977051C525.977417,957.307800 523.087280,970.525330 518.855103,983.298218C514.881775,995.289734 504.789124,999.670776 492.911346,999.830261C475.949860,1000.058105 458.982117,999.818054 441.571106,999.697876z"/>
+<path fill="#BE3F6F" stroke="none" d="M672.666992,361.147034C639.484314,357.078674 606.623962,355.076660 573.650024,356.132904C542.398193,357.134003 511.331970,360.313660 480.483429,365.512787C475.349915,366.377960 470.093750,367.241211 466.161621,362.455688C462.816742,358.384857 462.020844,353.780670 463.997772,348.889374C465.722656,344.621643 468.786987,341.632599 473.482941,340.946045C487.285553,338.928131 501.078461,336.800720 514.926331,335.143646C547.866089,331.201874 580.958740,330.303345 614.087219,331.204285C645.865845,332.068481 677.400879,335.552551 708.680359,341.252563C715.610291,342.515381 720.122192,349.278656 718.693542,356.127197C717.504395,361.828217 712.520691,367.869568 704.094360,366.204620C693.837708,364.177979 683.443909,362.845581 672.666992,361.147034z"/>
+<path fill="#E56191" stroke="none" d="M876.801819,383.758209C861.771851,393.504211 848.756897,405.058380 836.658447,417.714844C835.383789,419.048248 833.519653,419.818146 831.929016,420.849487C831.281677,419.119385 830.285889,417.437592 830.038208,415.652039C824.793152,377.842621 832.828735,342.450531 850.149780,308.943817C857.024048,295.645782 865.309204,283.171082 876.079834,272.576324C877.542969,271.137085 879.381042,270.078918 882.183167,268.000397C884.293701,274.800720 886.311096,280.504608 887.832336,286.337891C894.967712,313.699097 896.949280,341.589050 895.856506,369.741943C895.794922,371.329315 894.428833,373.422577 893.047058,374.303070C887.869263,377.602539 882.432617,380.495728 876.801819,383.758209z"/>
+<path fill="#310731" stroke="none" d="M924.405518,545.123169C925.545715,539.841919 926.031555,534.746155 927.906860,530.226990C932.504272,519.148071 940.923706,512.552979 953.194580,512.388733C965.375732,512.225586 973.955994,518.307617 979.238464,529.209412C985.995728,543.154846 983.577515,560.675720 973.412598,571.046875C960.368652,584.355530 939.127563,582.198059 930.137329,565.878235C926.829956,559.874451 926.222229,552.383484 924.405518,545.123169M963.308105,526.992676C957.254272,523.721252 952.088562,524.510132 948.793945,529.209167C945.622986,533.732178 946.305847,540.669556 950.275818,544.262512C954.262085,547.870117 960.439026,547.863342 964.335388,544.247009C968.619690,540.270630 969.003418,534.134521 965.268982,528.911133C964.887451,528.377380 964.366028,527.943604 963.308105,526.992676z"/>
+<path fill="#3F0838" stroke="none" d="M1128.066772,649.890259C1126.503174,639.195801 1126.205933,628.923157 1129.280029,618.904480C1129.953857,616.708862 1132.328003,615.035034 1133.919067,613.120911C1135.512085,615.197144 1138.013306,617.065308 1138.544556,619.384705C1141.171021,630.850098 1140.992554,642.425171 1138.438843,653.923767C1138.120605,655.356323 1137.578125,656.828308 1136.780518,658.047180C1134.932007,660.871704 1132.090210,660.858643 1130.556763,657.838135C1129.378174,655.516541 1128.908447,652.835083 1128.066772,649.890259z"/>
+<path fill="#3D0937" stroke="none" d="M1099.884766,623.966370C1100.717407,621.001648 1101.161133,618.306458 1102.307373,615.953369C1104.171143,612.126648 1107.309326,612.166382 1109.352661,615.888550C1110.059937,617.177185 1110.785889,618.686279 1110.786865,620.095154C1110.794067,631.005615 1110.653320,641.916687 1110.469971,652.826111C1110.451172,653.947083 1110.130859,655.277100 1109.462402,656.125427C1108.321167,657.573669 1106.929688,659.435425 1105.378662,659.729980C1104.382202,659.919250 1102.483765,657.827698 1101.756958,656.374695C1100.738647,654.338867 1099.965088,651.957825 1099.908081,649.703674C1099.694336,641.270203 1099.815430,632.828247 1099.884766,623.966370z"/>
+<path fill="#FDF9FB" stroke="none" d="M142.326324,590.225708C140.411026,593.358948 138.667191,596.156250 136.530396,599.583923C129.446426,592.907959 123.477966,586.412170 123.005302,576.707458C122.609726,568.585693 127.681679,562.349304 134.336349,562.293457C139.915771,562.246582 146.001663,568.881531 145.704285,575.953491C145.507416,580.635559 143.625397,585.246765 142.326324,590.225708z"/>
+<path fill="#F5F3F5" stroke="none" d="M963.608826,527.228027C964.366028,527.943604 964.887451,528.377380 965.268982,528.911133C969.003418,534.134521 968.619690,540.270630 964.335388,544.247009C960.439026,547.863342 954.262085,547.870117 950.275818,544.262512C946.305847,540.669556 945.622986,533.732178 948.793945,529.209167C952.088562,524.510132 957.254272,523.721252 963.608826,527.228027z"/>`;
+
+const piggySvg = document.getElementById('piggySvg');
+const BELLY = {cx:630, cy:670, rx:305, ry:180};
+(function buildPiggy(){
+  const {cx, cy, rx, ry} = BELLY, coinR = 30, coinPositions = [];
+  for (let y = cy + ry - 28; y >= cy - ry + 28; y -= 60){
+    const off = Math.round((cy + ry - 28 - y) / 60) % 2 ? 34 : 0;
+    for (let x = cx - rx + 20; x <= cx + rx - 20; x += 68){
+      const dx = (x + off - cx) / (rx - coinR), dy = (y - cy) / (ry - coinR);
+      if (dx * dx + dy * dy <= 1) coinPositions.push({x: x + off, y});
+    }
+  }
+  coinPositions.sort((a, b) => b.y - a.y || a.x - b.x);
+  piggySvg.innerHTML = `
+    <defs>
+      <clipPath id="belly"><ellipse cx="${cx}" cy="${cy}" rx="${rx - 6}" ry="${ry - 6}"/></clipPath>
+      <radialGradient id="coinG" cx="35%" cy="35%">
+        <stop offset="0%" stop-color="#ffe9a8"/><stop offset="70%" stop-color="#ffd66e"/><stop offset="100%" stop-color="#d4a545"/>
+      </radialGradient>
+      <radialGradient id="windowG" cx="50%" cy="35%" r="75%">
+        <stop offset="0%" stop-color="rgba(255,255,255,.16)"/><stop offset="100%" stop-color="rgba(255,255,255,.02)"/>
+      </radialGradient>
+    </defs>
+    ${PIG_ART}
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#windowG)" stroke="rgba(255,255,255,.3)" stroke-width="7"/>
+    <g clip-path="url(#belly)" id="coinLayer"></g>
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="rgba(255,255,255,.32)" stroke-width="7"/>
+    <ellipse cx="${cx}" cy="${cy - ry * .55}" rx="${rx * .5}" ry="${ry * .2}" fill="rgba(255,255,255,.1)"/>`;
+  const layer = piggySvg.querySelector('#coinLayer');
+  coinPositions.forEach((p, i) => {
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', p.x); c.setAttribute('cy', p.y); c.setAttribute('r', coinR);
+    c.setAttribute('fill', 'url(#coinG)'); c.setAttribute('stroke', '#b8893a'); c.setAttribute('stroke-width', '4');
+    c.classList.add('pig-coin', 'hid'); c.dataset.i = i;
+    layer.appendChild(c);
+  });
+  // preenche 62% das moedas com stagger
+  const coins = piggySvg.querySelectorAll('.pig-coin');
+  const target = Math.round(0.62 * coins.length);
+  coins.forEach((coin, i) => {
+    if (i < target) setTimeout(() => coin.classList.remove('hid'), 300 + i * 30);
+  });
+})();
+</script>
+</body>
+</html>

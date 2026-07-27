@@ -21,6 +21,13 @@ function mapGasto(g: any): Gasto {
   };
 }
 
+export function calcCofrinho(rendas: RendaMensal[], gastos: Gasto[]) {
+  const totalIncome = rendas.reduce((s, i) => s + i.valor, 0);
+  const totalSpent = gastos.filter((g) => g.pago).reduce((s, g) => s + g.valor, 0);
+  const avail = Math.max(0, totalIncome - totalSpent);
+  return { totalIncome, totalSpent, avail };
+}
+
 export function useFinancas() {
   const { session } = useAuth();
   const userId = session!.user.id;

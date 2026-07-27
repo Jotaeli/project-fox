@@ -6,7 +6,7 @@ import { useToast } from "../../../lib/toast.js";
 import { useWishlist } from "../wishlist/useWishlist.js";
 import { DonutChart } from "./DonutChart.js";
 import { Piggy } from "./Piggy.js";
-import { useFinancas } from "./useFinancas.js";
+import { calcCofrinho, useFinancas } from "./useFinancas.js";
 
 function ModalityCard({ mod, gastos }: { mod: ModalidadeGasto; gastos: Gasto[] }) {
   const { marcarGastoPago, deleteGasto, addGasto } = useFinancas();
@@ -94,9 +94,7 @@ export function FinancasTab() {
   const [incName, setIncName] = useState("");
   const [incVal, setIncVal] = useState("");
 
-  const totalIncome = rendas.reduce((s, i) => s + i.valor, 0);
-  const totalSpent = gastos.filter((g) => g.pago).reduce((s, g) => s + g.valor, 0);
-  const avail = Math.max(0, totalIncome - totalSpent);
+  const { totalIncome, totalSpent, avail } = calcCofrinho(rendas, gastos);
 
   function submitIncome() {
     const v = Number(incVal);

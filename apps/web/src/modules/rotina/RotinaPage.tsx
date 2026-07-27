@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { currentMonthLabel } from "../../lib/currentMonth.js";
 import { FinancasTab } from "./financas/FinancasTab.js";
 import "./rotina.css";
@@ -6,9 +7,12 @@ import { TarefasTab } from "./tarefas/TarefasTab.js";
 import { WishlistTab } from "./wishlist/WishlistTab.js";
 
 type SubTab = "wishlist" | "tarefas" | "financas";
+const VALID_TABS: SubTab[] = ["wishlist", "tarefas", "financas"];
 
 export function RotinaPage() {
-  const [tab, setTab] = useState<SubTab>("wishlist");
+  const [searchParams] = useSearchParams();
+  const fromParam = searchParams.get("tab") as SubTab | null;
+  const [tab, setTab] = useState<SubTab>(fromParam && VALID_TABS.includes(fromParam) ? fromParam : "wishlist");
 
   return (
     <div>

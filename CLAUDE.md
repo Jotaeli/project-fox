@@ -7,7 +7,7 @@ App pessoal (web + Android, API compartilhada), multi-usuário, 3 módulos inter
 - Backend: Supabase (Postgres + Auth + Storage)
 - Multi-usuário desde o início (não é single-user)
 
-## Status: Fase 4 (Desenvolver/Criar) — COMPLETA
+## Status: Fase 4.5 (Home) — COMPLETA
 - [x] `prototypes/solar-system.html` — Desenvolver/Criar
 - [x] `prototypes/neural-notes.html` — Anotar
 - [x] `prototypes/rotina.html` — Rotina (3 sub-abas)
@@ -19,6 +19,7 @@ App pessoal (web + Android, API compartilhada), multi-usuário, 3 módulos inter
 - [x] Web — Rotina completa (Finanças, Wishlist, Tarefas) com Supabase real
 - [x] Web — Anotar: grafo canvas (força dirigida, pan/zoom, drawer de nota, conexões manuais, badges) persistido via `notas`/`conexoes_notas`
 - [x] Web — Desenvolver/Criar: sistema solar canvas (planetas/luas/eventos/empolgação/festinha), upload real de recursos/fotos (Storage), integração tarefas→planeta (`origem_planeta_id`, `concluida_at`)
+- [x] Web — Home (`/`): saudação por horário, faixa de urgentes (tarefas + eventos do Criar, cor por prazo), vitrine em bento com recortes reais dos 3 módulos (cofrinho, mini sistema solar, destaque da wishlist, notas recentes) e atalhos rápidos; protótipo em `prototypes/home.html`
 
 ### Specs da Rotina (definidas pelo usuário, prototipadas)
 - **Finanças**: cofrinho porquinho ilustrado (arte fornecida pelo usuário, `prototypes/cofrinho.svg`, viewBox 1254×1254) com "janela de vidro" na barriga mostrando moedas douradas = % da renda restante; hover mostra saldo; renda mensal registrável (fonte + valor); modalidades de gasto (Wishlist sempre fixa + livres: comida, contas, rolê…); cada gasto tem check "foi pago" → moedas somem com stagger; abaixo do porquinho, gráfico anelar (donut) mostra % de cada modalidade sobre o total planejado, com legenda colorida e total no centro
@@ -62,6 +63,7 @@ Rodar protótipos: `preview_start` com `name: "prototypes"` (server já configur
 2. Web — casca de navegação + Rotina completa — completa
 3. Web — Anotar (portar protótipo para componentes) — completa
 4. Web — Desenvolver/Criar (portar protótipo, upload real de fotos/recursos, integração tarefas→Rotina) — completa
+4.5. Web — Home (protótipo + port React, faixa de urgentes + vitrine dos módulos) — completa
 5. Android (Expo) — versão enxuta *(atual)*
 6. Polimento e deploy
 
