@@ -88,10 +88,10 @@ export function useFinancas() {
   });
 
   const addModalidade = useMutation({
-    mutationFn: async (nome: string) => {
+    mutationFn: async (input: { nome: string; cor: string }) => {
       const ordem = (modalidadesQ.data?.length ?? 0);
       const { error } = await supabase.from("modalidades_gasto").insert({
-        user_id: userId, nome, cor: "#6ea8ff", fixa: false, ordem,
+        user_id: userId, nome: input.nome, cor: input.cor, fixa: false, ordem,
       });
       if (error) throw error;
     },

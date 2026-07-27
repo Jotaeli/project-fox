@@ -2,9 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { Evento, Planeta } from "@project-fox/types";
 import {
-  AwardIcon, BackIcon, BarChartIcon, CameraIcon, LibraryIcon, PlusIcon, ReportIcon, TargetIcon, TrashIcon,
+  AwardIcon, BackIcon, BarChartIcon, CameraIcon, LibraryIcon, PlusIcon, ReportIcon, SunIcon, TargetIcon, TrashIcon,
 } from "../../icons/index.js";
 import { useRegisterGuide } from "../../guides/GuideContext.js";
+import { SolarArt } from "../../guides/illustrations.js";
+import { ConfirmDialog } from "../../lib/ConfirmDialog.js";
 import { useToast } from "../../lib/toast.js";
 import { useTarefas } from "../rotina/tarefas/useTarefas.js";
 import { EventDetailModal } from "./EventDetailModal.js";
@@ -66,18 +68,61 @@ interface Sim {
   mode: "system" | "planet"; focusId: string | null;
   hover: { kind: "planet"; id: string } | { kind: "moon"; moonId: string } | null;
   bursts: Burst[]; confetti: Confetti[];
+  /** null = sol ainda não nasceu (tela de abertura); senão, timestamp do início do nascer */
+  sunT0: number | null;
+  sunParticles: SunParticle[];
   W: number; H: number; DPR: number;
 }
 function makeSim(): Sim {
   return {
     planets: new Map(), cam: { x: 0, y: 0, s: 1 }, camTarget: { x: 0, y: 0, s: 1 },
-    mode: "system", focusId: null, hover: null, bursts: [], confetti: [], W: 0, H: 0, DPR: 1,
+    mode: "system", focusId: null, hover: null, bursts: [], confetti: [],
+    sunT0: null, sunParticles: [], W: 0, H: 0, DPR: 1,
   };
 }
 
+const IGNITED_KEY = "fox:criar-sol-nasceu";
+/** sol já nascido há muito tempo — usado quando não deve haver animação */
+const SUN_DONE = -1e9;
+
+/* ---- nascimento do sol: partículas em espiral, em ondas, até o primeiro brilho ---- */
+interface SunParticle { a0: number; r0: number; turns: number; delay: number; dur: number; col: string; size: number; }
+
+/** cores do app (accent, verde, rosa, dourado, roxo das luas…) */
+const SUN_COLORS = ["#6ea8ff", "#60a5fa", "#94b4ff", "#4ade80", "#f472b6", "#ffd66e", "#c9a0ff", "#8fd0ff"];
+const SUN_WAVES = 5;
+const WAVE_GAP = 380;      // ms entre ondas — o "ritmo" da formação
+const SPIRAL_MS = 3400;    // até a última onda ser absorvida
+const SUNRISE_MS = 4900;   // espiral + primeiro brilho
+
+function makeSunParticles(): SunParticle[] {
+  const out: SunParticle[] = [];
+  const perWave = 22;
+  for (let w = 0; w < SUN_WAVES; w++) {
+    for (let i = 0; i < perWave; i++) {
+      out.push({
+        a0: (i / perWave) * TAU + Math.random() * 0.5,
+        r0: 250 + Math.random() * 130,
+        turns: 0.9 + Math.random() * 0.7,
+        delay: w * WAVE_GAP + Math.random() * 120,
+        dur: 1400 + Math.random() * 320,
+        col: SUN_COLORS[(Math.random() * SUN_COLORS.length) | 0],
+        size: 1.2 + Math.random() * 1.7,
+      });
+    }
+  }
+  return out;
+}
+
+function easeOutCubic(x: number) { return 1 - Math.pow(1 - x, 3); }
+/** avanço suave da espiral — pico de velocidade baixo, movimento cadenciado */
+function easeInOutSine(x: number) { return 0.5 - 0.5 * Math.cos(Math.PI * x); }
+function easeInOutCubic(x: number) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+function clamp01(x: number) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+
 export function CriarPage() {
   useRegisterGuide("criar");
-  const { planetas, relatorios, recursos, fotos, eventos, deletePlaneta } = useCriar();
+  const { planetas, relatorios, recursos, fotos, eventos, deletePlaneta, isLoading } = useCriar();
   const { tarefas, secoes } = useTarefas();
   const showToast = useToast();
 
@@ -96,6 +141,13 @@ export function CriarPage() {
   const [openMoonId, setOpenMoonId] = useState<string | null>(null);
   const [detailEvento, setDetailEvento] = useState<Evento | null>(null);
 
+  /* --- abertura: o sol só nasce quando o usuário inicia o sistema --- */
+  const [ignited, setIgnited] = useState(() => localStorage.getItem(IGNITED_KEY) === "1");
+  const [sunUp, setSunUp] = useState(ignited);   // libera "Adicionar planeta" + dica
+  const [introGone, setIntroGone] = useState(ignited);
+  const ignitedRef = useRef(ignited);
+  ignitedRef.current = ignited;
+
   const dataRef = useRef({ planetas, relatorios, eventos, tarefas });
   dataRef.current = { planetas, relatorios, eventos, tarefas };
 
@@ -104,7 +156,21 @@ export function CriarPage() {
   function setHint() {
     const el = hintRef.current;
     if (!el) return;
-    el.textContent = simRef.current.mode === "planet" ? "Clique numa lua para abrir" : "Clique num planeta para se aproximar";
+    el.textContent = simRef.current.mode === "planet"
+      ? "Clique numa lua para abrir"
+      : dataRef.current.planetas.length === 0
+        ? "Crie o primeiro planeta pra começar"
+        : "Clique num planeta para se aproximar";
+  }
+
+  /** o usuário acende o sistema: sol nasce, depois surge o "Adicionar planeta" */
+  function ignite() {
+    simRef.current.sunParticles = makeSunParticles();
+    simRef.current.sunT0 = performance.now();
+    localStorage.setItem(IGNITED_KEY, "1");
+    setIgnited(true);
+    setTimeout(() => setIntroGone(true), 600);
+    setTimeout(() => setSunUp(true), SUNRISE_MS - 250);
   }
 
   function focusOn(id: string) {
@@ -162,6 +228,7 @@ export function CriarPage() {
     const container = containerRef.current!;
     const ctx = canvas.getContext("2d")!;
     const sim = simRef.current;
+    if (ignitedRef.current) sim.sunT0 = SUN_DONE; // já iniciado antes: sol entra pronto
 
     function resize() {
       sim.DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -213,14 +280,86 @@ export function CriarPage() {
         ctx.beginPath(); ctx.arc(px, py, s.r, 0, TAU); ctx.fill();
       }
     }
-    function drawSun(t: number) {
-      const r = 42 * (1 + 0.015 * Math.sin(t * 1.2));
-      let g = ctx.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 3.6);
-      g.addColorStop(0, "rgba(255,214,130,.32)"); g.addColorStop(0.5, "rgba(255,170,90,.10)"); g.addColorStop(1, "rgba(255,170,90,0)");
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, r * 3.6, 0, TAU); ctx.fill();
+    /** posição de uma partícula da espiral no seu progresso u (0 = borda, 1 = centro) */
+    function spiralAt(p: SunParticle, u: number) {
+      const e = easeInOutSine(clamp01(u));
+      const rr = p.r0 * (1 - e);
+      const aa = p.a0 + p.turns * TAU * e;
+      return { x: Math.cos(aa) * rr, y: Math.sin(aa) * rr };
+    }
+
+    function drawSun(t: number, now: number) {
+      if (sim.sunT0 === null) return; // sistema ainda não iniciado
+      const el = now - sim.sunT0;
+      const born = el >= SUNRISE_MS;
+
+      // ---- partículas espiralando para o centro, em ondas ----
+      if (!born) {
+        ctx.save();
+        ctx.lineCap = "round";
+        const SEG = 4, DU = 0.022;   // rastro curto, seguindo a curva da espiral
+        for (const p of sim.sunParticles) {
+          const u = (el - p.delay) / p.dur;
+          if (u <= 0 || u >= 1) continue;
+          const a = Math.min(1, u / 0.12) * (1 - clamp01((u - 0.82) / 0.18));
+          ctx.strokeStyle = p.col;
+          let prev = spiralAt(p, u - DU);
+          for (let s = 1; s <= SEG; s++) {
+            const cur = spiralAt(p, u - DU + (DU * s) / SEG);
+            ctx.globalAlpha = a * (s / SEG) * 0.6;
+            ctx.lineWidth = p.size * (0.35 + 0.65 * (s / SEG));
+            ctx.beginPath(); ctx.moveTo(prev.x, prev.y); ctx.lineTo(cur.x, cur.y); ctx.stroke();
+            prev = cur;
+          }
+          const c = spiralAt(p, u);
+          ctx.globalAlpha = a;
+          ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(c.x, c.y, p.size, 0, TAU); ctx.fill();
+        }
+        ctx.restore();
+
+        // pulso a cada onda absorvida — marca o ritmo
+        for (let w = 0; w < SUN_WAVES; w++) {
+          const age = el - (w * WAVE_GAP + 1500);
+          if (age < 0 || age > 700) continue;
+          const k = age / 700;
+          ctx.strokeStyle = `rgba(180,205,255,${(1 - k) * 0.2})`;
+          ctx.lineWidth = 1.4 / sim.cam.s;
+          ctx.beginPath(); ctx.arc(0, 0, 12 + k * 90, 0, TAU); ctx.stroke();
+        }
+      }
+
+      // ---- núcleo: acumula durante a espiral, depois acende forte e assenta ----
+      let scale = 1, boost = 0;
+      if (!born) {
+        if (el < SPIRAL_MS) {
+          scale = 0.06 + 0.42 * easeInOutCubic(clamp01((el - 900) / (SPIRAL_MS - 900)));
+        } else {
+          const f = (el - SPIRAL_MS) / (SUNRISE_MS - SPIRAL_MS);
+          if (f < 0.3) { const k = easeOutCubic(f / 0.3); scale = 0.48 + 0.92 * k; boost = k; }
+          else { const k = easeInOutCubic((f - 0.3) / 0.7); scale = 1.4 - 0.4 * k; boost = 1 - k; }
+        }
+      }
+      const r = 42 * scale * (1 + 0.015 * Math.sin(t * 1.2));
+
+      let g = ctx.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 3.6 * (1 + 0.5 * boost));
+      g.addColorStop(0, `rgba(255,214,130,${0.32 + 0.45 * boost})`);
+      g.addColorStop(0.5, `rgba(255,170,90,${0.1 + 0.2 * boost})`);
+      g.addColorStop(1, "rgba(255,170,90,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, r * 3.6 * (1 + 0.5 * boost), 0, TAU); ctx.fill();
       g = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r);
       g.addColorStop(0, "#fff9e8"); g.addColorStop(0.55, "#ffd98a"); g.addColorStop(1, "#ff9d4d");
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+
+      // primeiro brilho: clarão branco + anel de luz saindo
+      if (boost > 0) {
+        ctx.fillStyle = `rgba(255,250,235,${0.5 * boost})`;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+        const f = (el - SPIRAL_MS) / (SUNRISE_MS - SPIRAL_MS);
+        const rr = 40 + easeOutCubic(Math.min(1, f / 0.55)) * 360;
+        ctx.strokeStyle = `rgba(255,225,160,${Math.max(0, 1 - f / 0.55) * 0.45})`;
+        ctx.lineWidth = 2.4 / sim.cam.s;
+        ctx.beginPath(); ctx.arc(0, 0, rr, 0, TAU); ctx.stroke();
+      }
     }
     function ringPath(x: number, y: number, r: number, full: boolean) {
       ctx.beginPath();
@@ -300,6 +439,8 @@ export function CriarPage() {
         if (!p) continue;
         const e = excitementOf(sp);
         if (e <= 0) continue;
+        const dimmed = sim.mode === "planet" && sim.focusId !== null && sp.id !== sim.focusId;
+        const dimK = dimmed ? 0.22 : 1;
         const pp = planetPos(sp);
         const n = Math.round(3 + 4 * e);
         const hue = hueOf(p.cor);
@@ -307,7 +448,7 @@ export function CriarPage() {
           const ang = t * 1.1 + (i * TAU) / n + sp.spin;
           const rad = sp.size * (1.7 + 0.25 * Math.sin(t * 2.2 + i * 1.7));
           const sx = pp.x + Math.cos(ang) * rad, sy = pp.y + Math.sin(ang) * rad * 0.82;
-          const a = e * (0.25 + 0.3 * Math.max(0, Math.sin(t * 3 + i * 2.1)));
+          const a = e * dimK * (0.25 + 0.3 * Math.max(0, Math.sin(t * 3 + i * 2.1)));
           ctx.fillStyle = hsla(hue, 80, 82, a); ctx.beginPath(); ctx.arc(sx, sy, 1.1 + 0.5 * e, 0, TAU); ctx.fill();
         }
       }
@@ -386,10 +527,14 @@ export function CriarPage() {
 
       ctx.lineWidth = 1 / sim.cam.s;
       for (const sp of sim.planets.values()) { ctx.strokeStyle = "rgba(140,170,255,.08)"; ctx.beginPath(); ctx.arc(0, 0, sp.dist, 0, TAU); ctx.stroke(); }
-      drawSun(t);
+      drawSun(t, now);
       for (const sp of sim.planets.values()) {
         const p = dataRef.current.planetas.find((x) => x.id === sp.id);
-        if (p) drawPlanet(p, sp, t);
+        if (!p) continue;
+        const dimmed = sim.mode === "planet" && sim.focusId !== null && sp.id !== sim.focusId;
+        if (dimmed) ctx.globalAlpha = 0.22;
+        drawPlanet(p, sp, t);
+        if (dimmed) ctx.globalAlpha = 1;
       }
       drawExcitement(t);
       if (sim.mode === "planet" && sim.focusId) {
@@ -490,7 +635,15 @@ export function CriarPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planetas]);
 
-  useEffect(() => { setHint(); }, []);
+  // quem já tem planetas nunca vê a abertura — o sol já está aceso
+  useEffect(() => {
+    if (ignited || planetas.length === 0) return;
+    localStorage.setItem(IGNITED_KEY, "1");
+    simRef.current.sunT0 = SUN_DONE;
+    setIgnited(true); setSunUp(true); setIntroGone(true);
+  }, [ignited, planetas.length]);
+
+  useEffect(() => { setHint(); }, [sunUp, planetas.length, focusId]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -526,15 +679,25 @@ export function CriarPage() {
       <canvas ref={canvasRef} />
 
       <header className="criar-topbar">
-        <div className="brand"><h1>Project Fox <span>· Desenvolver / Criar</span></h1></div>
+        <div className="criar-topbar-left">
+          {focusId && <button className="btn" onClick={backToSystem}><BackIcon /> Voltar ao sistema</button>}
+        </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <button className="btn" onClick={() => setStatsOpen(true)}><BarChartIcon /> Estatísticas</button>
-          <button className="btn primary" onClick={() => setPlanetModalOpen(true)}><PlusIcon /> Adicionar planeta</button>
+          {sunUp && <button className="btn" onClick={() => setStatsOpen(true)}><BarChartIcon /> Estatísticas</button>}
+          {sunUp && <button className="btn primary criar-rise-in" onClick={() => setPlanetModalOpen(true)}><PlusIcon /> Adicionar planeta</button>}
         </div>
       </header>
 
-      {focusId && <button className="btn" id="criarBackBtn" onClick={backToSystem}><BackIcon /> Voltar ao sistema</button>}
-      <div className="criar-hint" ref={hintRef} />
+      {!isLoading && !introGone && planetas.length === 0 && (
+        <div className={`empty-hero criar-intro${ignited ? " out" : ""}`} style={{ position: "absolute", inset: 0, zIndex: 4 }}>
+          <SolarArt />
+          <h3>Seu sistema solar está vazio</h3>
+          <p>Cada planeta é uma área que você quer desenvolver — um instrumento, um idioma, um projeto. Crie o primeiro pra começar.</p>
+          <button className="btn primary criar-ignite" onClick={ignite}><SunIcon /> Iniciar sistema Criar</button>
+        </div>
+      )}
+
+      {sunUp && <div className="criar-hint criar-rise-in" ref={hintRef} />}
 
       {focusPlaneta && (
         <div className="focus-card">
@@ -555,7 +718,7 @@ export function CriarPage() {
 
       <div className="criar-tooltip" ref={tooltipRef} />
 
-      <EventsPanel planetas={planetas} eventos={eventos} onSelect={(planetaId, ev) => { focusOn(planetaId); setDetailEvento(ev); }} />
+      {sunUp && <EventsPanel planetas={planetas} eventos={eventos} onSelect={(planetaId, ev) => { focusOn(planetaId); setDetailEvento(ev); }} />}
 
       {planetModalOpen && <PlanetModal onClose={() => setPlanetModalOpen(false)} onCreated={(id) => { setPlanetModalOpen(false); focusOn(id); }} />}
 
@@ -575,18 +738,13 @@ export function CriarPage() {
       {statsOpen && <StatsModal planetas={planetas} tarefas={tarefas} onClose={() => setStatsOpen(false)} />}
 
       {confirmDeleteOpen && focusPlaneta && (
-        <div className="modal-wrap open" onClick={(e) => { if (e.target === e.currentTarget) setConfirmDeleteOpen(false); }}>
-          <div className="modal" style={{ width: 340 }}>
-            <h2 style={{ marginBottom: 10 }}>Excluir planeta?</h2>
-            <p style={{ fontSize: 13.5, color: "var(--muted)", lineHeight: 1.55, marginBottom: 22 }}>
-              Todos os relatórios, recursos, fotos e metas de "{focusPlaneta.nome}" serão perdidos. Essa ação não pode ser desfeita.
-            </p>
-            <div className="actions">
-              <button className="btn" onClick={() => setConfirmDeleteOpen(false)}>Cancelar</button>
-              <button className="btn danger" onClick={() => deletePlaneta.mutate(focusPlaneta.id, { onSuccess: () => { setConfirmDeleteOpen(false); backToSystem(); } })}>Excluir</button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Excluir planeta?"
+          message={<>Todos os relatórios, recursos, fotos e metas de "{focusPlaneta.nome}" serão perdidos. Essa ação não pode ser desfeita.</>}
+          pending={deletePlaneta.isPending}
+          onCancel={() => setConfirmDeleteOpen(false)}
+          onConfirm={() => deletePlaneta.mutate(focusPlaneta.id, { onSuccess: () => { setConfirmDeleteOpen(false); backToSystem(); } })}
+        />
       )}
 
       {openMoonId && focusPlaneta && (

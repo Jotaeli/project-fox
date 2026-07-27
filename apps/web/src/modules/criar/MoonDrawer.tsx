@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Foto, Planeta, Recurso, Relatorio, SecaoTarefas, Tarefa } from "@project-fox/types";
 import { CheckIcon, CloseIcon, ExtIcon, PlusIcon, SparkIcon } from "../../icons/index.js";
+import { capFirst } from "../../lib/currentMonth.js";
 import { TaskModal } from "../rotina/tarefas/TaskModal.js";
 import { health, weeklyCount } from "./useCriar.js";
 import { MOON_STYLE } from "./criarConstants.js";
@@ -10,7 +11,7 @@ const DAY = 86400000;
 
 function fmtDate(iso: string) {
   const d = new Date(iso);
-  return d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" }) + " · " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return capFirst(d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" })) + " · " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 function statusText(h: number): [string, string] {
   if (h >= 0.99) return ["Órbita estável ✦", "#7ef0b2"];

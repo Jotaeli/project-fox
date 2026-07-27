@@ -14,3 +14,10 @@ export const HUES = [145, 212, 330, 268, 26, 187, 48];
 export function photoStyle(hue: number): React.CSSProperties {
   return { background: `linear-gradient(135deg, hsl(${hue},45%,32%), hsl(${(hue + 40) % 360},55%,18%))` };
 }
+
+/** Hue determinístico a partir do id — cada item sem foto ganha um gradiente próprio e estável. */
+export function hueFromId(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+  return Math.abs(h) % 360;
+}

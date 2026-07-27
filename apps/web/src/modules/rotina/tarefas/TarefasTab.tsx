@@ -33,7 +33,7 @@ export function TarefasTab() {
 
   const taskCounts = useMemo(() => {
     const m = new Map<string, number>();
-    tarefas.forEach((t) => m.set(t.secaoId, (m.get(t.secaoId) ?? 0) + 1));
+    tarefas.filter((t) => !isTarefaConcluida(t)).forEach((t) => m.set(t.secaoId, (m.get(t.secaoId) ?? 0) + 1));
     return m;
   }, [tarefas]);
 

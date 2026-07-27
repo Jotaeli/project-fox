@@ -1,5 +1,6 @@
 import type { Evento, Planeta, Tarefa } from "@project-fox/types";
 import { useAuth } from "../../auth/AuthContext.js";
+import { deadlineUrgency, type Urgencia } from "../../lib/currentMonth.js";
 import { BADGES, INDEP_RGB } from "../anotar/AnotarPage.js";
 import { useAnotar } from "../anotar/useAnotar.js";
 import { derivedStatus, eventProgress, health, useCriar } from "../criar/useCriar.js";
@@ -8,7 +9,7 @@ import { isTarefaConcluida, useTarefas } from "../rotina/tarefas/useTarefas.js";
 import { useWishlist } from "../rotina/wishlist/useWishlist.js";
 import { TIER_ORDER, TIERS } from "../rotina/wishlist/wishConstants.js";
 
-export type Urgencia = "atrasado" | "urgent" | "warn" | "";
+export type { Urgencia };
 
 export interface UrgentItem {
   id: string;
@@ -34,20 +35,6 @@ function diasLabel(dias: number): string {
   return `em ${dias} dias`;
 }
 
-function urgencia(dias: number): Urgencia {
-  if (dias < 0) return "atrasado";
-  if (dias <= 1) return "urgent";
-  if (dias <= 3) return "warn";
-  return "";
-}
-
-export function greeting(hour: number): string {
-  if (hour < 5) return "Boa madrugada";
-  if (hour < 12) return "Bom dia";
-  if (hour < 18) return "Boa tarde";
-  return "Boa noite";
-}
-
 export function useHome() {
   const { session } = useAuth();
   const nome = (session?.user.user_metadata as { nome?: string } | undefined)?.nome ?? session?.user.email ?? "";
@@ -68,7 +55,7 @@ export function useHome() {
       return {
         id: t.id, tipo: "tarefa" as const, titulo: t.titulo,
         sub: `${secao?.nome ?? "Geral"} · etapa ${feitas} de ${t.etapas.length}`,
-        prazo: t.prazo!, urgencia: urgencia(dias), diasLabel: diasLabel(dias),
+        prazo: t.prazo!, urgencia: deadlineUrgency(t.prazo!), diasLabel: diasLabel(dias),
       };
     });
 
@@ -81,7 +68,7 @@ export function useHome() {
       return {
         id: e.id, tipo: "evento" as const, titulo: `Meta: ${e.titulo}`,
         sub: `Planeta ${planeta?.nome ?? "?"} · ${prog.done} de ${prog.total}`,
-        prazo: e.prazo, urgencia: urgencia(dias), diasLabel: diasLabel(dias),
+        prazo: e.prazo, urgencia: deadlineUrgency(e.prazo), diasLabel: diasLabel(dias),
         planetaId: e.planetaId,
       };
     });

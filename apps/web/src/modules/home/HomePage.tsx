@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRightIcon, CoinIcon, GridIcon, ImageIcon, PlanetIcon, PlusIcon } from "../../icons/index.js";
 import { useRegisterGuide } from "../../guides/GuideContext.js";
-import { fmtBRL } from "../../lib/currentMonth.js";
+import { capFirst, fmtBRL, fmtRelativeDay } from "../../lib/currentMonth.js";
 import { BADGES } from "../anotar/AnotarPage.js";
 import { hueOf } from "../criar/criarConstants.js";
 import { PlanetModal } from "../criar/PlanetModal.js";
@@ -27,7 +27,7 @@ export function HomePage() {
 
   const hour = new Date().getHours();
   const saudacao = hour < 5 ? "Boa madrugada" : hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
-  const dataExtenso = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const dataExtenso = capFirst(new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }));
 
   function handleUrgentSelect(item: UrgentItem) {
     if (item.tipo === "tarefa") navigate("/rotina?tab=tarefas");
@@ -78,7 +78,7 @@ export function HomePage() {
 
         <div className="home-card home-c-planetas" style={{ animationDelay: ".12s" }} onClick={() => navigate("/criar")}>
           <div className="home-card-head">
-            <span className="home-card-tag" style={{ color: "#c9b6ff" }}><span className="dot" /> Desenvolver · Criar</span>
+            <span className="home-card-tag" style={{ color: "#c9b6ff" }}><span className="dot" /> Criar</span>
             <span className="home-card-link">ver módulo <ArrowRightIcon /></span>
           </div>
           {data.planetasPreview.length === 0 ? (
@@ -132,7 +132,10 @@ export function HomePage() {
           {!data.wishDestaque || !data.wishTierInfo ? (
             <div className="home-wish-empty">Nada na wishlist ainda</div>
           ) : (
-            <div className="home-loot">
+            <div
+              className="home-loot"
+              onClick={(e) => { e.stopPropagation(); navigate(`/rotina?tab=wishlist&item=${data.wishDestaque!.id}`); }}
+            >
               <div className="home-loot-tier">{data.wishDestaque.tier} · {data.wishTierInfo.name}</div>
               <div className="home-loot-photo">
                 {data.wishDestaque.foto ? <img src={data.wishDestaque.foto} alt="" /> : <ImageIcon />}
@@ -162,7 +165,11 @@ export function HomePage() {
                 const core = n.cores[0];
                 const halo = n.cores.map((c, i) => `0 0 ${10 + i * 6}px rgba(${c[0]},${c[1]},${c[2]},.55)`).join(", ");
                 return (
-                  <div className="home-note-row" key={n.id}>
+                  <div
+                    className="home-note-row"
+                    key={n.id}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/anotar?nota=${n.id}`); }}
+                  >
                     <span className="home-note-orb" style={{ background: `rgba(${core[0]},${core[1]},${core[2]},.9)`, boxShadow: halo }} />
                     <div className="home-note-body">
                       <div className="home-note-title">{n.titulo}</div>
@@ -173,6 +180,7 @@ export function HomePage() {
                         })}
                       </div>
                     </div>
+                    <span className="home-note-time">{fmtRelativeDay(n.createdAt)}</span>
                   </div>
                 );
               })}

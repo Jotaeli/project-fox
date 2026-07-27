@@ -12,7 +12,7 @@ function mapItem(w: any): ItemWishlist {
 }
 
 export interface NovoItemWishlist {
-  nome: string; valor: number; tier: TierWishlist; descricao?: string; link?: string; fotoFile?: File | null;
+  nome: string; valor: number; tier: TierWishlist; descricao?: string; link?: string; fotoFile?: File | null; planetaId?: string;
 }
 
 export function useWishlist() {
@@ -49,6 +49,7 @@ export function useWishlist() {
       const { error } = await supabase.from("itens_wishlist").insert({
         user_id: userId, nome: input.nome, valor: input.valor, tier: input.tier,
         descricao: input.descricao || null, link: input.link || null, foto: foto || null, comprado: false,
+        planeta_id: input.planetaId || null,
       });
       if (error) throw error;
     },
@@ -63,6 +64,14 @@ export function useWishlist() {
     onSuccess: invalidate,
   });
 
+  const updatePlaneta = useMutation({
+    mutationFn: async (input: { id: string; planetaId: string | null }) => {
+      const { error } = await supabase.from("itens_wishlist").update({ planeta_id: input.planetaId }).eq("id", input.id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
   const deleteItem = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("itens_wishlist").delete().eq("id", id);
@@ -71,5 +80,5 @@ export function useWishlist() {
     onSuccess: invalidate,
   });
 
-  return { items: itemsQ.data ?? [], isLoading: itemsQ.isLoading, addItem, updateTier, deleteItem };
+  return { items: itemsQ.data ?? [], isLoading: itemsQ.isLoading, addItem, updateTier, updatePlaneta, deleteItem };
 }

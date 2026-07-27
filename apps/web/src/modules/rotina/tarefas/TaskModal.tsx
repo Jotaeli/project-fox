@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { SecaoTarefas } from "@project-fox/types";
 import { CheckIcon, CloseIcon, PlusIcon } from "../../../icons/index.js";
 import { fmtBRL } from "../../../lib/currentMonth.js";
+import { useToast } from "../../../lib/toast.js";
+import { useEscapeToClose } from "../../../lib/useEscapeToClose.js";
 import { useWishlist } from "../wishlist/useWishlist.js";
 import { useTarefas } from "./useTarefas.js";
 
@@ -12,6 +14,8 @@ export function TaskModal({
 }) {
   const { addTarefa } = useTarefas();
   const { items } = useWishlist();
+  const toast = useToast();
+  useEscapeToClose(onClose);
   const [titulo, setTitulo] = useState("");
   const [secaoId, setSecaoId] = useState(defaultSecaoId);
   const [prazo, setPrazo] = useState("");
@@ -29,9 +33,9 @@ export function TaskModal({
 
   function submit() {
     const title = titulo.trim();
-    if (!title) return;
+    if (!title) { toast("Dê um título pra tarefa."); return; }
     const cleanStages = stages.map((s) => s.trim()).filter(Boolean);
-    if (!cleanStages.length) return;
+    if (!cleanStages.length) { toast("Adicione pelo menos uma etapa."); return; }
     addTarefa.mutate(
       {
         titulo: title, secaoId, prazo: prazo || undefined, etapas: cleanStages,

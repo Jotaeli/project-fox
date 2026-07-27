@@ -1,10 +1,8 @@
 import { fmtBRL } from "../../../lib/currentMonth.js";
 
-const CHART_HUES = [212, 330, 145, 48, 268, 26, 187];
-
-export function DonutChart({ rows }: { rows: { nome: string; total: number }[] }) {
-  const withHue = rows.map((r, i) => ({ ...r, hue: CHART_HUES[i % CHART_HUES.length] })).filter((r) => r.total > 0);
-  const grandTotal = withHue.reduce((s, r) => s + r.total, 0);
+export function DonutChart({ rows }: { rows: { nome: string; cor: string; total: number }[] }) {
+  const active = rows.filter((r) => r.total > 0);
+  const grandTotal = active.reduce((s, r) => s + r.total, 0);
 
   if (!grandTotal) {
     return (
@@ -21,13 +19,13 @@ export function DonutChart({ rows }: { rows: { nome: string; total: number }[] }
   }
 
   let acc = 0;
-  const stops = withHue.map((r) => {
+  const stops = active.map((r) => {
     const from = acc;
     acc += (r.total / grandTotal) * 100;
-    return `hsl(${r.hue},62%,58%) ${from}% ${acc}%`;
+    return `${r.cor} ${from}% ${acc}%`;
   }).join(", ");
 
-  const legendRows = [...withHue].sort((a, b) => b.total - a.total);
+  const legendRows = [...active].sort((a, b) => b.total - a.total);
 
   return (
     <div className="chart-panel">
@@ -39,7 +37,7 @@ export function DonutChart({ rows }: { rows: { nome: string; total: number }[] }
         <div className="chart-legend">
           {legendRows.map((r) => (
             <div className="mc-row" key={r.nome}>
-              <span className="mc-dot" style={{ background: `hsl(${r.hue},62%,58%)` }} />
+              <span className="mc-dot" style={{ background: r.cor }} />
               <span className="mc-name">{r.nome}</span>
               <span className="mc-pct">{Math.round((r.total / grandTotal) * 100)}%</span>
             </div>

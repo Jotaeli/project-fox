@@ -27,7 +27,18 @@
       "Bash(pnpm --filter @project-fox/web build)",
       "Bash(echo \"ignored?:$?\")",
       "Bash(echo \"EXIT:$?\")",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(pnpm --filter @project-fox/web typecheck)",
+      "Bash(pnpm --filter @project-fox/web lint)",
+      "Bash(node --experimental-vm-modules -e \"require\\('@supabase/supabase-js'\\)\")",
+      "Bash(node \"/private/tmp/claude-501/-Users-jotaeli-Documents-Project-Fox/0f0a315d-dc93-43e0-8565-829e854320cd/scratchpad/cleanup_test_data.mjs\")",
+      "Bash(cp \"/private/tmp/claude-501/-Users-jotaeli-Documents-Project-Fox/0f0a315d-dc93-43e0-8565-829e854320cd/scratchpad/cleanup_test_data.mjs\" \"/Users/jotaeli/Documents/Project Fox/apps/api/cleanup_test_data.mjs\")",
+      "Bash(node cleanup_test_data.mjs)",
+      "Bash(git log *)",
+      "mcp__visualize__read_me",
+      "mcp__visualize__show_widget",
+      "Bash(node -e ' *)",
+      "Bash(git checkout *)"
     ]
   }
 }

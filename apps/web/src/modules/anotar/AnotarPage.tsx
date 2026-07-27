@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import type { BadgeNota } from "@project-fox/types";
 import { useRegisterGuide } from "../../guides/GuideContext.js";
+import { GraphArt } from "../../guides/illustrations.js";
 import { CloseIcon, FitIcon, LinkIcon, PlusIcon, TrashIcon } from "../../icons/index.js";
+import { ConfirmDialog } from "../../lib/ConfirmDialog.js";
 import { useAnotar } from "./useAnotar.js";
 import "./anotar.css";
 
@@ -93,6 +96,7 @@ function buildBg(sim: Sim) {
 export function AnotarPage() {
   useRegisterGuide("anotar");
   const { notas, conexoes, addNota, updateNota, deleteNota, addConexao, deleteConexao } = useAnotar();
+  const [searchParams] = useSearchParams();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -580,6 +584,19 @@ export function AnotarPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notas, conexoes]);
 
+  // deep link vindo da Home (linha de nota recente): abre direto na nota
+  const notaDeepLinkHandled = useRef(false);
+  useEffect(() => {
+    if (notaDeepLinkHandled.current) return;
+    const nid = searchParams.get("nota");
+    if (!nid || !notas.some((n) => n.id === nid)) return;
+    notaDeepLinkHandled.current = true;
+    selectNote(nid);
+    const n = simRef.current.notes.get(nid);
+    if (n) { simRef.current.camTarget.x = n.x; simRef.current.camTarget.y = n.y; }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, notas]);
+
   useEffect(() => { setHint(); }, []);
 
   /* ---------------- UI handlers ---------------- */
@@ -589,7 +606,18 @@ export function AnotarPage() {
     const pos = sim.pendingPos ?? { x: sim.cam.x + (Math.random() - 0.5) * 60, y: sim.cam.y + (Math.random() - 0.5) * 60 };
     addNota.mutate(
       { titulo: title, conteudo: newBody.trim(), badges: newBadges, posX: pos.x, posY: pos.y },
-      { onSuccess: (n) => { setModalOpen(false); sim.pendingPos = null; selectNote(n.id); } },
+      {
+        onSuccess: (n) => {
+          setModalOpen(false);
+          sim.pendingPos = null;
+          sim.selected = n.id;
+          setSelectedId(n.id);
+          setDrTitle(n.titulo);
+          setDrBody(n.conteudo);
+          setDrBadges(n.badges);
+          setDrawerOpen(true);
+        },
+      },
     );
   }
 
@@ -680,6 +708,14 @@ export function AnotarPage() {
       <div className="anotar-stats">{notas.length} notas · {conexoes.length} conexões</div>
       <div className="anotar-hint" ref={hintRef} />
 
+      {notas.length === 0 && (
+        <div className="empty-hero" style={{ position: "absolute", inset: 0, zIndex: 4 }}>
+          <GraphArt />
+          <h3>Sua rede de notas está vazia</h3>
+          <p>Cada nota é um nó nesse espaço infinito. Solte a primeira ideia — organize e conecte depois.</p>
+        </div>
+      )}
+
       <div className="anotar-legend">
         <div className="lg-row"><span className="lg-dot" style={{ background: "var(--green)", boxShadow: "0 0 8px var(--green)" }} /> Wishlist</div>
         <div className="lg-row"><span className="lg-dot" style={{ background: "var(--blue)", boxShadow: "0 0 8px var(--blue)" }} /> Tarefas</div>
@@ -722,18 +758,13 @@ export function AnotarPage() {
       )}
 
       {confirmOpen && (
-        <div className="modal-wrap open" onClick={(e) => { if (e.target === e.currentTarget) setConfirmOpen(false); }}>
-          <div className="modal" style={{ width: 340 }}>
-            <h2 style={{ marginBottom: 10 }}>Excluir nota?</h2>
-            <p style={{ fontSize: 13.5, color: "var(--muted)", lineHeight: 1.55, marginBottom: 22 }}>
-              A nota "{selectedNota?.titulo}" e suas conexões serão removidas da rede. Essa ação não pode ser desfeita.
-            </p>
-            <div className="actions">
-              <button className="btn" onClick={() => setConfirmOpen(false)}>Cancelar</button>
-              <button className="btn warn-btn" onClick={handleDelete}>Excluir</button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Excluir nota?"
+          message={<>A nota "{selectedNota?.titulo}" e suas conexões serão removidas da rede. Essa ação não pode ser desfeita.</>}
+          pending={deleteNota.isPending}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={handleDelete}
+        />
       )}
 
       <aside className={`anotar-drawer${drawerOpen ? " open" : ""}`}>

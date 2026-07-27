@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AwardIcon, CameraIcon, LibraryIcon, ReportIcon } from "../../icons/index.js";
+import { useToast } from "../../lib/toast.js";
 import { COLOR_NAMES, HUES, PLANET_TYPES, type TipoPlanetaKey } from "./criarConstants.js";
 import { useCriar } from "./useCriar.js";
 
@@ -50,6 +51,7 @@ function TypeSwatch({ type, hue }: { type: TipoPlanetaKey; hue: number }) {
 
 export function PlanetModal({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
   const { addPlaneta } = useCriar();
+  const toast = useToast();
   const [nome, setNome] = useState("");
   const [objetivo, setObjetivo] = useState("");
   const [descricao, setDescricao] = useState("");
@@ -61,7 +63,7 @@ export function PlanetModal({ onClose, onCreated }: { onClose: () => void; onCre
 
   function submit() {
     const nomeClean = nome.trim();
-    if (!nomeClean) return;
+    if (!nomeClean) { toast("Dê um nome pra área."); return; }
     addPlaneta.mutate(
       {
         nome: nomeClean, cor: String(hue), tipo, objetivoPrincipal: objetivo.trim(),

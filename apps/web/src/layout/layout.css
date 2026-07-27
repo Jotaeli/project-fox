@@ -5,6 +5,11 @@
   padding: 14px 22px; backdrop-filter: blur(10px);
   background: rgba(5, 9, 24, .55); border-bottom: 1px solid rgba(148, 180, 255, .07);
 }
+.brand { display: flex; align-items: center; gap: 9px; flex: none; }
+.brand-mark {
+  width: 22px; height: 22px; color: var(--accent); flex: none;
+  filter: drop-shadow(0 0 8px rgba(110, 168, 255, .5));
+}
 .topbar h1 { font-size: 15px; font-weight: 600; letter-spacing: .4px; flex: none; }
 
 .subtabs {
@@ -32,3 +37,10 @@
 .placeholder-pane { max-width: 1080px; margin: 0 auto; padding: 80px 22px; text-align: center; }
 .placeholder-pane h2 { font-size: 20px; font-weight: 600; margin-bottom: 10px; }
 .placeholder-pane p { color: var(--muted); font-size: 13.5px; }
+
+@media (max-width: 680px) {
+  .topbar { padding: 10px 14px; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .topbar h1 { display: none; }
+  .user-email { display: none; }
+  .subtab { padding: 6px 12px; font-size: 12px; }
+}

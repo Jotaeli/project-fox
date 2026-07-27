@@ -66,8 +66,23 @@ Rodar protótipos: `preview_start` com `name: "prototypes"` (server já configur
 4. Web — Desenvolver/Criar (portar protótipo, upload real de fotos/recursos, integração tarefas→Rotina) — completa
 4.5. Web — Home (protótipo + port React, faixa de urgentes + vitrine dos módulos) — completa
 4.6. Web — Guias/onboarding por aba (cards ilustrados + interativos, botão `?`) — completa
-5. Android (Expo) — versão enxuta *(atual)*
-6. Polimento e deploy
+5. Web — Social ("Órbita") *(atual)*
+   - 5.1. Fundação: amizades, bloqueios, RLS social via `security definer`, notificações, perfil de amigo, postagens, cutucar
+   - 5.2. Streak + ranking entre amigos (1 congelamento por semana)
+   - 5.3. Desafios (evento/meta compartilhada, checklist por participante)
+   - 5.4. Planeta compartilhado (membros + convite, `autor_id` nas tabelas-filhas, storage por planeta)
+   - 5.5. Espaço de notas compartilhado (grafo separado, posição por usuário)
+   - 5.6. Guia da aba Órbita + faixa social na Home
+6. Android (Expo) — versão enxuta
+7. Polimento e deploy
+
+### Regras do Social (decididas pelo usuário)
+- **Postagens**: o app nunca posta sozinho — detecta o marco e oferece "Compartilhar" com a postagem pré-preenchida; o usuário confirma
+- **Saúde do planeta compartilhado**: média das saúdes individuais (cada membro tem sua meta semanal), com um anel por membro na UI
+- **Streak**: 1 congelamento por semana (um dia perdido não zera a sequência)
+- **Nunca editar/excluir conteúdo alheio** — vale para planeta compartilhado e espaço de notas
+- **Fora de escopo**: edição conjunta, wishlist compartilhada, seção de tarefas compartilhada
+- Privacidade: nada é público por padrão; leitura do perfil de amigo passa pela RPC `perfil_publico` (o RLS "dono único" das tabelas de domínio continua intacto)
 
 ## Modelo por tipo de tarefa
 - **Sonnet 5** (padrão): implementação de specs já fechadas, features mecânicas, bugfixes

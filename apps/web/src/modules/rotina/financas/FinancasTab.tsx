@@ -1,12 +1,54 @@
 import { useState } from "react";
 import type { Gasto, ModalidadeGasto } from "@project-fox/types";
-import { CloseIcon, PlusIcon, SparkIcon } from "../../../icons/index.js";
+import { CheckIcon, CloseIcon, PlusIcon, SparkIcon } from "../../../icons/index.js";
 import { fmtBRL } from "../../../lib/currentMonth.js";
 import { useToast } from "../../../lib/toast.js";
+import { useEscapeToClose } from "../../../lib/useEscapeToClose.js";
+import { HUES } from "../wishlist/wishConstants.js";
 import { useWishlist } from "../wishlist/useWishlist.js";
 import { DonutChart } from "./DonutChart.js";
 import { Piggy } from "./Piggy.js";
 import { calcCofrinho, useFinancas } from "./useFinancas.js";
+
+function NovaModalidadeModal({ onClose }: { onClose: () => void }) {
+  const { addModalidade } = useFinancas();
+  const toast = useToast();
+  useEscapeToClose(onClose);
+  const [nome, setNome] = useState("");
+  const [hue, setHue] = useState(HUES[0]);
+
+  function submit() {
+    if (!nome.trim()) { toast("Dê um nome pra modalidade."); return; }
+    addModalidade.mutate({ nome: nome.trim(), cor: `hsl(${hue},65%,55%)` }, { onSuccess: onClose });
+  }
+
+  return (
+    <div className="modal-wrap open" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal" style={{ width: 360 }}>
+        <h2>Nova modalidade</h2>
+        <div className="field"><label>Nome</label>
+          <input type="text" maxLength={24} placeholder="Ex.: Transporte" value={nome} onChange={(e) => setNome(e.target.value)} autoFocus />
+        </div>
+        <div className="field"><label>Cor</label>
+          <div className="hue-swatches">
+            {HUES.map((h) => (
+              <div
+                key={h}
+                className={`hue-sw${hue === h ? " sel" : ""}`}
+                style={{ background: `linear-gradient(135deg, hsl(${h},45%,38%), hsl(${(h + 40) % 360},55%,22%))` }}
+                onClick={() => setHue(h)}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="actions">
+          <button className="btn" onClick={onClose}>Cancelar</button>
+          <button className="btn primary" onClick={submit} disabled={addModalidade.isPending}>Criar modalidade</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ModalityCard({ mod, gastos }: { mod: ModalidadeGasto; gastos: Gasto[] }) {
   const { marcarGastoPago, deleteGasto, addGasto } = useFinancas();
@@ -55,7 +97,7 @@ function ModalityCard({ mod, gastos }: { mod: ModalidadeGasto; gastos: Gasto[] }
                   },
                 });
               }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                <CheckIcon />
               </span>
               <span className="exp-label">
                 {e.descricao}
@@ -89,10 +131,11 @@ function ModalityCard({ mod, gastos }: { mod: ModalidadeGasto; gastos: Gasto[] }
 }
 
 export function FinancasTab() {
-  const { rendas, modalidades, gastos, addRenda, deleteRenda, addModalidade } = useFinancas();
+  const { rendas, modalidades, gastos, addRenda, deleteRenda } = useFinancas();
   const [incomeOpen, setIncomeOpen] = useState(false);
   const [incName, setIncName] = useState("");
   const [incVal, setIncVal] = useState("");
+  const [modalidadeModalOpen, setModalidadeModalOpen] = useState(false);
 
   const { totalIncome, totalSpent, avail } = calcCofrinho(rendas, gastos);
 
@@ -103,13 +146,9 @@ export function FinancasTab() {
     setIncName(""); setIncVal(""); setIncomeOpen(false);
   }
 
-  function novaModalidade() {
-    const nome = prompt("Nome da modalidade (ex.: Transporte):");
-    if (nome && nome.trim()) addModalidade.mutate(nome.trim());
-  }
-
   const chartRows = modalidades.map((m) => ({
     nome: m.nome,
+    cor: m.cor,
     total: gastos.filter((g) => g.modalidadeId === m.id).reduce((s, g) => s + g.valor, 0),
   }));
 
@@ -120,7 +159,7 @@ export function FinancasTab() {
           <div className="pane-title">Finanças</div>
           <div className="pane-sub">Marque um gasto como pago e veja o cofrinho reagir</div>
         </div>
-        <button className="btn" onClick={novaModalidade}><PlusIcon /> Nova modalidade</button>
+        <button className="btn" onClick={() => setModalidadeModalOpen(true)}><PlusIcon /> Nova modalidade</button>
       </div>
       <div className="fin-grid">
         <div className="fin-left">
@@ -155,6 +194,7 @@ export function FinancasTab() {
           ))}
         </div>
       </div>
+      {modalidadeModalOpen && <NovaModalidadeModal onClose={() => setModalidadeModalOpen(false)} />}
     </section>
   );
 }

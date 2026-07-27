@@ -28,12 +28,12 @@ export const GUIDES: Record<GuideKey, Guide> = {
       {
         art: HomeWelcomeArt,
         titulo: "Bem-vindo ao Project Fox",
-        texto: <>Três módulos que conversam entre si: <b>Rotina</b> cuida do seu dia a dia, <b>Anotar</b> guarda o que passa pela sua cabeça e <b>Desenvolver/Criar</b> acompanha no que você está evoluindo. Esta tela é o resumo dos três.</>,
+        texto: <>Três módulos que conversam entre si: <b>Rotina</b> cuida do seu dia a dia, <b>Anotar</b> guarda o que passa pela sua cabeça e <b>Criar</b> acompanha no que você está evoluindo. Esta tela é o resumo dos três.</>,
       },
       {
         art: HomeUrgentArt,
         titulo: "A faixa de urgentes",
-        texto: <>No topo ficam as tarefas e metas com prazo mais apertado, de todos os módulos juntos. A cor muda conforme o prazo se aproxima — <b style={{ color: "#4ade80" }}>verde</b> tem folga, <b style={{ color: "#ffd66e" }}>amarelo</b> é essa semana, <b style={{ color: "#f87171" }}>vermelho</b> é agora. Se estiver vazia, você está em dia.</>,
+        texto: <>No topo ficam as tarefas e metas com prazo mais apertado, de todos os módulos juntos. A cor muda conforme o prazo se aproxima — sem alerta tem folga, <b style={{ color: "#ffb26b" }}>laranja</b> é essa semana, <b style={{ color: "#ff6b6b" }}>vermelho</b> é atrasado ou pra já. Se estiver vazia, você está em dia.</>,
       },
       {
         art: HomeShowcaseArt,
@@ -74,7 +74,7 @@ export const GUIDES: Record<GuideKey, Guide> = {
       },
       {
         titulo: "Coloque a primeira coisa que você quer",
-        texto: <>Depois dá pra adicionar foto, link de compra, descrição e até ligar o item a um planeta do Desenvolver/Criar. Por ora, o essencial:</>,
+        texto: <>Depois dá pra adicionar foto, link de compra, descrição e até ligar o item a um planeta do Criar. Por ora, o essencial:</>,
         interactive: WishInteractive,
       },
       {
@@ -138,7 +138,7 @@ export const GUIDES: Record<GuideKey, Guide> = {
   },
 
   criar: {
-    titulo: "Desenvolver/Criar",
+    titulo: "Criar",
     slides: [
       {
         art: SolarArt,

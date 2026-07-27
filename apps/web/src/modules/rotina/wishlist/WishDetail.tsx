@@ -1,16 +1,23 @@
+import { useState } from "react";
 import type { ItemWishlist, TierWishlist } from "@project-fox/types";
+import { useCriar } from "../../criar/useCriar.js";
 import { ExtIcon, ImageIcon, TrashIcon } from "../../../icons/index.js";
+import { ConfirmDialog } from "../../../lib/ConfirmDialog.js";
 import { fmtBRL } from "../../../lib/currentMonth.js";
-import { TIER_ORDER, TIERS } from "./wishConstants.js";
+import { useEscapeToClose } from "../../../lib/useEscapeToClose.js";
+import { hueFromId, photoStyle, TIER_ORDER, TIERS } from "./wishConstants.js";
 import { useWishlist } from "./useWishlist.js";
 
 export function WishDetail({ item, onClose }: { item: ItemWishlist; onClose: () => void }) {
-  const { updateTier, deleteItem } = useWishlist();
+  const { updateTier, updatePlaneta, deleteItem } = useWishlist();
+  const { planetas } = useCriar();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  useEscapeToClose(() => (confirmOpen ? setConfirmOpen(false) : onClose()));
 
   return (
     <div className="modal-wrap open" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal">
-        <div className="wish-hero" style={item.foto ? { backgroundImage: `url(${item.foto})` } : undefined}>
+        <div className="wish-hero" style={item.foto ? { backgroundImage: `url(${item.foto})` } : photoStyle(hueFromId(item.id))}>
           {!item.foto && <ImageIcon />}
         </div>
         <h2 style={{ marginBottom: 12 }}>
@@ -34,17 +41,34 @@ export function WishDetail({ item, onClose }: { item: ItemWishlist; onClose: () 
             ))}
           </div>
         </div>
+        {planetas.length > 0 && (
+          <div className="field">
+            <label>Planeta relacionado</label>
+            <select
+              value={item.planetaId ?? ""}
+              onChange={(e) => updatePlaneta.mutate({ id: item.id, planetaId: e.target.value || null })}
+            >
+              <option value="">Nenhum</option>
+              {planetas.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
+            </select>
+          </div>
+        )}
         <div className="actions">
-          <button
-            className="btn"
-            style={{ color: "#ff8f8f", marginRight: "auto" }}
-            onClick={() => deleteItem.mutate(item.id, { onSuccess: onClose })}
-          >
+          <button className="btn danger" style={{ marginRight: "auto" }} onClick={() => setConfirmOpen(true)}>
             <TrashIcon /> Excluir
           </button>
           <button className="btn" onClick={onClose}>Fechar</button>
         </div>
       </div>
+      {confirmOpen && (
+        <ConfirmDialog
+          title="Excluir desejo?"
+          message={<>"{item.nome}" será removido da wishlist. Essa ação não pode ser desfeita.</>}
+          pending={deleteItem.isPending}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={() => deleteItem.mutate(item.id, { onSuccess: onClose })}
+        />
+      )}
     </div>
   );
 }

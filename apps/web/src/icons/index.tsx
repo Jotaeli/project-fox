@@ -2,6 +2,24 @@ import type { SVGProps } from "react";
 
 type IconProps = SVGProps<SVGSVGElement>;
 
+/** Marca do app — raposa minimalista de traço. `draw` liga a animação de contorno (login). */
+export function FoxIcon({ draw, ...props }: IconProps & { draw?: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path
+        d="M4 4l5 4 3-2 3 2 5-4-2 9c-.6 3-3 5-6 5s-5.4-2-6-5L4 4z"
+        pathLength={100}
+        className={draw ? "fx-draw" : undefined}
+      />
+      <path
+        d="M9 13c.8.8 1.9 1.2 3 1.2s2.2-.4 3-1.2"
+        pathLength={100}
+        className={draw ? "fx-draw fx-draw-2" : undefined}
+      />
+    </svg>
+  );
+}
+
 export function PlusIcon(props: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" {...props}>
@@ -51,6 +69,22 @@ export function PlanetIcon(props: IconProps) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" {...props}>
       <circle cx="12" cy="12" r="5.5" />
       <ellipse cx="12" cy="12" rx="10.5" ry="3.6" transform="rotate(-18 12 12)" />
+    </svg>
+  );
+}
+
+export function SunIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" {...props}>
+      <circle cx="12" cy="12" r="4.2" />
+      <line x1="12" y1="2.5" x2="12" y2="4.8" />
+      <line x1="12" y1="19.2" x2="12" y2="21.5" />
+      <line x1="2.5" y1="12" x2="4.8" y2="12" />
+      <line x1="19.2" y1="12" x2="21.5" y2="12" />
+      <line x1="5.3" y1="5.3" x2="6.9" y2="6.9" />
+      <line x1="17.1" y1="17.1" x2="18.7" y2="18.7" />
+      <line x1="18.7" y1="5.3" x2="17.1" y2="6.9" />
+      <line x1="6.9" y1="17.1" x2="5.3" y2="18.7" />
     </svg>
   );
 }

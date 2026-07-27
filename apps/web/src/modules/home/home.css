@@ -5,7 +5,7 @@
 .home-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 30px; }
 .home-greet { font-size: 30px; font-weight: 650; letter-spacing: -.4px; line-height: 1.15; }
 .home-greet b { background: linear-gradient(120deg, #8fc0ff, #c9b6ff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-.home-date { font-size: 13.5px; color: var(--muted); margin-top: 8px; text-transform: capitalize; }
+.home-date { font-size: 13.5px; color: var(--muted); margin-top: 8px; }
 .home-quick { display: flex; gap: 9px; flex-wrap: wrap; }
 
 /* seções */
@@ -100,7 +100,7 @@
 @keyframes homeSpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 .home-planet-slot { position: absolute; top: 50%; right: -1px; transform: translateY(-50%); }
 .home-p-ring {
-  border-radius: 50%; padding: 3px; display: flex; animation: homeSpinRev linear infinite;
+  border-radius: 50%; padding: 3px; display: flex; animation: homeSpinRev var(--rev, 26s) linear infinite;
   background: conic-gradient(from -90deg, var(--hc) calc(var(--hp) * 1%), rgba(148,180,255,.14) 0);
   filter: drop-shadow(0 0 7px var(--hglow));
 }

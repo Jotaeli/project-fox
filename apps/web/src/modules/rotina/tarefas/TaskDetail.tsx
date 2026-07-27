@@ -1,13 +1,18 @@
+import { useState } from "react";
 import type { ItemWishlist, Tarefa } from "@project-fox/types";
 import { CheckIcon, CoinIcon, SparkIcon, TrashIcon } from "../../../icons/index.js";
 import { burstAt } from "../../../lib/burst.js";
+import { ConfirmDialog } from "../../../lib/ConfirmDialog.js";
 import { fmtBRL } from "../../../lib/currentMonth.js";
 import { useToast } from "../../../lib/toast.js";
+import { useEscapeToClose } from "../../../lib/useEscapeToClose.js";
 import { useTarefas } from "./useTarefas.js";
 
 export function TaskDetail({ tarefa, wish, onClose }: { tarefa: Tarefa; wish?: ItemWishlist; onClose: () => void }) {
   const { avancarEtapa, desfazerEtapa, deleteTarefa } = useTarefas();
   const toast = useToast();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  useEscapeToClose(() => (confirmOpen ? setConfirmOpen(false) : onClose()));
   const stages = tarefa.etapas.slice().sort((a, b) => a.ordem - b.ordem);
   const doneCount = stages.filter((s) => s.concluida).length;
   const finished = doneCount === stages.length;
@@ -55,12 +60,21 @@ export function TaskDetail({ tarefa, wish, onClose }: { tarefa: Tarefa; wish?: I
           {finished ? "Tarefa concluída" : <><CheckIcon /> Concluir etapa</>}
         </button>
         <div className="actions" style={{ marginTop: 14 }}>
-          <button className="btn" style={{ color: "#ff8f8f", marginRight: "auto" }} onClick={() => deleteTarefa.mutate(tarefa.id, { onSuccess: onClose })}>
+          <button className="btn danger" style={{ marginRight: "auto" }} onClick={() => setConfirmOpen(true)}>
             <TrashIcon />
           </button>
           <button className="btn" onClick={onClose}>Fechar</button>
         </div>
       </div>
+      {confirmOpen && (
+        <ConfirmDialog
+          title="Excluir tarefa?"
+          message={<>A tarefa "{tarefa.titulo}" e suas etapas serão perdidas. Essa ação não pode ser desfeita.</>}
+          pending={deleteTarefa.isPending}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={() => deleteTarefa.mutate(tarefa.id, { onSuccess: onClose })}
+        />
+      )}
     </div>
   );
 }

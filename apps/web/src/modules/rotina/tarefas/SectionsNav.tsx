@@ -2,16 +2,19 @@ import { useState, type DragEvent } from "react";
 import type { SecaoTarefas } from "@project-fox/types";
 import { PlusIcon, TrashIcon } from "../../../icons/index.js";
 import { useToast } from "../../../lib/toast.js";
+import { useEscapeToClose } from "../../../lib/useEscapeToClose.js";
 import { HUES } from "../wishlist/wishConstants.js";
 import { useTarefas } from "./useTarefas.js";
 
 function NovaSecaoModal({ onClose }: { onClose: () => void }) {
   const { addSecao } = useTarefas();
+  const toast = useToast();
+  useEscapeToClose(onClose);
   const [nome, setNome] = useState("");
   const [hue, setHue] = useState(HUES[0]);
 
   function submit() {
-    if (!nome.trim()) return;
+    if (!nome.trim()) { toast("Dê um nome pra seção."); return; }
     addSecao.mutate({ nome: nome.trim(), cor: hue }, { onSuccess: onClose });
   }
 

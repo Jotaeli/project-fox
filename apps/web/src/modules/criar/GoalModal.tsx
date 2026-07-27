@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { CloseIcon } from "../../icons/index.js";
+import { useToast } from "../../lib/toast.js";
 import { DEADLINES, GOAL_ICONS, HUES } from "./criarConstants.js";
 import { useCriar } from "./useCriar.js";
 
 export function GoalModal({ planetaId, planetaNome, onClose }: { planetaId: string; planetaNome: string; onClose: () => void }) {
   const { addEvento } = useCriar();
+  const toast = useToast();
   const [titulo, setTitulo] = useState("");
   const [icone, setIcone] = useState(GOAL_ICONS[0].id);
   const [hue, setHue] = useState(HUES[0]);
@@ -21,7 +23,8 @@ export function GoalModal({ planetaId, planetaNome, onClose }: { planetaId: stri
 
   function submit() {
     const t = titulo.trim();
-    if (!t || !items.length) return;
+    if (!t) { toast("Dê um título pra meta."); return; }
+    if (!items.length) { toast("Adicione pelo menos um objetivo ao checklist."); return; }
     const prazo = new Date(Date.now() + dias * 86400000).toISOString().slice(0, 10);
     addEvento.mutate(
       { planetaId, titulo: t, icone, cor: String(hue), prazo, checklist: items },
