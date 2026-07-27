@@ -7,7 +7,7 @@ App pessoal (web + Android, API compartilhada), multi-usuário, 3 módulos inter
 - Backend: Supabase (Postgres + Auth + Storage)
 - Multi-usuário desde o início (não é single-user)
 
-## Status: Fase 1 (fundação) — COMPLETA (ver CLAUDE.md para detalhes)
+## Status: Fase 5.6 (Guia da Órbita + faixa social na Home) — COMPLETA (ver CLAUDE.md)
 - [x] `prototypes/solar-system.html` — Desenvolver/Criar
 - [x] `prototypes/neural-notes.html` — Anotar
 - [x] `prototypes/rotina.html` — Rotina (3 sub-abas)
@@ -50,12 +50,13 @@ Rodar protótipos: `preview_start` com `name: "prototypes"` (server já configur
 
 ## Roadmap
 0. Protótipos visuais — completa
-1. Fundação — monorepo, schema Supabase, tipos compartilhados *(atual)*
-2. Web — casca de navegação + Rotina completa
-3. Web — Anotar (portar protótipo para componentes)
-4. Web — Desenvolver/Criar (portar protótipo, upload real de fotos/recursos, integração tarefas→Rotina)
-5. Android (Expo) — versão enxuta
-6. Polimento e deploy
+1. Fundação — monorepo, schema Supabase, tipos compartilhados — completa
+2. Web — casca de navegação + Rotina completa — completa
+3. Web — Anotar — completa
+4. Web — Desenvolver/Criar, Home e Guias — completa
+5. Web — Social ("Órbita") — completa (5.1 a 5.6)
+6. Android (Expo) — versão enxuta *(próxima)*
+7. Polimento e deploy
 
 ## Em aberto (decidir antes de implementar a respectiva fase)
 - O que tarefas concluídas alimentam, além do que já está no protótipo solar (contexto no relatório, placar mensal, partículas de recompensa, gráfico de stats)

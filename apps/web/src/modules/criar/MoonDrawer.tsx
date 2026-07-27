@@ -27,7 +27,7 @@ export function MoonDrawer({
   planeta: Planeta; moonId: string; relatorios: Relatorio[]; recursos: Recurso[]; fotos: Foto[]; tarefas: Tarefa[];
   secoes: SecaoTarefas[]; onClose: () => void;
 }) {
-  const { addRelatorio, addRecurso, addFoto } = useCriar();
+  const { userId, addRelatorio, addRecurso, addFoto } = useCriar();
   const [repText, setRepText] = useState("");
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const st = MOON_STYLE[moonId];
@@ -70,7 +70,7 @@ export function MoonDrawer({
           <>
             <div className="dr-body">
               <div className="dr-chip"><span className="dr-cdot" style={{ background: statusCol }} />
-                {weeklyCount(planeta.id, relatorios)}/{planeta.metaSemanal} nesta semana · <span style={{ color: statusCol }}>{statusTxt}</span>
+                {weeklyCount(planeta.id, relatorios, userId)}/{planeta.metaSemanal} seus nesta semana · <span style={{ color: statusCol }}>{statusTxt}</span>
               </div>
               {!planetRelatorios.length && (
                 <div className="empty">Nenhum relatório ainda.<br />Escreva o primeiro e veja o planeta ganhar vida. <SparkIcon /></div>
@@ -78,6 +78,7 @@ export function MoonDrawer({
               {planetRelatorios.map((r) => (
                 <div className="entry" key={r.id}>
                   <div className="e-date">{fmtDate(r.createdAt)}</div>
+                  {planeta.compartilhado && <div className="e-author">{r.autorId === userId ? "Você" : planeta.membros.find((m) => m.userId === r.autorId)?.nome ?? "Membro"}</div>}
                   <div className="e-text">{r.conteudo}</div>
                 </div>
               ))}
@@ -113,7 +114,7 @@ export function MoonDrawer({
               {planetRecursos.map((r) => (
                 <a className="res-item" key={r.id} href={r.arquivoUrl} target="_blank" rel="noreferrer" style={{ textDecoration: "none", color: "inherit" }}>
                   <span className="r-icon"><ExtIcon /></span>
-                  <div><div className="r-name">{r.nome}</div><div className="r-kind">{r.tipo}</div></div>
+                  <div><div className="r-name">{r.nome}</div><div className="r-kind">{r.tipo}{planeta.compartilhado ? ` · ${r.autorId === userId ? "Você" : planeta.membros.find((m) => m.userId === r.autorId)?.nome ?? "Membro"}` : ""}</div></div>
                 </a>
               ))}
             </div>

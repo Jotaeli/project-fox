@@ -1,13 +1,14 @@
 import type { ComponentType, ReactNode } from "react";
 import {
   BadgesArt, ConnectArt, DonutArt, DragTierArt, EventArt, GraphArt, HomeShowcaseArt,
-  HomeUrgentArt, HomeWelcomeArt, MoonsArt, PiggyArt, SolarArt, SortArt, StepsArt, TasksLayoutArt, TiersArt,
+  HomeUrgentArt, HomeWelcomeArt, MoonsArt, OrbitaChoiceArt, OrbitaMomentumArt, OrbitaNetworkArt,
+  OrbitaSharedArt, PiggyArt, SolarArt, SortArt, StepsArt, TasksLayoutArt, TiersArt,
 } from "./illustrations.js";
 import {
   NotaInteractive, PlanetaInteractive, RendaInteractive, TarefaInteractive, WishInteractive,
 } from "./interactive.js";
 
-export type GuideKey = "home" | "rotina-financas" | "rotina-wishlist" | "rotina-tarefas" | "anotar" | "criar";
+export type GuideKey = "home" | "rotina-financas" | "rotina-wishlist" | "rotina-tarefas" | "anotar" | "criar" | "orbita";
 
 export interface GuideSlide {
   titulo: string;
@@ -34,6 +35,11 @@ export const GUIDES: Record<GuideKey, Guide> = {
         art: HomeUrgentArt,
         titulo: "A faixa de urgentes",
         texto: <>No topo ficam as tarefas e metas com prazo mais apertado, de todos os módulos juntos. A cor muda conforme o prazo se aproxima — sem alerta tem folga, <b style={{ color: "#ffb26b" }}>laranja</b> é essa semana, <b style={{ color: "#ff6b6b" }}>vermelho</b> é atrasado ou pra já. Se estiver vazia, você está em dia.</>,
+      },
+      {
+        art: OrbitaNetworkArt,
+        titulo: "O pulso da sua órbita",
+        texto: <>A faixa social resume seu streak, o avanço mais recente entre amigos e o desafio que está pedindo atenção. Ela é só uma janela: clique em qualquer bloco para abrir a <b>Órbita</b> completa.</>,
       },
       {
         art: HomeShowcaseArt,
@@ -159,6 +165,32 @@ export const GUIDES: Record<GuideKey, Guide> = {
         art: EventArt,
         titulo: "Metas dão empolgação",
         texto: <>Dentro de um planeta você cria eventos com prazo e um checklist. Cada item é comprovado anexando um relatório que você já escreveu — nada de marcar caixinha à toa. Planeta com evento ativo pulsa e orbita mais rápido; concluir tudo antes do prazo dispara uma festinha.</>,
+      },
+    ],
+  },
+
+  orbita: {
+    titulo: "Órbita",
+    slides: [
+      {
+        art: OrbitaNetworkArt,
+        titulo: "Sua evolução em constelação",
+        texto: <>Encontre pessoas pelo <b>@</b>, forme uma órbita privada e acompanhe os avanços que elas escolheram compartilhar. Perfil, feed e ranking aparecem somente dentro das relações permitidas.</>,
+      },
+      {
+        art: OrbitaChoiceArt,
+        titulo: "Você abre o portal",
+        texto: <>O Project Fox pode detectar uma conquista e preparar o texto, mas <b>nunca publica sozinho</b>. Avanços livres, metas, wishlist e marcos só circulam depois da sua confirmação — e ficam visíveis para amigos.</>,
+      },
+      {
+        art: OrbitaMomentumArt,
+        titulo: "Ritmo que ganha companhia",
+        texto: <>Notas escritas, relatórios, tarefas e metas concluídas alimentam seu <b>streak</b>. Uma ausência por semana pode ser congelada. Nos desafios, todos recebem o mesmo checklist, mas cada pessoa comprova o próprio progresso com relatórios reais.</>,
+      },
+      {
+        art: OrbitaSharedArt,
+        titulo: "Mundos comuns, autoria preservada",
+        texto: <>Planetas e espaços de notas podem receber amigos. O conteúdo vira um mundo comum, mas cada contribuição conserva seu autor: ninguém edita ou apaga o que outra pessoa criou. No grafo compartilhado, até a posição dos nós continua sendo só sua.</>,
       },
     ],
   },

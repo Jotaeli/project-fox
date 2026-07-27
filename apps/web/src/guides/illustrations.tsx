@@ -495,3 +495,94 @@ export function EventArt() {
     </svg>
   );
 }
+
+export function OrbitaNetworkArt() {
+  const people = [
+    { x: 72, y: 52, c: "#69d6ae", label: "amigos" },
+    { x: 248, y: 48, c: "#f38ab8", label: "avanços" },
+    { x: 264, y: 108, c: "#73b8ff", label: "desafios" },
+    { x: 60, y: 112, c: "#ffd278", label: "streak" },
+  ];
+  return <svg viewBox={VB} className="guide-art">
+    <Stars n={28} seed={67} />
+    <ellipse cx="160" cy="88" rx="112" ry="60" fill="none" stroke="#9d94ff" strokeOpacity=".18" strokeWidth="1.2" />
+    <ellipse cx="160" cy="88" rx="72" ry="40" fill="none" stroke="#9d94ff" strokeOpacity=".26" strokeDasharray="4 4" />
+    {people.map((person) => <g key={person.label}>
+      <path d={`M160 88 L${person.x} ${person.y}`} stroke={person.c} strokeOpacity=".24" strokeWidth="1.2" />
+      <circle cx={person.x} cy={person.y} r="16" fill={person.c} opacity=".12" />
+      <circle cx={person.x} cy={person.y} r="8" fill={person.c} />
+      <circle cx={person.x - 3} cy={person.y - 3} r="2" fill="#fff" opacity=".55" />
+      <text x={person.x} y={person.y + 28} fill={person.c} fontSize="8" textAnchor="middle">{person.label}</text>
+    </g>)}
+    <circle cx="160" cy="88" r="28" fill="#7c72e8" opacity=".15" />
+    <circle cx="160" cy="88" r="18" fill="#7c72e8" />
+    <path d="M152 88c4-8 12-8 16 0-4 8-12 8-16 0Z" fill="#fff" opacity=".92" />
+    <circle cx="160" cy="84" r="4" fill="#7c72e8" />
+    <text x="160" y="156" fill="#aebcf0" fontSize="8" textAnchor="middle">sua evolução circula entre conexões escolhidas</text>
+  </svg>;
+}
+
+export function OrbitaChoiceArt() {
+  return <svg viewBox={VB} className="guide-art">
+    <Stars n={20} seed={71} />
+    <circle cx="72" cy="84" r="28" fill="#6ea8ff" opacity=".13" />
+    <circle cx="72" cy="84" r="16" fill="#6ea8ff" />
+    <path d="M64 84h16M72 76v16" stroke="#08142e" strokeWidth="2.4" strokeLinecap="round" />
+    <path d="M104 84h52" stroke="#94b4ff" strokeOpacity=".3" strokeWidth="2" strokeDasharray="4 4" />
+    <rect x="140" y="48" width="40" height="72" rx="20" fill="#101c3c" stroke="#9d94ff" strokeOpacity=".55" />
+    <rect x="152" y="60" width="16" height="48" rx="8" fill="#070e26" stroke="#94b4ff" strokeOpacity=".3" />
+    <circle cx="160" cy="96" r="6" fill="#7c72e8" />
+    <path d="M180 84h64" stroke="#7c72e8" strokeWidth="2" />
+    {[220, 244, 268].map((x, i) => <g key={x}>
+      <circle cx={x} cy={64 + i * 20} r="12" fill={["#69d6ae", "#f38ab8", "#ffd278"][i]} opacity=".14" />
+      <circle cx={x} cy={64 + i * 20} r="5" fill={["#69d6ae", "#f38ab8", "#ffd278"][i]} />
+    </g>)}
+    <text x="72" y="128" fill="#8fa3c8" fontSize="8" textAnchor="middle">conquista</text>
+    <text x="160" y="136" fill="#b9b2ff" fontSize="8" textAnchor="middle">você confirma</text>
+    <text x="252" y="136" fill="#8fa3c8" fontSize="8" textAnchor="middle">sua órbita</text>
+  </svg>;
+}
+
+export function OrbitaMomentumArt() {
+  const days = [false, true, true, true, true, true, true];
+  return <svg viewBox={VB} className="guide-art">
+    <Stars n={18} seed={73} />
+    <path d="M44 108C76 32 148 28 184 80s76 48 96 4" fill="none" stroke="#ff9e68" strokeOpacity=".25" strokeWidth="8" strokeLinecap="round" />
+    <path d="M44 108C76 32 148 28 184 80s76 48 96 4" fill="none" stroke="#ff9e68" strokeWidth="2" strokeDasharray="4 8" strokeLinecap="round" />
+    {days.map((active, i) => <g key={i} transform={`translate(${48 + i * 32} 116)`}>
+      <circle r="9" fill={active ? "#ff9e68" : "#17244a"} stroke={active ? "#ffb38b" : "#60749f"} strokeOpacity=".75" />
+      {i === 0 ? <path d="M-4 0h8M0-4v8" stroke="#8fa3c8" strokeWidth="1.6" /> : <path d="M-3 0l2 3 5-6" fill="none" stroke={active ? "#30130a" : "#8fa3c8"} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />}
+    </g>)}
+    <g transform="translate(104 60)">
+      <path d="M0 16C-12 4-4-8 4-16c0 8 8 12 8 24 0 8-5 13-12 16-7-3-12-8-12-16 0-6 4-12 8-16-1 8 1 12 4 16Z" fill="#ff9e68" />
+      <path d="M0 12c-5-5-1-10 2-14 1 5 5 8 3 13-1 3-3 5-5 6-2-1-4-3-5-6 0-3 2-6 4-8 0 4 0 7 1 9Z" fill="#ffd278" />
+    </g>
+    <g transform="translate(232 60)">
+      <circle r="28" fill="#7c72e8" opacity=".14" />
+      <circle r="17" fill="none" stroke="#b9b2ff" strokeWidth="2" />
+      <circle r="9" fill="none" stroke="#b9b2ff" strokeWidth="2" />
+      <circle r="3" fill="#f38ab8" />
+    </g>
+    <text x="104" y="28" fill="#ffb38b" fontSize="8" textAnchor="middle">streak</text>
+    <text x="232" y="28" fill="#b9b2ff" fontSize="8" textAnchor="middle">desafio comum</text>
+    <text x="160" y="152" fill="#8fa3c8" fontSize="8" textAnchor="middle">ritmo individual · compromisso compartilhado</text>
+  </svg>;
+}
+
+export function OrbitaSharedArt() {
+  return <svg viewBox={VB} className="guide-art">
+    <Stars n={24} seed={79} />
+    <ellipse cx="160" cy="84" rx="112" ry="52" fill="none" stroke="#94b4ff" strokeOpacity=".15" />
+    <circle cx="160" cy="84" r="32" fill="#69d6ae" opacity=".14" />
+    <circle cx="160" cy="84" r="24" fill="#69d6ae" />
+    <path d="M144 80c8-12 24-12 32 0M148 92c8 8 16 8 24 0" fill="none" stroke="#0b3528" strokeWidth="2" strokeLinecap="round" />
+    <circle cx="100" cy="52" r="10" fill="#f38ab8" />
+    <circle cx="220" cy="52" r="10" fill="#73b8ff" />
+    <circle cx="92" cy="116" r="10" fill="#ffd278" />
+    <circle cx="228" cy="116" r="10" fill="#b9b2ff" />
+    <path d="M108 56l28 16M212 56l-28 16M100 108l36-16M220 108l-36-16" stroke="#94b4ff" strokeOpacity=".32" strokeWidth="1.2" />
+    <g transform="translate(48 40)"><rect width="48" height="20" rx="10" fill="#f38ab8" opacity=".12" /><text x="24" y="13" fill="#f38ab8" fontSize="8" textAnchor="middle">autor A</text></g>
+    <g transform="translate(224 40)"><rect width="48" height="20" rx="10" fill="#73b8ff" opacity=".12" /><text x="24" y="13" fill="#73b8ff" fontSize="8" textAnchor="middle">autor B</text></g>
+    <text x="160" y="140" fill="#8fa3c8" fontSize="8" textAnchor="middle">um mundo comum · cada contribuição continua sendo sua</text>
+  </svg>;
+}

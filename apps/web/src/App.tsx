@@ -9,6 +9,8 @@ import { ToastProvider } from "./lib/toast.js";
 import { AnotarPage } from "./modules/anotar/AnotarPage.js";
 import { CriarPage } from "./modules/criar/CriarPage.js";
 import { HomePage } from "./modules/home/HomePage.js";
+import { OrbitaPage } from "./modules/orbita/OrbitaPage.js";
+import { SocialShareProvider } from "./modules/orbita/SocialShareProvider.js";
 import { RotinaPage } from "./modules/rotina/RotinaPage.js";
 
 const queryClient = new QueryClient();
@@ -25,8 +27,9 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ToastProvider>
-          <GuideProvider>
-            <BrowserRouter>
+          <SocialShareProvider>
+            <GuideProvider>
+              <BrowserRouter>
               <Routes>
                 <Route path="/login" element={<LoginRoute />} />
                 <Route
@@ -40,11 +43,13 @@ export function App() {
                   <Route path="/rotina" element={<RotinaPage />} />
                   <Route path="/anotar" element={<AnotarPage />} />
                   <Route path="/criar" element={<CriarPage />} />
+                  <Route path="/orbita" element={<OrbitaPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>
               </Routes>
-            </BrowserRouter>
-          </GuideProvider>
+              </BrowserRouter>
+            </GuideProvider>
+          </SocialShareProvider>
         </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>

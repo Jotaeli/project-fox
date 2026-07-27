@@ -21,6 +21,7 @@ export function AppShell() {
           <NavLink to="/rotina" className={({ isActive }) => `subtab${isActive ? " sel" : ""}`}>Rotina</NavLink>
           <NavLink to="/anotar" className={({ isActive }) => `subtab${isActive ? " sel" : ""}`}>Anotar</NavLink>
           <NavLink to="/criar" className={({ isActive }) => `subtab${isActive ? " sel" : ""}`}>Criar</NavLink>
+          <NavLink to="/orbita" className={({ isActive }) => `subtab orbit-tab${isActive ? " sel" : ""}`}>Órbita</NavLink>
         </nav>
         <div className="topbar-right">
           <span className="user-email">{session?.user.email}</span>

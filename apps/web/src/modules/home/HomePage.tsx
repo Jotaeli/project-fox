@@ -9,8 +9,10 @@ import { PlanetModal } from "../criar/PlanetModal.js";
 import { Piggy } from "../rotina/financas/Piggy.js";
 import { TaskModal } from "../rotina/tarefas/TaskModal.js";
 import { UrgentStrip } from "./UrgentStrip.js";
+import { SocialStrip } from "./SocialStrip.js";
 import "./home.css";
 import { useHome, type UrgentItem } from "./useHome.js";
+import { useHomeSocial } from "./useHomeSocial.js";
 
 const ORBITS = [
   { size: 150, dur: "26s" },
@@ -22,6 +24,7 @@ export function HomePage() {
   useRegisterGuide("home");
   const navigate = useNavigate();
   const data = useHome();
+  const social = useHomeSocial();
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [planetModalOpen, setPlanetModalOpen] = useState(false);
 
@@ -50,6 +53,8 @@ export function HomePage() {
       </div>
 
       <UrgentStrip items={data.urgentes} onSelect={handleUrgentSelect} />
+
+      <SocialStrip data={social.data} loading={social.isLoading} onOpen={() => navigate("/orbita")} />
 
       <div className="sec-head">
         <GridIcon className="ico" />

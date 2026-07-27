@@ -3,8 +3,9 @@ import { useSearchParams } from "react-router-dom";
 import type { BadgeNota } from "@project-fox/types";
 import { useRegisterGuide } from "../../guides/GuideContext.js";
 import { GraphArt } from "../../guides/illustrations.js";
-import { CloseIcon, FitIcon, LinkIcon, PlusIcon, TrashIcon } from "../../icons/index.js";
+import { CloseIcon, FitIcon, LinkIcon, PlusIcon, TrashIcon, UsersIcon } from "../../icons/index.js";
 import { ConfirmDialog } from "../../lib/ConfirmDialog.js";
+import { CreateNoteSpaceModal, NoteSpaceInvitesModal, NoteSpaceMembersModal } from "./NoteSpacesModals.js";
 import { useAnotar } from "./useAnotar.js";
 import "./anotar.css";
 
@@ -95,7 +96,9 @@ function buildBg(sim: Sim) {
 
 export function AnotarPage() {
   useRegisterGuide("anotar");
-  const { notas, conexoes, addNota, updateNota, deleteNota, addConexao, deleteConexao } = useAnotar();
+  const [activeSpaceId, setActiveSpaceId] = useState<string | null>(null);
+  const data = useAnotar(activeSpaceId);
+  const { userId, spaces, spaceInvites, activeSpace, notas, conexoes, addNota, updateNota, deleteNota, addConexao, deleteConexao } = data;
   const [searchParams] = useSearchParams();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -116,10 +119,14 @@ export function AnotarPage() {
   const [drBody, setDrBody] = useState("");
   const [drBadges, setDrBadges] = useState<BadgeNota[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [createSpaceOpen, setCreateSpaceOpen] = useState(false);
+  const [spaceMembersOpen, setSpaceMembersOpen] = useState(false);
+  const [spaceInvitesOpen, setSpaceInvitesOpen] = useState(false);
 
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const selectedNota = useMemo(() => notas.find((n) => n.id === selectedId) ?? null, [notas, selectedId]);
+  const canEditSelected = !activeSpace || selectedNota?.userId === userId;
   const neighbors = useMemo(() => {
     if (!selectedId) return [];
     const ids = new Set<string>();
@@ -622,6 +629,7 @@ export function AnotarPage() {
   }
 
   function handleDrTitleChange(v: string) {
+    if (!canEditSelected) return;
     setDrTitle(v);
     if (!selectedId) return;
     const n = simRef.current.notes.get(selectedId);
@@ -630,6 +638,7 @@ export function AnotarPage() {
     saveTimer.current = setTimeout(() => updateNota.mutate({ id: selectedId, titulo: v.trim() || "Sem título" }), 500);
   }
   function handleDrBodyChange(v: string) {
+    if (!canEditSelected) return;
     setDrBody(v);
     if (!selectedId) return;
     const n = simRef.current.notes.get(selectedId);
@@ -638,7 +647,7 @@ export function AnotarPage() {
     saveTimer.current = setTimeout(() => updateNota.mutate({ id: selectedId, conteudo: v }), 500);
   }
   function handleDrBadgeToggle(b: BadgeNota) {
-    if (!selectedId) return;
+    if (!selectedId || !canEditSelected) return;
     const next = toggleBadge(drBadges, b);
     setDrBadges(next);
     const n = simRef.current.notes.get(selectedId);
@@ -665,7 +674,7 @@ export function AnotarPage() {
     if (n) { simRef.current.camTarget.x = n.x; simRef.current.camTarget.y = n.y; }
   }
   function handleDelete() {
-    if (!selectedId) return;
+    if (!selectedId || !canEditSelected) return;
     deleteNota.mutate(selectedId);
     setConfirmOpen(false);
     setDrawerOpen(false);
@@ -676,10 +685,20 @@ export function AnotarPage() {
     (containerRef.current as any)?._fitView?.(true);
   }
 
+  function switchSpace(id: string | null) {
+    const sim = simRef.current;
+    sim.notes.clear(); sim.links = []; sim.seeded = false; sim.selected = null; sim.connectFrom = null;
+    sim.cam = { x: 0, y: 0, s: 1 }; sim.camTarget = { x: 0, y: 0, s: 1 };
+    setSelectedId(null); setDrawerOpen(false); setActiveSpaceId(id);
+  }
+
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key !== "Escape") return;
       if (modalOpen) setModalOpen(false);
+      else if (createSpaceOpen) setCreateSpaceOpen(false);
+      else if (spaceMembersOpen) setSpaceMembersOpen(false);
+      else if (spaceInvitesOpen) setSpaceInvitesOpen(false);
       else if (confirmOpen) setConfirmOpen(false);
       else if (simRef.current.connectFrom) { simRef.current.connectFrom = null; setHint(); }
       else if (drawerOpen) closeDrawer();
@@ -699,20 +718,32 @@ export function AnotarPage() {
       <canvas ref={canvasRef} />
 
       <div className="anotar-topbar">
+        <div className="anotar-space-stack">
+          <div className="anotar-space-switcher">
+            <span className="anotar-space-dot" style={{ background: activeSpace?.cor ?? "#dce6ff" }} />
+            <select value={activeSpaceId ?? ""} onChange={(e) => switchSpace(e.target.value || null)}>
+              <option value="">Meu grafo</option>
+              {spaces.map((space) => <option key={space.id} value={space.id}>{space.nome}</option>)}
+            </select>
+            {activeSpace && <button className="anotar-space-members-btn" onClick={() => setSpaceMembersOpen(true)} title="Membros do espaço"><UsersIcon /> {activeSpace.membros.filter((member) => member.status === "aceito").length}</button>}
+            <button className="anotar-space-add" onClick={() => setCreateSpaceOpen(true)} title="Novo espaço"><PlusIcon /></button>
+            {!!spaceInvites.length && <button className="anotar-space-invites" onClick={() => setSpaceInvitesOpen(true)}><UsersIcon /> Convites <b>{spaceInvites.length}</b></button>}
+          </div>
+          <div className="anotar-stats">{activeSpace ? `${activeSpace.nome} · ` : ""}{notas.length} notas · {conexoes.length} conexões</div>
+        </div>
         <button className="btn" onClick={handleFit}><FitIcon /> Centralizar</button>
         <button className="btn primary" onClick={() => { simRef.current.pendingPos = null; openAddModalRef.current(); }}>
           <PlusIcon /> Nova nota
         </button>
       </div>
 
-      <div className="anotar-stats">{notas.length} notas · {conexoes.length} conexões</div>
       <div className="anotar-hint" ref={hintRef} />
 
       {notas.length === 0 && (
         <div className="empty-hero" style={{ position: "absolute", inset: 0, zIndex: 4 }}>
           <GraphArt />
-          <h3>Sua rede de notas está vazia</h3>
-          <p>Cada nota é um nó nesse espaço infinito. Solte a primeira ideia — organize e conecte depois.</p>
+          <h3>{activeSpace ? `${activeSpace.nome} ainda está vazio` : "Sua rede de notas está vazia"}</h3>
+          <p>{activeSpace ? "Crie a primeira nota deste espaço. Todos os membros verão o conteúdo, cada um com seu próprio mapa." : "Cada nota é um nó nesse espaço infinito. Solte a primeira ideia — organize e conecte depois."}</p>
         </div>
       )}
 
@@ -724,6 +755,10 @@ export function AnotarPage() {
       </div>
 
       <div className="anotar-tooltip" ref={tooltipRef} />
+
+      {createSpaceOpen && <CreateNoteSpaceModal onClose={() => setCreateSpaceOpen(false)} onCreated={(id) => { setCreateSpaceOpen(false); switchSpace(id); }} />}
+      {spaceMembersOpen && activeSpace && <NoteSpaceMembersModal space={activeSpace} onClose={() => setSpaceMembersOpen(false)} />}
+      {spaceInvitesOpen && <NoteSpaceInvitesModal onClose={() => setSpaceInvitesOpen(false)} onAccepted={(id) => { setSpaceInvitesOpen(false); switchSpace(id); }} />}
 
       {modalOpen && (
         <div className="modal-wrap open" onClick={(e) => { if (e.target === e.currentTarget) setModalOpen(false); }}>
@@ -771,19 +806,20 @@ export function AnotarPage() {
         <div className="dr-head">
           <span className="dr-node" style={{ background: drNodeColor, boxShadow: `0 0 10px ${drNodeColor}` }} />
           <input className="dr-title-input" maxLength={40} placeholder="Sem título" value={drTitle}
-            onChange={(e) => handleDrTitleChange(e.target.value)} />
+            readOnly={!canEditSelected} onChange={(e) => handleDrTitleChange(e.target.value)} />
           <button className="dr-close" onClick={closeDrawer}><CloseIcon /></button>
         </div>
         <div className="dr-body">
+          {activeSpace && selectedNota && <div className="anotar-author"><UsersIcon /> Criada por <strong>{selectedNota.autorNome ?? "Membro"}</strong>{!canEditSelected && <span>somente leitura</span>}</div>}
           <div className="dr-sec">
             <div className="dr-sec-label">Conteúdo</div>
-            <textarea maxLength={400} placeholder="Escreva livremente…" value={drBody} onChange={(e) => handleDrBodyChange(e.target.value)} />
+            <textarea maxLength={400} placeholder="Escreva livremente…" value={drBody} readOnly={!canEditSelected} onChange={(e) => handleDrBodyChange(e.target.value)} />
           </div>
           <div className="dr-sec">
             <div className="dr-sec-label">Badges</div>
             <div className="badge-toggles">
               {BADGE_ORDER.map((b) => (
-                <div key={b} className={`badge-tog${drBadges.includes(b) ? " sel" : ""}`} data-b={b} onClick={() => handleDrBadgeToggle(b)}>
+                <div key={b} className={`badge-tog${drBadges.includes(b) ? " sel" : ""}${!canEditSelected ? " readonly" : ""}`} data-b={b} onClick={() => handleDrBadgeToggle(b)}>
                   <span className="bt-dot" style={{ background: `rgb(${BADGES[b].rgb.join(",")})` }} /> {BADGES[b].label}
                 </div>
               ))}
@@ -801,7 +837,10 @@ export function AnotarPage() {
                 <div key={m.id} className="conn-item" onClick={() => handleGoToNeighbor(m.id)}>
                   <span className="conn-dot" style={{ background: rgb, boxShadow: `0 0 7px ${rgb}` }} />
                   <span className="conn-name">{m.titulo}</span>
-                  <button className="conn-x" onClick={(e) => { e.stopPropagation(); handleRemoveConn(m.id); }}><CloseIcon /></button>
+                  {(() => {
+                    const connection = conexoes.find((item) => (item.notaOrigemId === selectedId && item.notaDestinoId === m.id) || (item.notaOrigemId === m.id && item.notaDestinoId === selectedId));
+                    return (!activeSpace || connection?.userId === userId) ? <button className="conn-x" onClick={(e) => { e.stopPropagation(); handleRemoveConn(m.id); }}><CloseIcon /></button> : null;
+                  })()}
                 </div>
               );
             })}
@@ -811,7 +850,7 @@ export function AnotarPage() {
           </div>
         </div>
         <div className="dr-foot">
-          <button className="btn danger" onClick={() => setConfirmOpen(true)}><TrashIcon /> Excluir</button>
+          {canEditSelected ? <button className="btn danger" onClick={() => setConfirmOpen(true)}><TrashIcon /> Excluir</button> : <span className="anotar-readonly-note">Só o autor pode editar ou excluir esta nota.</span>}
         </div>
       </aside>
     </div>

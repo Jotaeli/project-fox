@@ -9,6 +9,7 @@ import { useWishlist } from "../wishlist/useWishlist.js";
 import { DonutChart } from "./DonutChart.js";
 import { Piggy } from "./Piggy.js";
 import { calcCofrinho, useFinancas } from "./useFinancas.js";
+import { useOfferSocialShare } from "../../orbita/SocialShareProvider.js";
 
 function NovaModalidadeModal({ onClose }: { onClose: () => void }) {
   const { addModalidade } = useFinancas();
@@ -54,6 +55,7 @@ function ModalityCard({ mod, gastos }: { mod: ModalidadeGasto; gastos: Gasto[] }
   const { marcarGastoPago, deleteGasto, addGasto } = useFinancas();
   const { items } = useWishlist();
   const toast = useToast();
+  const offerShare = useOfferSocialShare();
   const [formOpen, setFormOpen] = useState(false);
   const [desc, setDesc] = useState("");
   const [val, setVal] = useState("");
@@ -93,7 +95,14 @@ function ModalityCard({ mod, gastos }: { mod: ModalidadeGasto; gastos: Gasto[] }
               <span className="exp-check" onClick={() => {
                 marcarGastoPago.mutate(e, {
                   onSuccess: (novoPago) => {
-                    if (w && novoPago) toast(`"${w.nome}" riscado da wishlist!`);
+                    if (w && novoPago) {
+                      toast(`"${w.nome}" riscado da wishlist!`);
+                      offerShare({
+                        tipo: "wishlist_comprado", itemWishlistId: w.id,
+                        texto: `Consegui tirar “${w.nome}” da wishlist.`,
+                        dados: { nome: w.nome, valor: w.valor, tier: w.tier, descricao: "Desejo conquistado" },
+                      });
+                    }
                   },
                 });
               }}>

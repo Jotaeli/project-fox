@@ -2,11 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { Evento, Planeta } from "@project-fox/types";
 import {
-  AwardIcon, BackIcon, BarChartIcon, CameraIcon, LibraryIcon, PlusIcon, ReportIcon, SunIcon, TargetIcon, TrashIcon,
+  AwardIcon, BackIcon, BarChartIcon, CameraIcon, LibraryIcon, PlusIcon, ReportIcon, SunIcon, TargetIcon, TrashIcon, UsersIcon,
 } from "../../icons/index.js";
 import { useRegisterGuide } from "../../guides/GuideContext.js";
 import { SolarArt } from "../../guides/illustrations.js";
 import { ConfirmDialog } from "../../lib/ConfirmDialog.js";
+import { useOfferSocialShare } from "../orbita/SocialShareProvider.js";
 import { useToast } from "../../lib/toast.js";
 import { useTarefas } from "../rotina/tarefas/useTarefas.js";
 import { EventDetailModal } from "./EventDetailModal.js";
@@ -14,6 +15,7 @@ import { EventsPanel } from "./EventsPanel.js";
 import { GoalModal } from "./GoalModal.js";
 import { MoonDrawer } from "./MoonDrawer.js";
 import { PlanetModal } from "./PlanetModal.js";
+import { PlanetInvitesModal, PlanetMembersModal } from "./PlanetSharingModals.js";
 import { StatsModal } from "./StatsModal.js";
 import { hueOf } from "./criarConstants.js";
 import { derivedStatus, health, useCriar, weeklyCount } from "./useCriar.js";
@@ -122,9 +124,10 @@ function clamp01(x: number) { return x < 0 ? 0 : x > 1 ? 1 : x; }
 
 export function CriarPage() {
   useRegisterGuide("criar");
-  const { planetas, relatorios, recursos, fotos, eventos, deletePlaneta, isLoading } = useCriar();
+  const { userId, planetas, convitesPlaneta, relatorios, recursos, fotos, eventos, deletePlaneta, isLoading } = useCriar();
   const { tarefas, secoes } = useTarefas();
   const showToast = useToast();
+  const offerShare = useOfferSocialShare();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -140,6 +143,8 @@ export function CriarPage() {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [openMoonId, setOpenMoonId] = useState<string | null>(null);
   const [detailEvento, setDetailEvento] = useState<Evento | null>(null);
+  const [membersOpen, setMembersOpen] = useState(false);
+  const [invitesOpen, setInvitesOpen] = useState(false);
 
   /* --- abertura: o sol só nasce quando o usuário inicia o sistema --- */
   const [ignited, setIgnited] = useState(() => localStorage.getItem(IGNITED_KEY) === "1");
@@ -214,11 +219,16 @@ export function CriarPage() {
     }
   }
 
-  function handleGoalCompleted(planetaId: string, titulo: string) {
+  function handleGoalCompleted(planetaId: string, eventoId: string, titulo: string) {
     const sp = simRef.current.planets.get(planetaId);
     const p = dataRef.current.planetas.find((x) => x.id === planetaId);
     if (sp && p) spawnParty(sp, hueOf(p.cor));
     showToast(`Meta concluída: ${titulo}!`);
+    offerShare({
+      tipo: "evento_concluido", planetaId, eventoId,
+      texto: `Concluí a meta “${titulo}”.`,
+      dados: { titulo, planeta: p?.nome ?? "Meu planeta", cor: p?.cor, descricao: "Meta concluída" },
+    });
     setDetailEvento(null);
   }
 
@@ -651,6 +661,8 @@ export function CriarPage() {
       if (planetModalOpen) setPlanetModalOpen(false);
       else if (goalModalOpen) setGoalModalOpen(false);
       else if (detailEvento) setDetailEvento(null);
+      else if (membersOpen) setMembersOpen(false);
+      else if (invitesOpen) setInvitesOpen(false);
       else if (statsOpen) setStatsOpen(false);
       else if (confirmDeleteOpen) setConfirmDeleteOpen(false);
       else if (openMoonId) setOpenMoonId(null);
@@ -661,7 +673,7 @@ export function CriarPage() {
   });
 
   const hval = focusPlaneta ? health(focusPlaneta, relatorios) : 0;
-  const weekly = focusPlaneta ? weeklyCount(focusPlaneta.id, relatorios) : 0;
+  const weekly = focusPlaneta ? weeklyCount(focusPlaneta.id, relatorios, userId) : 0;
   const monthlyTasks = focusPlaneta
     ? tarefas.filter((t) => t.origemPlanetaId === focusPlaneta.id && t.concluidaAt && +new Date(t.concluidaAt) > Date.now() - 30 * DAY).length
     : 0;
@@ -683,6 +695,7 @@ export function CriarPage() {
           {focusId && <button className="btn" onClick={backToSystem}><BackIcon /> Voltar ao sistema</button>}
         </div>
         <div style={{ display: "flex", gap: 10 }}>
+          {!!convitesPlaneta.length && <button className="btn criar-invites" onClick={() => setInvitesOpen(true)}><UsersIcon /> Convites <b>{convitesPlaneta.length}</b></button>}
           {sunUp && <button className="btn" onClick={() => setStatsOpen(true)}><BarChartIcon /> Estatísticas</button>}
           {sunUp && <button className="btn primary criar-rise-in" onClick={() => setPlanetModalOpen(true)}><PlusIcon /> Adicionar planeta</button>}
         </div>
@@ -704,15 +717,18 @@ export function CriarPage() {
           <div className="fc-name"><span className="fc-dot" style={{ background: `hsl(${hueOf(focusPlaneta.cor)},${12 + 68 * hval}%,60%)` }} /><span>{focusPlaneta.nome}</span></div>
           <div className="fc-type">
             {focusPlaneta.tipo[0].toUpperCase() + focusPlaneta.tipo.slice(1)} · {moonsOf(focusPlaneta).length} {moonsOf(focusPlaneta).length > 1 ? "luas" : "lua"}
+            {focusPlaneta.compartilhado && <> · compartilhado</>}
           </div>
+          {focusPlaneta.compartilhado && <div className="fc-member-rings">{focusPlaneta.membros.filter((m) => m.status === "aceito").map((m) => <span key={m.userId} title={`${m.nome} · ${m.metaSemanal}×/semana`}>{m.avatarUrl ? <img src={m.avatarUrl} alt="" /> : m.nome.charAt(0)}</span>)}</div>}
           <div className="fc-barwrap"><div className="fc-bar" style={{ width: `${hval * 100}%`, background: `hsl(${hueOf(focusPlaneta.cor)},${12 + 68 * hval}%,58%)` }} /></div>
           <div className="fc-meta">{weekly}/{focusPlaneta.metaSemanal} relatórios nesta semana</div>
           <div className="fc-ach"><AwardIcon /> {monthlyTasks} tarefas concluídas este mês</div>
-          <div className="fc-status" style={{ color: statusCol }}>{statusTxt}</div>
+          <div className="fc-status" style={{ color: statusCol }}>{statusTxt}{focusPlaneta.compartilhado ? " · média da equipe" : ""}</div>
           {focusPlaneta.objetivoPrincipal && <div className="fc-obj"><TargetIcon /><span>{focusPlaneta.objetivoPrincipal}</span></div>}
           {focusPlaneta.descricao && <div className="fc-desc">{focusPlaneta.descricao}</div>}
           <button className="btn fc-goal" onClick={() => setGoalModalOpen(true)}><TargetIcon /> Nova meta</button>
-          <button className="fc-delete" onClick={() => setConfirmDeleteOpen(true)}><TrashIcon /> Excluir planeta</button>
+          <button className="btn fc-share" onClick={() => setMembersOpen(true)}><UsersIcon /> {focusPlaneta.compartilhado ? "Ver equipe" : "Compartilhar planeta"}</button>
+          {focusPlaneta.meuPapel === "dono" && <button className="fc-delete" onClick={() => setConfirmDeleteOpen(true)}><TrashIcon /> Excluir planeta</button>}
         </div>
       )}
 
@@ -731,11 +747,14 @@ export function CriarPage() {
           evento={eventos.find((e) => e.id === detailEvento.id) ?? detailEvento}
           relatorios={relatorios}
           onClose={() => setDetailEvento(null)}
-          onCompleted={() => handleGoalCompleted(detailEvento.planetaId, detailEvento.titulo)}
+          onCompleted={() => handleGoalCompleted(detailEvento.planetaId, detailEvento.id, detailEvento.titulo)}
         />
       )}
 
       {statsOpen && <StatsModal planetas={planetas} tarefas={tarefas} onClose={() => setStatsOpen(false)} />}
+
+      {membersOpen && focusPlaneta && <PlanetMembersModal planeta={focusPlaneta} onClose={() => setMembersOpen(false)} />}
+      {invitesOpen && <PlanetInvitesModal onClose={() => setInvitesOpen(false)} />}
 
       {confirmDeleteOpen && focusPlaneta && (
         <ConfirmDialog

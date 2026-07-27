@@ -50,6 +50,11 @@
 .fc-obj svg { width: 14px; height: 14px; flex: none; margin-top: 2px; color: var(--accent); }
 .fc-desc { font-size: 11.5px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
 .fc-goal { width: 100%; margin-top: 13px; justify-content: center; text-align: center; font-size: 12.5px; padding: 8px 10px; }
+.fc-share { width: 100%; margin-top: 8px; justify-content: center; font-size: 12px; padding: 8px 10px; color: #b7c9ff; }
+.fc-member-rings { display: flex; margin: -4px 0 11px 20px; }
+.fc-member-rings span { width: 25px; height: 25px; margin-left: -5px; border-radius: 50%; border: 2px solid #111a37; display: grid; place-items: center; overflow: hidden; background: linear-gradient(145deg, #5575c8, #283b7a); color: #fff; font-size: 9px; font-weight: 700; }
+.fc-member-rings span:first-child { margin-left: 0; }
+.fc-member-rings img { width: 100%; height: 100%; object-fit: cover; }
 .fc-ach svg { width: 16px; height: 16px; flex: none; }
 .fc-delete {
   display: flex; align-items: center; gap: 7px; width: 100%; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
@@ -59,6 +64,8 @@
 }
 .fc-delete:hover { color: #ff8080; }
 .fc-delete svg { width: 14px; height: 14px; flex: none; }
+.criar-invites { border-color: rgba(211, 166, 255, .38); color: #d3a6ff; }
+.criar-invites b { min-width: 18px; height: 18px; border-radius: 99px; display: grid; place-items: center; background: rgba(211, 166, 255, .15); font-size: 10px; }
 
 /* ---------- painel de eventos ---------- */
 .events-panel {
@@ -135,6 +142,41 @@
 .moon-opt .mo-req { font-size: 10.5px; color: var(--accent); border: 1px solid rgba(110, 168, 255, .4); padding: 2px 7px; border-radius: 99px; }
 .meta-val { font-size: 13px; margin-top: 6px; color: var(--text); }
 .meta-val b { color: var(--accent); }
+
+/* ---------- compartilhamento de planeta ---------- */
+.planet-sharing-modal { width: min(520px, calc(100vw - 28px)); max-height: min(760px, calc(100vh - 30px)); overflow-y: auto; }
+.planet-invites-modal { width: min(560px, calc(100vw - 28px)); }
+.planet-sharing-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 20px; }
+.planet-sharing-head > div:first-child { display: flex; align-items: flex-start; gap: 12px; }
+.planet-sharing-head > div:first-child > span { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: #b9a7ff; background: rgba(153, 130, 255, .12); border: 1px solid rgba(153, 130, 255, .25); }
+.planet-sharing-head svg { width: 18px; height: 18px; }
+.planet-sharing-head h2 { margin: 0; }
+.planet-sharing-head p { margin: 3px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.planet-members-list, .planet-invite-list, .planet-member-goal { border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: rgba(8, 14, 32, .42); margin-bottom: 13px; }
+.planet-members-list h3, .planet-invite-list h3, .planet-member-goal h3 { font-size: 11px; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); margin: 0 0 11px; }
+.planet-member-row, .planet-invite-row { display: flex; align-items: center; gap: 11px; min-height: 45px; }
+.planet-member-row + .planet-member-row, .planet-invite-row + .planet-invite-row { border-top: 1px solid rgba(148, 180, 255, .08); margin-top: 8px; padding-top: 8px; }
+.planet-member-row > span:nth-child(2), .planet-invite-row > span:nth-child(2) { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.planet-member-row strong, .planet-invite-row strong { font-size: 13px; }
+.planet-member-row small, .planet-invite-row small { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+.planet-member-row > b { font-size: 12px; color: #9fc3ff; }
+.planet-member-row.pending { opacity: .72; }
+.planet-member-avatar { width: 34px; height: 34px; flex: none; border-radius: 50%; object-fit: cover; display: grid; place-items: center; background: linear-gradient(145deg, #5575c8, #283b7a); border: 1px solid rgba(148,180,255,.3); color: #fff; font-size: 11px; font-weight: 700; }
+.planet-member-ring { width: 42px; height: 42px; flex: none; border-radius: 50%; padding: 3px; display: grid; place-items: center; }
+.planet-member-ring .planet-member-avatar { width: 36px; height: 36px; border: 3px solid #101937; }
+.planet-member-goal { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 14px; }
+.planet-member-goal h3 { margin-bottom: 2px; }
+.planet-member-goal p { margin: 0; color: var(--muted); font-size: 11px; }
+.planet-member-goal > strong { font-size: 20px; color: var(--accent); }
+.planet-member-goal input { grid-column: 1 / -1; margin: 13px 0 10px; }
+.planet-member-goal .btn { grid-column: 1 / -1; justify-content: center; }
+.planet-sharing-empty { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 0; }
+.planet-invite-card { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: rgba(8, 14, 32, .5); margin-bottom: 10px; }
+.planet-invite-card > i { width: 34px; height: 34px; border-radius: 50%; }
+.planet-invite-card > span { display: flex; flex-direction: column; min-width: 0; }
+.planet-invite-card strong { font-size: 13px; }
+.planet-invite-card small { font-size: 10.5px; color: var(--muted); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.e-author { display: inline-flex; margin-top: 3px; color: #b7c9ff; font-size: 10px; }
 
 /* ---------- modal: meta ---------- */
 .icon-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 7px; }
@@ -227,4 +269,6 @@
   .criar-topbar { flex-wrap: wrap; gap: 8px; }
   .focus-card { width: calc(100vw - 44px); max-width: 250px; }
   .events-panel { width: calc(100vw - 44px); max-width: 292px; }
+  .planet-invite-card { grid-template-columns: auto 1fr; }
+  .planet-invite-card .btn { justify-content: center; }
 }

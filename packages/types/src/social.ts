@@ -155,7 +155,14 @@ export type TipoNotificacao =
   | "amizade_pedido"
   | "amizade_aceita"
   | "cutucada"
-  | "reacao";
+  | "reacao"
+  | "desafio_convite"
+  | "desafio_aceito"
+  | "desafio_concluido"
+  | "planeta_convite"
+  | "planeta_aceito"
+  | "espaco_notas_convite"
+  | "espaco_notas_aceito";
 
 export interface Notificacao {
   id: UUID;
@@ -171,4 +178,67 @@ export interface Bloqueio {
   bloqueadorId: UUID;
   bloqueadoId: UUID;
   createdAt: ISODateTime;
+}
+
+export interface StreakResumo {
+  atual: number;
+  recorde: number;
+  ativos7d: number;
+  congelamentosUsados: number;
+  congelamentoDisponivel: boolean;
+  ativoHoje: boolean;
+}
+
+export interface RankingStreakItem {
+  userId: UUID;
+  nome: string;
+  handle?: string;
+  avatarUrl?: string;
+  atual: number;
+  recorde: number;
+  ativos7d: number;
+  eu: boolean;
+}
+
+export type StatusDesafio = "ativo" | "concluido" | "falha" | "cancelado";
+export type StatusParticipanteDesafio = "pendente" | "aceito" | "recusado";
+
+export interface DesafioSocial {
+  id: UUID;
+  criadorId: UUID;
+  titulo: string;
+  descricao?: string;
+  icone: string;
+  cor: string;
+  prazo: ISODate;
+  status: StatusDesafio;
+  concluidoEm?: ISODateTime;
+  falhouEm?: ISODateTime;
+  createdAt: ISODateTime;
+}
+
+export interface ParticipanteDesafio {
+  desafioId: UUID;
+  userId: UUID;
+  status: StatusParticipanteDesafio;
+  convidadoPor: UUID;
+  respondidoEm?: ISODateTime;
+  concluidoEm?: ISODateTime;
+  nome: string;
+  handle?: string;
+  avatarUrl?: string;
+}
+
+export interface ObjetivoDesafio {
+  id: UUID;
+  desafioId: UUID;
+  titulo: string;
+  ordem: number;
+}
+
+export interface ProgressoDesafio {
+  objetivoId: UUID;
+  userId: UUID;
+  relatorioId?: UUID;
+  comprovadoEm: ISODateTime;
 }

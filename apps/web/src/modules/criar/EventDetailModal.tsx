@@ -15,13 +15,13 @@ export function EventDetailModal({
 }: {
   evento: Evento; relatorios: Relatorio[]; onClose: () => void; onCompleted: () => void;
 }) {
-  const { attachProof } = useCriar();
+  const { userId, attachProof } = useCriar();
   const [attachIdx, setAttachIdx] = useState<number | null>(null);
   const status = derivedStatus(evento);
   const pr = eventProgress(evento);
   const hue = hueOf(evento.cor);
   const Icon = GOAL_ICON_MAP[evento.icone] ?? ReportIcon;
-  const planetReports = relatorios.filter((r) => r.planetaId === evento.planetaId).slice(0, 6);
+  const planetReports = relatorios.filter((r) => r.planetaId === evento.planetaId && r.autorId === userId).slice(0, 6);
 
   function pick(checklistItemId: string, relatorioId: string) {
     attachProof.mutate(
@@ -62,7 +62,7 @@ export function EventDetailModal({
             <div className="ev-item-head">
               <span className="ev-check">{c.comprovado ? <CheckIcon /> : null}</span>
               <span className="ev-item-text">{c.titulo}</span>
-              {!c.comprovado && status === "ativo" && (
+              {!c.comprovado && status === "ativo" && evento.autorId === userId && (
                 <button className="ev-attach" onClick={() => setAttachIdx(attachIdx === i ? null : i)}>Anexar relatório</button>
               )}
             </div>

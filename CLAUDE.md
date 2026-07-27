@@ -7,7 +7,7 @@ App pessoal (web + Android, API compartilhada), multi-usuário, 3 módulos inter
 - Backend: Supabase (Postgres + Auth + Storage)
 - Multi-usuário desde o início (não é single-user)
 
-## Status: Fase 4.6 (Guias das abas) — COMPLETA
+## Status: Fase 5.6 (Guia da Órbita + faixa social na Home) — COMPLETA
 - [x] `prototypes/solar-system.html` — Desenvolver/Criar
 - [x] `prototypes/neural-notes.html` — Anotar
 - [x] `prototypes/rotina.html` — Rotina (3 sub-abas)
@@ -21,6 +21,13 @@ App pessoal (web + Android, API compartilhada), multi-usuário, 3 módulos inter
 - [x] Web — Desenvolver/Criar: sistema solar canvas (planetas/luas/eventos/empolgação/festinha), upload real de recursos/fotos (Storage), integração tarefas→planeta (`origem_planeta_id`, `concluida_at`)
 - [x] Web — Guias das abas (`apps/web/src/guides/`): modal em carrossel por aba, ilustrações SVG coloridas próprias, passos interativos que gravam dado real (renda, item de wishlist, tarefa, nota, planeta), botão `?` na topbar para reabrir, visto/não-visto persistido em `profiles.guias_vistos` (migration `0004_guias.sql`)
 - [x] Web — Home (`/`): saudação por horário, faixa de urgentes (tarefas + eventos do Criar, cor por prazo), vitrine em bento com recortes reais dos 3 módulos (cofrinho, mini sistema solar, destaque da wishlist, notas recentes) e atalhos rápidos; protótipo em `prototypes/home.html`
+- [x] Web — Órbita 5.1: perfil/privacidade/avatar, busca por handle, amizades, feed manual, reações, notificações, cutucadas e bloqueios; marcos de meta e wishlist sempre pedem confirmação antes de postar
+- [x] Supabase remoto — migrations `0005` a `0008` aplicadas; RLS e fluxos sociais validados com duas contas temporárias removidas ao fim do teste
+- [x] Web/Supabase — Streak registra nota escrita, relatório, tarefa ou meta concluída; um dia perdido por semana é congelado automaticamente; ranking privado respeita `mostrar_streak` (migrations `0009`, `0019`–`0020`, testes remotos)
+- [x] Web/Supabase — Desafios compartilhados entre amigos: convite, prazo, checklist por participante, comprovação com relatório próprio, conclusão coletiva, histórico e notificações (migrations `0010`–`0011`, RLS e teste multiusuário remoto)
+- [x] Web/Supabase — Planetas compartilhados: dono e membros, convite/aceite, meta semanal e saúde por pessoa, média coletiva, autoria protegida em todo conteúdo e Storage privado por planeta (migrations `0012`–`0016`, teste multiusuário remoto)
+- [x] Web/Supabase — Espaços de notas compartilhados: grafo separado do pessoal, convite/aceite entre amigos, notas e conexões comuns, autoria protegida e posição dos nós individual por usuário (migrations `0017`–`0018`, teste multiusuário remoto)
+- [x] Web — Guia da Órbita em 4 passos com metáfora de constelação e faixa social na Home com streak, pulso recente, desafio ativo, conexões, notificações e atalho para a Órbita
 
 ### Specs da Rotina (definidas pelo usuário, prototipadas)
 - **Finanças**: cofrinho porquinho ilustrado (arte fornecida pelo usuário, `prototypes/cofrinho.svg`, viewBox 1254×1254) com "janela de vidro" na barriga mostrando moedas douradas = % da renda restante; hover mostra saldo; renda mensal registrável (fonte + valor); modalidades de gasto (Wishlist sempre fixa + livres: comida, contas, rolê…); cada gasto tem check "foi pago" → moedas somem com stagger; abaixo do porquinho, gráfico anelar (donut) mostra % de cada modalidade sobre o total planejado, com legenda colorida e total no centro
@@ -66,20 +73,20 @@ Rodar protótipos: `preview_start` com `name: "prototypes"` (server já configur
 4. Web — Desenvolver/Criar (portar protótipo, upload real de fotos/recursos, integração tarefas→Rotina) — completa
 4.5. Web — Home (protótipo + port React, faixa de urgentes + vitrine dos módulos) — completa
 4.6. Web — Guias/onboarding por aba (cards ilustrados + interativos, botão `?`) — completa
-5. Web — Social ("Órbita") *(atual)*
-   - 5.1. Fundação: amizades, bloqueios, RLS social via `security definer`, notificações, perfil de amigo, postagens, cutucar
-   - 5.2. Streak + ranking entre amigos (1 congelamento por semana)
-   - 5.3. Desafios (evento/meta compartilhada, checklist por participante)
-   - 5.4. Planeta compartilhado (membros + convite, `autor_id` nas tabelas-filhas, storage por planeta)
-   - 5.5. Espaço de notas compartilhado (grafo separado, posição por usuário)
-   - 5.6. Guia da aba Órbita + faixa social na Home
-6. Android (Expo) — versão enxuta
+5. Web — Social ("Órbita") — completa
+   - 5.1. Fundação: completa — UI, migrations, privacidade e teste multiusuário remoto
+   - 5.2. Streak + ranking entre amigos (1 congelamento por semana) — completa
+   - 5.3. Desafios (evento/meta compartilhada, checklist por participante) — completa
+   - 5.4. Planeta compartilhado (membros + convite, `autor_id` nas tabelas-filhas, storage por planeta) — completa
+   - 5.5. Espaço de notas compartilhado (grafo separado, posição por usuário) — completa
+   - 5.6. Guia da aba Órbita + faixa social na Home — completa
+6. Android (Expo) — versão enxuta *(próxima)*
 7. Polimento e deploy
 
 ### Regras do Social (decididas pelo usuário)
 - **Postagens**: o app nunca posta sozinho — detecta o marco e oferece "Compartilhar" com a postagem pré-preenchida; o usuário confirma
 - **Saúde do planeta compartilhado**: média das saúdes individuais (cada membro tem sua meta semanal), com um anel por membro na UI
-- **Streak**: 1 congelamento por semana (um dia perdido não zera a sequência)
+- **Streak**: escrever nota pessoal ou compartilhada, criar relatório, concluir tarefa ou meta ativa o dia; 1 congelamento por semana (um dia perdido não zera a sequência)
 - **Nunca editar/excluir conteúdo alheio** — vale para planeta compartilhado e espaço de notas
 - **Fora de escopo**: edição conjunta, wishlist compartilhada, seção de tarefas compartilhada
 - Privacidade: nada é público por padrão; leitura do perfil de amigo passa pela RPC `perfil_publico` (o RLS "dono único" das tabelas de domínio continua intacto)
