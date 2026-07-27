@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter @project-fox/web build",
+  "buildCommand": "pnpm turbo run build --filter=@project-fox/web",
   "outputDirectory": "apps/web/dist",
   "rewrites": [
     {
