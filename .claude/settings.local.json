@@ -14,7 +14,18 @@
       "Bash(pnpm install *)",
       "Bash(pnpm typecheck *)",
       "Bash(pnpm build *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git check-ignore *)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(npx --yes supabase --version)",
+      "Bash(npx --yes supabase db push --help)",
+      "Bash(npx --yes supabase db push --db-url \"postgresql://x\" --dry-run)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(sorted\\(d.get\\('definitions', {}\\).keys\\(\\)\\)\\)\")",
+      "Bash(supabase status *)",
+      "Bash(pnpm --filter @project-fox/web exec tsc --noEmit -p tsconfig.json)",
+      "Bash(pnpm --filter @project-fox/web build)",
+      "Bash(echo \"ignored?:$?\")"
     ]
   }
 }
