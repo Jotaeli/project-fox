@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useRegisterGuide } from "../../guides/GuideContext.js";
 import { currentMonthLabel } from "../../lib/currentMonth.js";
 import { FinancasTab } from "./financas/FinancasTab.js";
 import "./rotina.css";
@@ -13,6 +14,7 @@ export function RotinaPage() {
   const [searchParams] = useSearchParams();
   const fromParam = searchParams.get("tab") as SubTab | null;
   const [tab, setTab] = useState<SubTab>(fromParam && VALID_TABS.includes(fromParam) ? fromParam : "wishlist");
+  useRegisterGuide(`rotina-${tab}` as const);
 
   return (
     <div>

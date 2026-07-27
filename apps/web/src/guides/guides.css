@@ -1,0 +1,101 @@
+.guide-wrap { z-index: 70; }
+
+.guide-modal {
+  position: relative;
+  width: 520px;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: min(88vh, 760px);
+  animation: guide-in .22s cubic-bezier(.2, .9, .3, 1);
+}
+@keyframes guide-in {
+  from { opacity: 0; transform: translateY(14px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+
+.guide-close { position: absolute; top: 14px; right: 14px; z-index: 2; background: rgba(4, 8, 26, .7); }
+
+.guide-art-box {
+  flex: none;
+  background: linear-gradient(160deg, #0f1d44, #070e26 70%);
+  border-bottom: 1px solid var(--line);
+}
+.guide-art { display: block; width: 100%; height: auto; }
+
+.guide-body { padding: 22px 26px 4px; overflow: auto; flex: 1; }
+.guide-kicker {
+  display: block; font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 8px; font-weight: 600;
+}
+.guide-body h2 { font-size: 19px; font-weight: 600; margin-bottom: 10px; }
+.guide-text { font-size: 13.5px; line-height: 1.62; color: var(--muted); }
+.guide-text b { color: var(--text); font-weight: 600; }
+
+/* --- passos interativos --- */
+
+.guide-try { margin-top: 18px; }
+.guide-try-submit { width: 100%; justify-content: center; margin-top: 4px; }
+
+.guide-row { display: flex; gap: 12px; align-items: flex-start; }
+.guide-row .grow { flex: 1; }
+
+.guide-f { display: block; margin-bottom: 14px; }
+.guide-f > span {
+  display: block; font-size: 10.5px; color: var(--muted);
+  margin-bottom: 6px; letter-spacing: .4px; text-transform: uppercase;
+}
+.guide-f input, .guide-f select, .guide-f textarea {
+  width: 100%; background: rgba(8, 14, 32, .8); border: 1px solid var(--line); border-radius: 10px;
+  color: var(--text); padding: 9px 12px; font-size: 13.5px; outline: none;
+}
+.guide-f input:focus, .guide-f select:focus, .guide-f textarea:focus { border-color: rgba(110, 168, 255, .55); }
+.guide-f textarea { resize: vertical; min-height: 58px; line-height: 1.5; }
+.guide-f input[type=date] { color-scheme: dark; }
+
+.guide-step-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.guide-step-dot {
+  flex: none; width: 11px; height: 11px; border-radius: 50%;
+  border: 2px solid rgba(148, 180, 255, .38);
+}
+
+.guide-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.guide-pill {
+  cursor: pointer; border: 1px solid var(--line); background: rgba(8, 14, 32, .6); color: var(--muted);
+  padding: 7px 12px; border-radius: 9px; font-size: 12px; transition: all .12s;
+}
+.guide-pill:hover { color: var(--text); border-color: rgba(148, 180, 255, .35); }
+.guide-pill.sel { color: #fff; background: linear-gradient(135deg, #3667c4, #274a95); border-color: rgba(148, 180, 255, .4); }
+
+.guide-done {
+  margin-top: 18px; display: flex; align-items: center; gap: 12px;
+  background: rgba(74, 222, 128, .08); border: 1px solid rgba(74, 222, 128, .35);
+  border-radius: 14px; padding: 14px 16px; font-size: 13px; line-height: 1.5; color: var(--text);
+}
+.guide-done-ic {
+  flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--green);
+  display: flex; align-items: center; justify-content: center; color: #06210f;
+}
+.guide-done-ic svg { width: 14px; height: 14px; }
+
+/* --- rodapé --- */
+
+.guide-foot {
+  flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px 26px 20px;
+}
+.guide-dots { display: flex; gap: 7px; }
+.guide-dot {
+  width: 7px; height: 7px; border-radius: 50%; border: none; padding: 0; cursor: pointer;
+  background: rgba(148, 180, 255, .25); transition: background .15s, width .15s;
+}
+.guide-dot:hover { background: rgba(148, 180, 255, .5); }
+.guide-dot.sel { background: var(--accent); width: 20px; border-radius: 4px; }
+.guide-nav { display: flex; gap: 10px; }
+
+@media (max-width: 560px) {
+  .guide-modal { width: calc(100vw - 24px); }
+  .guide-row { flex-direction: column; gap: 0; }
+  .guide-row .guide-f { width: 100%; }
+}

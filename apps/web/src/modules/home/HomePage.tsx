@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRightIcon, CoinIcon, GridIcon, ImageIcon, PlanetIcon, PlusIcon } from "../../icons/index.js";
+import { useRegisterGuide } from "../../guides/GuideContext.js";
 import { fmtBRL } from "../../lib/currentMonth.js";
 import { BADGES } from "../anotar/AnotarPage.js";
 import { hueOf } from "../criar/criarConstants.js";
@@ -18,6 +19,7 @@ const ORBITS = [
 ];
 
 export function HomePage() {
+  useRegisterGuide("home");
   const navigate = useNavigate();
   const data = useHome();
   const [taskModalOpen, setTaskModalOpen] = useState(false);

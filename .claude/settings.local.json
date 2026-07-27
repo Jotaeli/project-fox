@@ -26,7 +26,8 @@
       "Bash(pnpm --filter @project-fox/web exec tsc --noEmit -p tsconfig.json)",
       "Bash(pnpm --filter @project-fox/web build)",
       "Bash(echo \"ignored?:$?\")",
-      "Bash(echo \"EXIT:$?\")"
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(npx tsc *)"
     ]
   }
 }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { BadgeNota } from "@project-fox/types";
+import { useRegisterGuide } from "../../guides/GuideContext.js";
 import { CloseIcon, FitIcon, LinkIcon, PlusIcon, TrashIcon } from "../../icons/index.js";
 import { useAnotar } from "./useAnotar.js";
 import "./anotar.css";
@@ -90,6 +91,7 @@ function buildBg(sim: Sim) {
 }
 
 export function AnotarPage() {
+  useRegisterGuide("anotar");
   const { notas, conexoes, addNota, updateNota, deleteNota, addConexao, deleteConexao } = useAnotar();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);

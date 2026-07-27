@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Navigate, Route, BrowserRouter, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthContext.js";
 import { LoginPage } from "./auth/LoginPage.js";
+import { GuideProvider } from "./guides/GuideContext.js";
 import { AppShell } from "./layout/AppShell.js";
 import { ProtectedRoute } from "./layout/ProtectedRoute.js";
 import { ToastProvider } from "./lib/toast.js";
@@ -24,24 +25,26 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ToastProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/login" element={<LoginRoute />} />
-              <Route
-                element={
-                  <ProtectedRoute>
-                    <AppShell />
-                  </ProtectedRoute>
-                }
-              >
-                <Route path="/" element={<HomePage />} />
-                <Route path="/rotina" element={<RotinaPage />} />
-                <Route path="/anotar" element={<AnotarPage />} />
-                <Route path="/criar" element={<CriarPage />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Route>
-            </Routes>
-          </BrowserRouter>
+          <GuideProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<LoginRoute />} />
+                <Route
+                  element={
+                    <ProtectedRoute>
+                      <AppShell />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/rotina" element={<RotinaPage />} />
+                  <Route path="/anotar" element={<AnotarPage />} />
+                  <Route path="/criar" element={<CriarPage />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </GuideProvider>
         </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>

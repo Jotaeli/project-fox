@@ -22,6 +22,11 @@
 .topbar-right { display: flex; align-items: center; gap: 12px; flex: none; }
 .user-email { font-size: 12px; color: var(--muted); }
 
+.help-btn { color: var(--accent); border-color: rgba(110, 168, 255, .3); }
+.help-btn:hover { color: #fff; background: rgba(54, 103, 196, .35); }
+.help-btn:disabled { opacity: .35; cursor: default; }
+.help-btn:disabled:hover { color: var(--accent); background: rgba(8, 14, 32, .5); }
+
 .app-main { flex: 1; position: relative; }
 
 .placeholder-pane { max-width: 1080px; margin: 0 auto; padding: 80px 22px; text-align: center; }

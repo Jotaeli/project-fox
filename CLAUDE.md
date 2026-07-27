@@ -7,7 +7,7 @@ App pessoal (web + Android, API compartilhada), multi-usuário, 3 módulos inter
 - Backend: Supabase (Postgres + Auth + Storage)
 - Multi-usuário desde o início (não é single-user)
 
-## Status: Fase 4.5 (Home) — COMPLETA
+## Status: Fase 4.6 (Guias das abas) — COMPLETA
 - [x] `prototypes/solar-system.html` — Desenvolver/Criar
 - [x] `prototypes/neural-notes.html` — Anotar
 - [x] `prototypes/rotina.html` — Rotina (3 sub-abas)
@@ -19,6 +19,7 @@ App pessoal (web + Android, API compartilhada), multi-usuário, 3 módulos inter
 - [x] Web — Rotina completa (Finanças, Wishlist, Tarefas) com Supabase real
 - [x] Web — Anotar: grafo canvas (força dirigida, pan/zoom, drawer de nota, conexões manuais, badges) persistido via `notas`/`conexoes_notas`
 - [x] Web — Desenvolver/Criar: sistema solar canvas (planetas/luas/eventos/empolgação/festinha), upload real de recursos/fotos (Storage), integração tarefas→planeta (`origem_planeta_id`, `concluida_at`)
+- [x] Web — Guias das abas (`apps/web/src/guides/`): modal em carrossel por aba, ilustrações SVG coloridas próprias, passos interativos que gravam dado real (renda, item de wishlist, tarefa, nota, planeta), botão `?` na topbar para reabrir, visto/não-visto persistido em `profiles.guias_vistos` (migration `0004_guias.sql`)
 - [x] Web — Home (`/`): saudação por horário, faixa de urgentes (tarefas + eventos do Criar, cor por prazo), vitrine em bento com recortes reais dos 3 módulos (cofrinho, mini sistema solar, destaque da wishlist, notas recentes) e atalhos rápidos; protótipo em `prototypes/home.html`
 
 ### Specs da Rotina (definidas pelo usuário, prototipadas)
@@ -64,6 +65,7 @@ Rodar protótipos: `preview_start` com `name: "prototypes"` (server já configur
 3. Web — Anotar (portar protótipo para componentes) — completa
 4. Web — Desenvolver/Criar (portar protótipo, upload real de fotos/recursos, integração tarefas→Rotina) — completa
 4.5. Web — Home (protótipo + port React, faixa de urgentes + vitrine dos módulos) — completa
+4.6. Web — Guias/onboarding por aba (cards ilustrados + interativos, botão `?`) — completa
 5. Android (Expo) — versão enxuta *(atual)*
 6. Polimento e deploy
 

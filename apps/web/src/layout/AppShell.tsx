@@ -1,11 +1,13 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.js";
+import { useGuideControls } from "../guides/GuideContext.js";
 import { supabase } from "../lib/supabaseClient.js";
-import { LogoutIcon } from "../icons/index.js";
+import { HelpIcon, LogoutIcon } from "../icons/index.js";
 import "./layout.css";
 
 export function AppShell() {
   const { session } = useAuth();
+  const { activeKey, openGuide } = useGuideControls();
 
   return (
     <div className="app-shell">
@@ -19,6 +21,12 @@ export function AppShell() {
         </nav>
         <div className="topbar-right">
           <span className="user-email">{session?.user.email}</span>
+          <button
+            className="icon-btn help-btn" title="Como usar esta aba"
+            onClick={openGuide} disabled={!activeKey}
+          >
+            <HelpIcon />
+          </button>
           <button className="icon-btn" title="Sair" onClick={() => supabase.auth.signOut()}>
             <LogoutIcon />
           </button>

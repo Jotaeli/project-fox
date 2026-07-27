@@ -4,6 +4,7 @@ import type { Evento, Planeta } from "@project-fox/types";
 import {
   AwardIcon, BackIcon, BarChartIcon, CameraIcon, LibraryIcon, PlusIcon, ReportIcon, TargetIcon, TrashIcon,
 } from "../../icons/index.js";
+import { useRegisterGuide } from "../../guides/GuideContext.js";
 import { useToast } from "../../lib/toast.js";
 import { useTarefas } from "../rotina/tarefas/useTarefas.js";
 import { EventDetailModal } from "./EventDetailModal.js";
@@ -75,6 +76,7 @@ function makeSim(): Sim {
 }
 
 export function CriarPage() {
+  useRegisterGuide("criar");
   const { planetas, relatorios, recursos, fotos, eventos, deletePlaneta } = useCriar();
   const { tarefas, secoes } = useTarefas();
   const showToast = useToast();
