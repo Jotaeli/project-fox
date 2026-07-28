@@ -83,7 +83,7 @@ function makeSim(): Sim {
   };
 }
 
-const IGNITED_KEY = "fox:criar-sol-nasceu";
+const IGNITED_KEY_PREFIX = "fox:criar-sol-nasceu";
 /** sol já nascido há muito tempo — usado quando não deve haver animação */
 const SUN_DONE = -1e9;
 
@@ -125,6 +125,7 @@ function clamp01(x: number) { return x < 0 ? 0 : x > 1 ? 1 : x; }
 export function CriarPage() {
   useRegisterGuide("criar");
   const { userId, planetas, convitesPlaneta, relatorios, recursos, fotos, eventos, deletePlaneta, isLoading } = useCriar();
+  const ignitedKey = `${IGNITED_KEY_PREFIX}:${userId}`;
   const { tarefas, secoes } = useTarefas();
   const showToast = useToast();
   const offerShare = useOfferSocialShare();
@@ -147,7 +148,7 @@ export function CriarPage() {
   const [invitesOpen, setInvitesOpen] = useState(false);
 
   /* --- abertura: o sol só nasce quando o usuário inicia o sistema --- */
-  const [ignited, setIgnited] = useState(() => localStorage.getItem(IGNITED_KEY) === "1");
+  const [ignited, setIgnited] = useState(() => localStorage.getItem(ignitedKey) === "1");
   const [sunUp, setSunUp] = useState(ignited);   // libera "Adicionar planeta" + dica
   const [introGone, setIntroGone] = useState(ignited);
   const ignitedRef = useRef(ignited);
@@ -172,7 +173,7 @@ export function CriarPage() {
   function ignite() {
     simRef.current.sunParticles = makeSunParticles();
     simRef.current.sunT0 = performance.now();
-    localStorage.setItem(IGNITED_KEY, "1");
+    localStorage.setItem(ignitedKey, "1");
     setIgnited(true);
     setTimeout(() => setIntroGone(true), 600);
     setTimeout(() => setSunUp(true), SUNRISE_MS - 250);
@@ -648,10 +649,10 @@ export function CriarPage() {
   // quem já tem planetas nunca vê a abertura — o sol já está aceso
   useEffect(() => {
     if (ignited || planetas.length === 0) return;
-    localStorage.setItem(IGNITED_KEY, "1");
+    localStorage.setItem(ignitedKey, "1");
     simRef.current.sunT0 = SUN_DONE;
     setIgnited(true); setSunUp(true); setIntroGone(true);
-  }, [ignited, planetas.length]);
+  }, [ignited, ignitedKey, planetas.length]);
 
   useEffect(() => { setHint(); }, [sunUp, planetas.length, focusId]);
 
