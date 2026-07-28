@@ -18,6 +18,9 @@ export function useDesafios() {
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["desafios"] });
     qc.invalidateQueries({ queryKey: ["orbita", "notifications"] });
+    // entrar num desafio cria a estação no servidor — o Criar precisa saber
+    qc.invalidateQueries({ queryKey: ["planetas"] });
+    qc.invalidateQueries({ queryKey: ["estacao"] });
   };
 
   const query = useQuery({
@@ -69,13 +72,15 @@ export function useDesafios() {
   const reports = useQuery({
     queryKey: ["desafios", "reports", userId], enabled: !!userId,
     queryFn: async () => {
-      const [reportR, planetR] = await Promise.all([
-        supabase.from("relatorios").select("id,planeta_id,conteudo,created_at").order("created_at", { ascending: false }).limit(100),
-        supabase.from("planetas").select("id,nome"),
-      ]);
-      if (reportR.error) throw reportR.error; if (planetR.error) throw planetR.error;
-      const names = new Map((planetR.data ?? []).map((p) => [p.id, p.nome]));
-      return (reportR.data ?? []).map((r) => ({ id: r.id, planetaId: r.planeta_id, planetaNome: names.get(r.planeta_id) ?? "Planeta", conteudo: r.conteudo, createdAt: r.created_at })) as RelatorioDesafio[];
+      // só relatórios escritos dentro da estação comprovam desafio
+      const { data: estacao, error: estacaoError } = await supabase.from("planetas").select("id,nome").eq("is_estacao", true).maybeSingle();
+      if (estacaoError) throw estacaoError;
+      if (!estacao) return [] as RelatorioDesafio[];
+      const { data, error } = await supabase.from("relatorios").select("id,planeta_id,conteudo,created_at")
+        .eq("planeta_id", estacao.id).eq("autor_id", userId!)
+        .order("created_at", { ascending: false }).limit(100);
+      if (error) throw error;
+      return (data ?? []).map((r) => ({ id: r.id, planetaId: r.planeta_id, planetaNome: estacao.nome, conteudo: r.conteudo, createdAt: r.created_at })) as RelatorioDesafio[];
     },
   });
 

@@ -20,6 +20,7 @@ function mapPlaneta(p: any, membros: MembroPlaneta[], userId: string): Planeta {
     objetivoPrincipal: p.objetivo_principal, descricao: p.descricao ?? undefined,
     metaSemanal: meuMembro?.metaSemanal ?? p.meta_semanal, temRecursos: p.tem_recursos, temFotos: p.tem_fotos,
     membros, meuPapel: meuMembro?.papel ?? "membro", compartilhado: aceitos.length > 1,
+    isEstacao: !!p.is_estacao, estacaoAtiva: !!p.estacao_ativa,
     createdAt: p.created_at,
   };
 }
@@ -84,7 +85,7 @@ export function useCriar() {
       const { data, error } = await supabase.from("planetas").select("*").order("created_at");
       if (error) throw error;
       const ids = data.map((p) => p.id);
-      if (!ids.length) return { planetas: [] as Planeta[], convites: [] as { planeta: any; membro: MembroPlaneta }[] };
+      if (!ids.length) return { planetas: [] as Planeta[], estacao: null as Planeta | null, convites: [] as { planeta: any; membro: MembroPlaneta }[] };
       const { data: memberRows, error: memberError } = await supabase.from("planeta_membros").select("*").in("planeta_id", ids);
       if (memberError) throw memberError;
       const peopleIds = [...new Set((memberRows ?? []).map((m) => m.user_id))];
@@ -104,12 +105,15 @@ export function useCriar() {
         const membro = mappedMembers.find((m) => m.planetaId === p.id && m.userId === userId && m.status === "pendente");
         return membro ? [{ planeta: p, membro }] : [];
       });
-      const planetas = data.flatMap((p) => {
+      const todos = data.flatMap((p) => {
         const membros = mappedMembers.filter((m) => m.planetaId === p.id);
         const meuMembro = membros.find((m) => m.userId === userId);
         return meuMembro?.status === "aceito" ? [mapPlaneta(p, membros, userId)] : [];
       });
-      return { planetas, convites };
+      // a estação vive fora da lista de planetas: não entra em estatísticas, metas nem órbitas normais
+      const estacao = todos.find((p) => p.isEstacao) ?? null;
+      const planetas = todos.filter((p) => !p.isEstacao);
+      return { planetas, estacao, convites };
     },
   });
 
@@ -177,7 +181,10 @@ export function useCriar() {
     },
   });
 
-  function invalidatePlanetas() { qc.invalidateQueries({ queryKey: ["planetas", userId] }); }
+  function invalidatePlanetas() {
+    qc.invalidateQueries({ queryKey: ["planetas", userId] });
+    qc.invalidateQueries({ queryKey: ["estacao"] });
+  }
   function invalidateRelatorios() { qc.invalidateQueries({ queryKey: ["relatorios", userId] }); }
   function invalidateRecursos() { qc.invalidateQueries({ queryKey: ["recursos", userId] }); }
   function invalidateFotos() { qc.invalidateQueries({ queryKey: ["fotos", userId] }); }
@@ -213,10 +220,13 @@ export function useCriar() {
 
   const addRelatorio = useMutation({
     mutationFn: async (input: { planetaId: string; conteudo: string }) => {
-      const { error } = await supabase.from("relatorios").insert({ planeta_id: input.planetaId, autor_id: userId, conteudo: input.conteudo });
+      const { data, error } = await supabase.from("relatorios")
+        .insert({ planeta_id: input.planetaId, autor_id: userId, conteudo: input.conteudo })
+        .select("id").single();
       if (error) throw error;
+      return data.id as string;
     },
-    onSuccess: invalidateRelatorios,
+    onSuccess: () => { invalidateRelatorios(); qc.invalidateQueries({ queryKey: ["desafios"] }); },
   });
 
   async function uploadToBucket(bucket: string, planetaId: string, file: File): Promise<string> {
@@ -293,6 +303,14 @@ export function useCriar() {
     onSuccess: () => { invalidatePlanetas(); invalidateRelatorios(); invalidateRecursos(); invalidateFotos(); invalidateEventos(); },
   });
 
+  const desativarEstacao = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.rpc("desativar_estacao");
+      if (error) throw error;
+    },
+    onSuccess: invalidatePlanetas,
+  });
+
   const updateMemberGoal = useMutation({
     mutationFn: async ({ planetaId, meta }: { planetaId: string; meta: number }) => {
       const { error } = await supabase.rpc("atualizar_meta_membro_planeta", { p_planeta_id: planetaId, p_meta_semanal: meta });
@@ -304,6 +322,7 @@ export function useCriar() {
   return {
     userId,
     planetas: planetasQ.data?.planetas ?? [],
+    estacao: planetasQ.data?.estacao ?? null,
     convitesPlaneta: planetasQ.data?.convites ?? [],
     amigosPlaneta: friendsQ.data ?? [],
     relatorios: relatoriosQ.data ?? [],
@@ -312,6 +331,6 @@ export function useCriar() {
     eventos: eventosQ.data ?? [],
     isLoading: planetasQ.isLoading || relatoriosQ.isLoading || recursosQ.isLoading || fotosQ.isLoading || eventosQ.isLoading,
     addPlaneta, deletePlaneta, addRelatorio, addRecurso, addFoto, addEvento, attachProof,
-    inviteMember, respondInvite, updateMemberGoal,
+    inviteMember, respondInvite, updateMemberGoal, desativarEstacao,
   };
 }

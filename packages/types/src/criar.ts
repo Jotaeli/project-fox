@@ -32,6 +32,10 @@ export interface Planeta {
   membros: MembroPlaneta[];
   meuPapel: PapelMembroPlaneta;
   compartilhado: boolean;
+  /** Estação Órbita: corpo social do sistema, um por usuário, sem luas */
+  isEstacao: boolean;
+  /** Estação em órbita no momento — sai de cena quando não há desafio ativo */
+  estacaoAtiva: boolean;
   createdAt: ISODateTime;
 }
 

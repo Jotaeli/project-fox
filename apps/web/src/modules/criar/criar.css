@@ -264,6 +264,90 @@
 
 .modal h2 svg { width: 15px; height: 15px; vertical-align: -2px; }
 
+/* ---------- Estação Órbita ---------- */
+.drawer.station { width: 580px; }
+.drawer .dr-icon.station-icon { color: #c3cee6; }
+.station-body { flex: 1; display: grid; grid-template-columns: 186px minmax(0, 1fr); min-height: 0; }
+.station-nav { border-right: 1px solid var(--line); padding: 14px 10px; overflow-y: auto; }
+.station-nav-label { font-size: 10px; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); padding: 0 8px; margin: 12px 0 7px; }
+.station-nav-label:first-child { margin-top: 0; }
+.station-nav-empty { font-size: 11.5px; color: var(--muted); line-height: 1.5; padding: 0 8px; margin: 0; }
+.station-nav-item {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 9px; margin-bottom: 3px;
+  border: 1px solid transparent; border-radius: 9px; background: none; color: var(--text);
+  font-size: 12.5px; text-align: left; cursor: pointer; transition: background .14s, border-color .14s;
+}
+.station-nav-item:hover { background: rgba(148, 180, 255, .07); }
+.station-nav-item.active { background: rgba(110, 168, 255, .13); border-color: rgba(110, 168, 255, .32); }
+.station-nav-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.station-nav-icon { display: flex; color: var(--muted); flex: none; }
+.station-nav-icon svg { width: 14px; height: 14px; }
+.station-nav-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.station-nav-count { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; flex: none; }
+
+.station-main { overflow-y: auto; padding: 16px 20px; min-width: 0; }
+.station-main h4 { font-size: 14.5px; font-weight: 600; margin: 0; }
+.station-hint { font-size: 11.5px; color: var(--muted); line-height: 1.55; margin: 5px 0 14px; }
+.station-sec-label { font-size: 11px; color: var(--muted); letter-spacing: .3px; text-transform: uppercase; margin: 18px 0 9px; }
+
+.station-challenge-head { display: flex; align-items: flex-start; gap: 11px; }
+.station-challenge-symbol { display: flex; padding: 7px; border-radius: 10px; flex: none; }
+.station-challenge-symbol svg { width: 16px; height: 16px; }
+.station-challenge-meta { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+.station-challenge-meta svg { width: 12px; height: 12px; }
+.station-challenge-desc { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin: 11px 0 0; }
+
+.station-team { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.station-team span {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 5px;
+  border: 1px solid var(--line); border-radius: 99px; font-size: 11.5px; background: rgba(8, 14, 32, .5);
+}
+.station-team span.me { border-color: rgba(110, 168, 255, .4); }
+.station-team i {
+  width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: rgba(110, 168, 255, .18); font-style: normal; font-size: 10px; font-weight: 600; overflow: hidden; flex: none;
+}
+.station-team i img { width: 100%; height: 100%; object-fit: cover; }
+.station-team small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.station-team svg { width: 12px; height: 12px; color: #7ef0b2; }
+
+.station-goal { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.station-goal:last-of-type { border-bottom: none; }
+.station-goal > div { flex: 1; min-width: 0; }
+.station-goal strong { display: block; font-size: 12.5px; font-weight: 500; line-height: 1.4; }
+.station-goal small { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
+.station-goal select { width: 100%; margin-top: 6px; font-size: 11.5px; }
+.station-goal .btn { flex: none; font-size: 11.5px; padding: 5px 11px; }
+.station-goal-index {
+  width: 22px; height: 22px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.station-goal-index svg { width: 12px; height: 12px; }
+.station-goal.done .station-goal-index { border-color: rgba(126, 240, 178, .45); color: #7ef0b2; }
+.station-goal.done strong { color: var(--muted); }
+
+.station-friends { display: flex; flex-direction: column; gap: 8px; }
+.station-friend { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 12px; background: rgba(8, 14, 32, .42); }
+.station-friend > div { flex: 1; min-width: 0; }
+.station-friend strong { display: block; font-size: 12.5px; font-weight: 500; }
+.station-friend small { display: block; font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+.station-friend-avatar {
+  width: 30px; height: 30px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center;
+  background: rgba(110, 168, 255, .18); font-size: 12px; font-weight: 600; overflow: hidden;
+}
+.station-friend-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.station-friend-tag { font-size: 10.5px; color: var(--muted); border: 1px solid var(--line); padding: 2px 9px; border-radius: 99px; flex: none; }
+
+.station-compose-row { display: flex; gap: 8px; margin-top: 10px; }
+.station-compose-row select { flex: 1; min-width: 0; font-size: 11.5px; }
+.station-compose-row .btn { flex: none; }
+
+.station-gate { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 26px 22px; }
+.station-gate h3 { font-size: 15px; font-weight: 600; margin: 0; }
+.station-gate p { font-size: 12.5px; color: var(--muted); line-height: 1.6; max-width: 420px; margin: 0; }
+.station-gate-icon { display: flex; color: var(--accent); padding: 11px; border-radius: 50%; background: rgba(110, 168, 255, .12); }
+.station-gate-icon svg { width: 22px; height: 22px; }
+
 /* ---------- responsivo ---------- */
 @media (max-width: 640px) {
   .criar-topbar { flex-wrap: wrap; gap: 8px; }
@@ -271,4 +355,6 @@
   .events-panel { width: calc(100vw - 44px); max-width: 292px; }
   .planet-invite-card { grid-template-columns: auto 1fr; }
   .planet-invite-card .btn { justify-content: center; }
+  .station-body { grid-template-columns: 1fr; }
+  .station-nav { border-right: none; border-bottom: 1px solid var(--line); max-height: 140px; }
 }

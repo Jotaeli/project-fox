@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { Evento, Planeta } from "@project-fox/types";
 import {
-  AwardIcon, BackIcon, BarChartIcon, CameraIcon, LibraryIcon, PlusIcon, ReportIcon, SunIcon, TargetIcon, TrashIcon, UsersIcon,
+  AwardIcon, BackIcon, BarChartIcon, PlusIcon, SunIcon, TargetIcon, TrashIcon, UsersIcon,
 } from "../../icons/index.js";
 import { useRegisterGuide } from "../../guides/GuideContext.js";
 import { SolarArt } from "../../guides/illustrations.js";
@@ -16,7 +16,9 @@ import { GoalModal } from "./GoalModal.js";
 import { MoonDrawer } from "./MoonDrawer.js";
 import { PlanetModal } from "./PlanetModal.js";
 import { PlanetInvitesModal, PlanetMembersModal } from "./PlanetSharingModals.js";
+import { StationDrawer } from "./StationDrawer.js";
 import { StatsModal } from "./StatsModal.js";
+import { useDesafios } from "../orbita/useDesafios.js";
 import { hueOf } from "./criarConstants.js";
 import { derivedStatus, health, useCriar, weeklyCount } from "./useCriar.js";
 import "./criar.css";
@@ -64,11 +66,21 @@ function moonsOf(p: Planeta) {
   return arr.map((m, i) => ({ id: m.id, orbit: 30 + i * 18, speed: 0.55 - i * 0.13, phase: i * 2.4 }));
 }
 
+/** Estação Órbita: sempre a órbita mais externa, chega e parte com animação própria */
+interface SimStation {
+  dist: number; angle: number; baseSpeed: number;
+  /** timestamp da chegada em curso, ou null quando já assentada */
+  arrivalT0: number | null;
+  /** timestamp da partida em curso, ou null */
+  departT0: number | null;
+}
+
 interface Sim {
   planets: Map<string, SimPlanet>;
+  station: SimStation | null;
   cam: { x: number; y: number; s: number }; camTarget: { x: number; y: number; s: number };
-  mode: "system" | "planet"; focusId: string | null;
-  hover: { kind: "planet"; id: string } | { kind: "moon"; moonId: string } | null;
+  mode: "system" | "planet" | "station"; focusId: string | null;
+  hover: { kind: "planet"; id: string } | { kind: "moon"; moonId: string } | { kind: "station" } | null;
   bursts: Burst[]; confetti: Confetti[];
   /** null = sol ainda não nasceu (tela de abertura); senão, timestamp do início do nascer */
   sunT0: number | null;
@@ -77,7 +89,7 @@ interface Sim {
 }
 function makeSim(): Sim {
   return {
-    planets: new Map(), cam: { x: 0, y: 0, s: 1 }, camTarget: { x: 0, y: 0, s: 1 },
+    planets: new Map(), station: null, cam: { x: 0, y: 0, s: 1 }, camTarget: { x: 0, y: 0, s: 1 },
     mode: "system", focusId: null, hover: null, bursts: [], confetti: [],
     sunT0: null, sunParticles: [], W: 0, H: 0, DPR: 1,
   };
@@ -116,6 +128,11 @@ function makeSunParticles(): SunParticle[] {
   return out;
 }
 
+/* ---- estação: chegada e partida ---- */
+const ARRIVAL_MS = 3400;
+const DEPART_MS = 2600;
+const STATION_HULL = 11;
+
 function easeOutCubic(x: number) { return 1 - Math.pow(1 - x, 3); }
 /** avanço suave da espiral — pico de velocidade baixo, movimento cadenciado */
 function easeInOutSine(x: number) { return 0.5 - 0.5 * Math.cos(Math.PI * x); }
@@ -124,9 +141,10 @@ function clamp01(x: number) { return x < 0 ? 0 : x > 1 ? 1 : x; }
 
 export function CriarPage() {
   useRegisterGuide("criar");
-  const { userId, planetas, convitesPlaneta, relatorios, recursos, fotos, eventos, deletePlaneta, isLoading } = useCriar();
+  const { userId, planetas, estacao, convitesPlaneta, relatorios, recursos, fotos, eventos, deletePlaneta, desativarEstacao, isLoading } = useCriar();
   const ignitedKey = `${IGNITED_KEY_PREFIX}:${userId}`;
   const { tarefas, secoes } = useTarefas();
+  const desafiosData = useDesafios().query.data;
   const showToast = useToast();
   const offerShare = useOfferSocialShare();
 
@@ -146,6 +164,10 @@ export function CriarPage() {
   const [detailEvento, setDetailEvento] = useState<Evento | null>(null);
   const [membersOpen, setMembersOpen] = useState(false);
   const [invitesOpen, setInvitesOpen] = useState(false);
+  const [stationOpen, setStationOpen] = useState(false);
+
+  const desafiosAtivos = useMemo(() => (desafiosData?.desafios ?? []).filter((d) => d.status === "ativo"), [desafiosData]);
+  const estacaoNoCeu = !!estacao?.estacaoAtiva;
 
   /* --- abertura: o sol só nasce quando o usuário inicia o sistema --- */
   const [ignited, setIgnited] = useState(() => localStorage.getItem(ignitedKey) === "1");
@@ -154,19 +176,22 @@ export function CriarPage() {
   const ignitedRef = useRef(ignited);
   ignitedRef.current = ignited;
 
-  const dataRef = useRef({ planetas, relatorios, eventos, tarefas });
-  dataRef.current = { planetas, relatorios, eventos, tarefas };
+  const dataRef = useRef({ planetas, relatorios, eventos, tarefas, desafiosAtivos });
+  dataRef.current = { planetas, relatorios, eventos, tarefas, desafiosAtivos };
 
   const focusPlaneta = useMemo(() => planetas.find((p) => p.id === focusId) ?? null, [planetas, focusId]);
 
   function setHint() {
     const el = hintRef.current;
     if (!el) return;
-    el.textContent = simRef.current.mode === "planet"
+    const mode = simRef.current.mode;
+    el.textContent = mode === "planet"
       ? "Clique numa lua para abrir"
-      : dataRef.current.planetas.length === 0
-        ? "Crie o primeiro planeta pra começar"
-        : "Clique num planeta para se aproximar";
+      : mode === "station"
+        ? "Você está na estação"
+        : dataRef.current.planetas.length === 0
+          ? "Crie o primeiro planeta pra começar"
+          : "Clique num planeta para se aproximar";
   }
 
   /** o usuário acende o sistema: sol nasce, depois surge o "Adicionar planeta" */
@@ -186,7 +211,13 @@ export function CriarPage() {
   }
   function backToSystem() {
     simRef.current.mode = "system"; simRef.current.focusId = null;
+    setFocusId(null); setOpenMoonId(null); setStationOpen(false);
+    setHint();
+  }
+  function enterStation() {
+    simRef.current.mode = "station"; simRef.current.focusId = null;
     setFocusId(null); setOpenMoonId(null);
+    setStationOpen(true);
     setHint();
   }
 
@@ -259,8 +290,29 @@ export function CriarPage() {
       const a = t * m.speed + m.phase;
       return { x: pp.x + Math.cos(a) * m.orbit, y: pp.y + Math.sin(a) * m.orbit };
     }
+    function stationPos(st: SimStation, rf = 1) {
+      return { x: Math.cos(st.angle) * st.dist * rf, y: Math.sin(st.angle) * st.dist * rf };
+    }
+    /** fator de raio da estação: >1 enquanto ela chega de longe ou parte */
+    function stationPhase(now: number): { rf: number; alpha: number } {
+      const st = sim.station;
+      if (!st) return { rf: 1, alpha: 1 };
+      if (st.departT0 !== null) {
+        const u = clamp01((now - st.departT0) / DEPART_MS);
+        return { rf: 1 + 2.2 * easeInOutCubic(u), alpha: 1 - u };
+      }
+      if (st.arrivalT0 !== null) {
+        const el = now - st.arrivalT0;
+        if (el >= ARRIVAL_MS) { st.arrivalT0 = null; return { rf: 1, alpha: 1 }; }
+        const u = clamp01(el / ARRIVAL_MS);
+        return { rf: 2.8 - 1.8 * easeOutCubic(u), alpha: Math.min(1, el / 500) };
+      }
+      return { rf: 1, alpha: 1 };
+    }
+
     function fitScale() {
       const dists = [...sim.planets.values()].map((p) => p.dist);
+      if (sim.station) dists.push(sim.station.dist);
       const maxD = dists.length ? Math.max(...dists) + 90 : 260;
       return Math.min(1.05, (Math.min(sim.W, sim.H) / 2 / maxD) * 0.95);
     }
@@ -444,6 +496,85 @@ export function CriarPage() {
         ctx.globalAlpha = 1;
       }
     }
+    /** Estação Órbita: casco metálico, painéis solares e um satélite por desafio ativo */
+    function drawStation(t: number, now: number) {
+      const st = sim.station;
+      if (!st) return;
+      const { rf, alpha } = stationPhase(now);
+      if (alpha <= 0) return;
+      const { x, y } = stationPos(st, rf);
+      const dimmed = sim.mode === "planet" && sim.focusId !== null;
+      const a = alpha * (dimmed ? 0.25 : 1);
+      const hair = 1 / sim.cam.s;
+
+      ctx.save();
+      ctx.globalAlpha = a;
+
+      // rastro de luz enquanto a estação cruza o sistema
+      if (rf !== 1) {
+        const back = stationPos(st, rf + 0.35);
+        const g = ctx.createLinearGradient(back.x, back.y, x, y);
+        g.addColorStop(0, "rgba(148,180,255,0)");
+        g.addColorStop(1, "rgba(190,215,255,.5)");
+        ctx.strokeStyle = g; ctx.lineWidth = 3 * hair; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(back.x, back.y); ctx.lineTo(x, y); ctx.stroke();
+      }
+
+      // halo
+      let g = ctx.createRadialGradient(x, y, STATION_HULL * 0.6, x, y, STATION_HULL * 4);
+      g.addColorStop(0, "rgba(140,180,255,.18)"); g.addColorStop(1, "rgba(140,180,255,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, STATION_HULL * 4, 0, TAU); ctx.fill();
+
+      // satélites: um por desafio ativo, na cor do desafio
+      const desafios = dataRef.current.desafiosAtivos;
+      for (let i = 0; i < desafios.length; i++) {
+        const ang = t * 0.7 + (i * TAU) / desafios.length;
+        const sx = x + Math.cos(ang) * 30, sy = y + Math.sin(ang) * 30 * 0.62;
+        const cor = desafios[i].cor;
+        ctx.strokeStyle = cor + "55"; ctx.lineWidth = hair;
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(sx, sy); ctx.stroke();
+        g = ctx.createRadialGradient(sx, sy, 0, sx, sy, 8);
+        g.addColorStop(0, cor + "cc"); g.addColorStop(1, cor + "00");
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, 8, 0, TAU); ctx.fill();
+        ctx.fillStyle = "#f2f7ff"; ctx.beginPath(); ctx.arc(sx, sy, 2.4, 0, TAU); ctx.fill();
+      }
+
+      ctx.translate(x, y);
+      ctx.rotate(st.angle + Math.PI / 2);
+      const R = STATION_HULL;
+
+      // painéis solares nas duas pontas
+      for (const sgn of [-1, 1]) {
+        const px = sgn > 0 ? R + 5 : -R - 21;
+        ctx.strokeStyle = "rgba(120,150,220,.7)"; ctx.lineWidth = 2.5 * hair;
+        ctx.beginPath(); ctx.moveTo(sgn * R, 0); ctx.lineTo(sgn * (R + 5), 0); ctx.stroke();
+        ctx.fillStyle = "rgba(14,24,52,.95)"; ctx.fillRect(px, -4, 16, 8);
+        ctx.strokeStyle = "rgba(148,180,255,.5)"; ctx.lineWidth = hair;
+        ctx.strokeRect(px, -4, 16, 8);
+        for (let i = 1; i < 4; i++) {
+          ctx.beginPath(); ctx.moveTo(px + i * 4, -4); ctx.lineTo(px + i * 4, 4); ctx.stroke();
+        }
+      }
+
+      // casco
+      g = ctx.createRadialGradient(-R * 0.35, -R * 0.4, R * 0.15, 0, 0, R);
+      g.addColorStop(0, "#e8eefb"); g.addColorStop(0.5, "#c3cee6"); g.addColorStop(1, "#78849f");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
+      ctx.strokeStyle = "rgba(52,68,102,.85)"; ctx.lineWidth = hair; ctx.stroke();
+      ctx.strokeStyle = "rgba(110,168,255,.6)";
+      ctx.beginPath(); ctx.arc(0, 0, R * 0.62, 0, TAU); ctx.stroke();
+      ctx.fillStyle = "#0d1630"; ctx.beginPath(); ctx.arc(0, 0, R * 0.32, 0, TAU); ctx.fill();
+
+      // antena com farol piscando
+      ctx.strokeStyle = "rgba(90,105,140,.95)"; ctx.lineWidth = 1.4 * hair;
+      ctx.beginPath(); ctx.moveTo(0, -R); ctx.lineTo(0, -R - 7); ctx.stroke();
+      const blink = 0.3 + 0.7 * Math.abs(Math.sin(t * 1.6));
+      ctx.fillStyle = `rgba(255,210,125,${blink})`;
+      ctx.beginPath(); ctx.arc(0, -R - 8, 2.2, 0, TAU); ctx.fill();
+
+      ctx.restore();
+    }
+
     function drawExcitement(t: number) {
       for (const sp of sim.planets.values()) {
         const p = dataRef.current.planetas.find((x) => x.id === sp.id);
@@ -509,6 +640,14 @@ export function CriarPage() {
         ctx.fillStyle = hsla(hueOf(p.cor), 12 + 60 * hval, 82, 0.92 * lbA);
         ctx.fillText(p.nome, sc.x, sc.y + sp.size * sim.cam.s + 17);
       }
+      if (sim.station) {
+        const phase = stationPhase(performance.now());
+        if (phase.alpha > 0.4) {
+          const stp = stationPos(sim.station, phase.rf), sc = worldToScreen(stp.x, stp.y);
+          ctx.fillStyle = `rgba(200,218,255,${0.9 * lbA * phase.alpha})`;
+          ctx.fillText("Estação", sc.x, sc.y + STATION_HULL * sim.cam.s + 20);
+        }
+      }
     }
 
     let last = performance.now();
@@ -524,9 +663,17 @@ export function CriarPage() {
         sp.spin += sp.spinSpeed * dt;
       }
 
+      if (sim.station) sim.station.angle += sim.station.baseSpeed * dt;
+
       if (sim.mode === "planet" && sim.focusId) {
         const sp = sim.planets.get(sim.focusId);
         if (sp) { const pp = planetPos(sp); sim.camTarget.x = pp.x; sim.camTarget.y = pp.y; sim.camTarget.s = 3; }
+      } else if (sim.mode === "station" && sim.station) {
+        const stp = stationPos(sim.station, stationPhase(now).rf);
+        const s = 2.6;
+        // a gaveta da estação é larga: desloca a câmera pra ela não ficar atrás do painel
+        const gaveta = Math.min(580, sim.W * 0.92);
+        sim.camTarget.x = stp.x + gaveta / 2 / s; sim.camTarget.y = stp.y; sim.camTarget.s = s;
       } else { sim.camTarget.x = 0; sim.camTarget.y = 0; sim.camTarget.s = fitScale(); }
       const k = Math.min(1, dt * 3.5);
       sim.cam.x += (sim.camTarget.x - sim.cam.x) * k; sim.cam.y += (sim.camTarget.y - sim.cam.y) * k; sim.cam.s += (sim.camTarget.s - sim.cam.s) * k;
@@ -538,6 +685,13 @@ export function CriarPage() {
 
       ctx.lineWidth = 1 / sim.cam.s;
       for (const sp of sim.planets.values()) { ctx.strokeStyle = "rgba(140,170,255,.08)"; ctx.beginPath(); ctx.arc(0, 0, sp.dist, 0, TAU); ctx.stroke(); }
+      if (sim.station) {
+        ctx.save();
+        ctx.setLineDash([6 / sim.cam.s, 8 / sim.cam.s]);
+        ctx.strokeStyle = "rgba(160,190,255,.13)";
+        ctx.beginPath(); ctx.arc(0, 0, sim.station.dist, 0, TAU); ctx.stroke();
+        ctx.restore();
+      }
       drawSun(t, now);
       for (const sp of sim.planets.values()) {
         const p = dataRef.current.planetas.find((x) => x.id === sp.id);
@@ -547,6 +701,7 @@ export function CriarPage() {
         drawPlanet(p, sp, t);
         if (dimmed) ctx.globalAlpha = 1;
       }
+      drawStation(t, now);
       drawExcitement(t);
       if (sim.mode === "planet" && sim.focusId) {
         const sp = sim.planets.get(sim.focusId);
@@ -575,6 +730,11 @@ export function CriarPage() {
         return null;
       }
       if (sim.mode === "system") {
+        if (sim.station && sim.station.departT0 === null) {
+          const stp = stationPos(sim.station, stationPhase(performance.now()).rf);
+          // alvo mais generoso que o dos planetas: o casco é menor que qualquer planeta
+          if (Math.hypot(w.x - stp.x, w.y - stp.y) < STATION_HULL + 24 / sim.cam.s) return { kind: "station" };
+        }
         for (const sp of sim.planets.values()) {
           const pp = planetPos(sp);
           if (Math.hypot(w.x - pp.x, w.y - pp.y) < sp.size + 10 / sim.cam.s) return { kind: "planet", id: sp.id };
@@ -599,6 +759,11 @@ export function CriarPage() {
           tooltip.style.display = "block";
           tooltip.style.left = Math.min(sim.W - 220, sx + 16) + "px"; tooltip.style.top = sy + 16 + "px";
         }
+      } else if (hit?.kind === "station") {
+        const n = dataRef.current.desafiosAtivos.length;
+        tooltip.innerHTML = `<b>Estação Órbita</b><br><span style="color:var(--muted)">${n} ${n === 1 ? "desafio ativo" : "desafios ativos"} · entre para relatar</span>`;
+        tooltip.style.display = "block";
+        tooltip.style.left = Math.min(sim.W - 220, sx + 16) + "px"; tooltip.style.top = sy + 16 + "px";
       } else if (hit?.kind === "moon") {
         const label = hit.moonId === "relatorio" ? "Relatório" : hit.moonId === "recursos" ? "Recursos" : "Fotos";
         tooltip.innerHTML = `<b>${label}</b>`;
@@ -611,6 +776,7 @@ export function CriarPage() {
       const hit = hitTest(e.clientX - rect.left, e.clientY - rect.top);
       if (!hit) return;
       if (hit.kind === "planet") focusOn(hit.id);
+      else if (hit.kind === "station") enterStationRef.current();
       else openMoonRef.current(hit.moonId);
     }
 
@@ -627,6 +793,8 @@ export function CriarPage() {
 
   const openMoonRef = useRef((id: string) => setOpenMoonId(id));
   openMoonRef.current = (id: string) => setOpenMoonId(id);
+  const enterStationRef = useRef(enterStation);
+  enterStationRef.current = enterStation;
 
   /* ---------------- sync planetas -> sim ---------------- */
   useEffect(() => {
@@ -646,6 +814,52 @@ export function CriarPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planetas]);
 
+  /* ---- estação: entra na órbita mais externa, sempre atrás de todos os planetas ---- */
+  const chegandoRef = useRef(searchParams.get("estacao") === "chegando");
+  useEffect(() => {
+    const sim = simRef.current;
+    if (!estacaoNoCeu) {
+      if (sim.station?.departT0 === null) sim.station = null;
+      return;
+    }
+    if (!sim.station) {
+      sim.station = {
+        dist: 0, angle: Math.random() * TAU, baseSpeed: 0,
+        arrivalT0: chegandoRef.current ? performance.now() : null, departT0: null,
+      };
+      chegandoRef.current = false;
+    }
+    sim.station.departT0 = null;
+    const maxPlaneta = [...sim.planets.values()].reduce((m, p) => Math.max(m, p.dist), 62);
+    sim.station.dist = maxPlaneta + 88;
+    sim.station.baseSpeed = 22 / Math.pow(sim.station.dist, 1.12);
+  }, [estacaoNoCeu, planetas.length]);
+
+  /**
+   * A estação deixa a órbita quando o último desafio ativo termina enquanto você assiste.
+   * É uma transição (1+ → 0), não um estado: quem abre o Criar sem desafio ativo continua
+   * com a estação atracada, senão ativá-la não serviria pra nada até criar o primeiro desafio.
+   */
+  const ativosAnteriorRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!desafiosData) return;
+    const anterior = ativosAnteriorRef.current;
+    ativosAnteriorRef.current = desafiosAtivos.length;
+    if (anterior === null || anterior === 0 || desafiosAtivos.length > 0) return;
+    if (!estacaoNoCeu) return;
+    const sim = simRef.current;
+    if (!sim.station || sim.station.departT0 !== null) return;
+    sim.station.departT0 = performance.now();
+    if (sim.mode === "station") backToSystem();
+    showToast("Último desafio encerrado — a estação deixou a órbita.");
+    const timer = setTimeout(() => {
+      simRef.current.station = null;
+      desativarEstacao.mutate();
+    }, DEPART_MS);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estacaoNoCeu, desafiosAtivos.length, desafiosData]);
+
   // quem já tem planetas nunca vê a abertura — o sol já está aceso
   useEffect(() => {
     if (ignited || planetas.length === 0) return;
@@ -654,7 +868,7 @@ export function CriarPage() {
     setIgnited(true); setSunUp(true); setIntroGone(true);
   }, [ignited, ignitedKey, planetas.length]);
 
-  useEffect(() => { setHint(); }, [sunUp, planetas.length, focusId]);
+  useEffect(() => { setHint(); }, [sunUp, planetas.length, focusId, stationOpen]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -667,7 +881,7 @@ export function CriarPage() {
       else if (statsOpen) setStatsOpen(false);
       else if (confirmDeleteOpen) setConfirmDeleteOpen(false);
       else if (openMoonId) setOpenMoonId(null);
-      else if (focusId) backToSystem();
+      else if (stationOpen || focusId) backToSystem();
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -693,7 +907,7 @@ export function CriarPage() {
 
       <header className="criar-topbar">
         <div className="criar-topbar-left">
-          {focusId && <button className="btn" onClick={backToSystem}><BackIcon /> Voltar ao sistema</button>}
+          {(focusId || stationOpen) && <button className="btn" onClick={backToSystem}><BackIcon /> Voltar ao sistema</button>}
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           {!!convitesPlaneta.length && <button className="btn criar-invites" onClick={() => setInvitesOpen(true)}><UsersIcon /> Convites <b>{convitesPlaneta.length}</b></button>}
@@ -765,6 +979,10 @@ export function CriarPage() {
           onCancel={() => setConfirmDeleteOpen(false)}
           onConfirm={() => deletePlaneta.mutate(focusPlaneta.id, { onSuccess: () => { setConfirmDeleteOpen(false); backToSystem(); } })}
         />
+      )}
+
+      {stationOpen && estacao && (
+        <StationDrawer estacao={estacao} relatorios={relatorios} onClose={backToSystem} />
       )}
 
       {openMoonId && focusPlaneta && (

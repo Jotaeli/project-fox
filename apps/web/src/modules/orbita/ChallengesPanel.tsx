@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { DesafioSocial } from "@project-fox/types";
-import { AwardIcon, CheckIcon, ChecklistIcon, ClockIcon, CloseIcon, PlusIcon, TargetIcon, UsersIcon } from "../../icons/index.js";
+import { AwardIcon, CheckIcon, ChecklistIcon, ClockIcon, CloseIcon, OrbitIcon, PlusIcon, TargetIcon, UsersIcon } from "../../icons/index.js";
+import { useEstacao } from "../criar/useEstacao.js";
+import { errorMessage } from "../../lib/errorMessage.js";
 import { useToast } from "../../lib/toast.js";
 import { useEscapeToClose } from "../../lib/useEscapeToClose.js";
 import type { FriendSummary } from "./useOrbita.js";
@@ -19,6 +22,8 @@ function daysUntil(date: string) {
 
 export function ChallengesPanel({ friends }: { friends: FriendSummary[] }) {
   const data = useDesafios();
+  const { estacao, ativar: ativarEstacao } = useEstacao();
+  const navigate = useNavigate();
   const toast = useToast();
   const [createOpen, setCreateOpen] = useState(false);
   const [selected, setSelected] = useState<DesafioSocial | null>(null);
@@ -30,17 +35,36 @@ export function ChallengesPanel({ friends }: { friends: FriendSummary[] }) {
 
   async function act(action: () => Promise<unknown>, success: string) {
     try { await action(); toast(success); return true; }
-    catch (e) { toast(e instanceof Error ? e.message : String(e)); return false; }
+    catch (e) { toast(errorMessage(e)); return false; }
   }
 
   if (data.query.isLoading) return <div className="challenge-loading">Preparando desafios…</div>;
   if (data.query.isError) return <div className="or-card or-error"><TargetIcon /><p>Não foi possível carregar os desafios.</p></div>;
 
+  const estacaoAtiva = !!estacao?.ativa;
+
+  async function ativar() {
+    try {
+      await ativarEstacao.mutateAsync();
+      toast("Estação a caminho da sua órbita.");
+      navigate("/criar?estacao=chegando");
+    } catch (e) {
+      toast(errorMessage(e));
+    }
+  }
+
   return <div className="challenge-panel">
     <div className="challenge-toolbar">
       <div className="challenge-filter"><button className={!history ? "active" : ""} onClick={() => setHistory(false)}>Ativos</button><button className={history ? "active" : ""} onClick={() => setHistory(true)}>Histórico</button></div>
-      <button className="btn primary" onClick={() => setCreateOpen(true)} disabled={!friends.length}><PlusIcon /> Novo desafio</button>
+      <button className="btn primary" onClick={() => setCreateOpen(true)} disabled={!friends.length || !estacaoAtiva}><PlusIcon /> Novo desafio</button>
     </div>
+
+    {!estacaoAtiva && <section className="or-card station-gate">
+      <span className="station-gate-icon"><OrbitIcon /></span>
+      <h3>Ative sua estação</h3>
+      <p>Os desafios são comprovados com relatórios escritos dentro da Estação Órbita — o corpo social do seu sistema solar. Ative para vê-la entrar em órbita no Criar.</p>
+      <button className="btn primary" onClick={ativar} disabled={ativarEstacao.isPending}><OrbitIcon /> {ativarEstacao.isPending ? "Lançando…" : "Ativar estação"}</button>
+    </section>}
 
     {!!pending.length && !history && <section className="challenge-invites">
       <header><UsersIcon /><span>Convites esperando você</span><b>{pending.length}</b></header>
@@ -59,6 +83,7 @@ export function ChallengesPanel({ friends }: { friends: FriendSummary[] }) {
     {!friends.length && !history && <section className="or-card challenge-no-friends"><UsersIcon /><h3>Desafios começam com companhia</h3><p>Adicione alguém à sua órbita para criar uma meta compartilhada.</p></section>}
 
     {visible.length ? <div className="challenge-grid">{visible.map((challenge) => {
+
       const participants = all?.participantes.filter((p) => p.desafioId === challenge.id && p.status === "aceito") ?? [];
       const objectives = all?.objetivos.filter((o) => o.desafioId === challenge.id) ?? [];
       const mine = all?.progresso.filter((p) => p.userId === data.userId && objectives.some((o) => o.id === p.objetivoId)).length ?? 0;
@@ -71,7 +96,7 @@ export function ChallengesPanel({ friends }: { friends: FriendSummary[] }) {
         <div className="challenge-progress"><div><span style={{ width: `${objectives.length ? mine / objectives.length * 100 : 0}%`, background: challenge.cor }} /></div><small>Você: {mine}/{objectives.length}</small></div>
         <footer><span><UsersIcon /> {participants.length} participantes</span><span><AwardIcon /> {complete}/{participants.length} concluíram</span></footer>
       </button>;
-    })}</div> : !!friends.length && <section className="or-card challenge-empty"><TargetIcon /><h3>{history ? "Nenhum desafio encerrado" : "Nenhum desafio ativo"}</h3><p>{history ? "Os concluídos e vencidos aparecerão aqui." : "Transforme uma meta em compromisso compartilhado."}</p>{!history && <button className="btn primary" onClick={() => setCreateOpen(true)}><PlusIcon /> Criar primeiro desafio</button>}</section>}
+    })}</div> : !!friends.length && (estacaoAtiva || history) && <section className="or-card challenge-empty"><TargetIcon /><h3>{history ? "Nenhum desafio encerrado" : "Nenhum desafio ativo"}</h3><p>{history ? "Os concluídos e vencidos aparecerão aqui." : "Transforme uma meta em compromisso compartilhado."}</p>{!history && <button className="btn primary" onClick={() => setCreateOpen(true)}><PlusIcon /> Criar primeiro desafio</button>}</section>}
 
     {createOpen && <CreateChallengeModal friends={friends} pending={data.create.isPending} onClose={() => setCreateOpen(false)} onCreate={(input) => act(() => data.create.mutateAsync(input), "Desafio criado e convites enviados.").then((ok) => { if (ok) setCreateOpen(false); })} />}
     {selected && all && <ChallengeDetail challenge={selected} userId={data.userId!} participants={all.participantes.filter((p) => p.desafioId === selected.id)} objectives={all.objetivos.filter((o) => o.desafioId === selected.id)} progress={all.progresso} reports={data.reports.data ?? []} pending={data.prove.isPending} onClose={() => setSelected(null)} onProve={(objectiveId, reportId) => act(() => data.prove.mutateAsync({ objectiveId, reportId }), "Objetivo comprovado.")} />}
@@ -109,7 +134,7 @@ function ChallengeDetail({ challenge, userId, participants, objectives, progress
     <section className="challenge-team-progress"><h3><UsersIcon /> Progresso do grupo</h3><div>{accepted.map((person) => <span key={person.userId} className={person.userId === userId ? "me" : ""}><i>{person.nome.charAt(0)}</i><strong>{person.userId === userId ? "Você" : person.nome}</strong><small>{totalProofs(person.userId)}/{objectives.length}</small>{person.concluidoEm && <CheckIcon />}</span>)}</div></section>
     <section className="challenge-my-list"><h3><ChecklistIcon /> Seu checklist</h3>{objectives.map((objective, i) => {
       const done = ownProgress.has(objective.id); const selected = selectedReports[objective.id] ?? "";
-      return <div className={`challenge-proof-row${done ? " done" : ""}`} key={objective.id}><span className="challenge-proof-index">{done ? <CheckIcon /> : i + 1}</span><div><strong>{objective.titulo}</strong>{done ? <small>Comprovado com relatório</small> : reports.length ? <select value={selected} onChange={(e) => setSelectedReports((v) => ({ ...v, [objective.id]: e.target.value }))}><option value="">Escolha um relatório como prova</option>{reports.map((report) => <option key={report.id} value={report.id}>{report.planetaNome} · {report.conteudo.slice(0, 55)}</option>)}</select> : <small>Crie um relatório em algum planeta para comprovar.</small>}</div>{!done && reports.length > 0 && <button className="btn" disabled={!selected || pending} onClick={() => onProve(objective.id, selected)}>Comprovar</button>}</div>;
+      return <div className={`challenge-proof-row${done ? " done" : ""}`} key={objective.id}><span className="challenge-proof-index">{done ? <CheckIcon /> : i + 1}</span><div><strong>{objective.titulo}</strong>{done ? <small>Comprovado com relatório</small> : reports.length ? <select value={selected} onChange={(e) => setSelectedReports((v) => ({ ...v, [objective.id]: e.target.value }))}><option value="">Escolha um relatório da estação</option>{reports.map((report) => <option key={report.id} value={report.id}>{report.conteudo.slice(0, 65)}</option>)}</select> : <small>Escreva um relatório dentro da estação, no Criar, para comprovar.</small>}</div>{!done && reports.length > 0 && <button className="btn" disabled={!selected || pending} onClick={() => onProve(objective.id, selected)}>Comprovar</button>}</div>;
     })}</section>
     <div className="challenge-detail-footer"><ClockIcon /> Prazo em {formatDate(challenge.prazo)} · cada pessoa comprova o próprio checklist.</div>
   </div></div>;
