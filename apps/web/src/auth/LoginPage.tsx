@@ -150,7 +150,10 @@ export function LoginPage() {
         const { error: err } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { nome: nome || email } },
+          options: {
+            data: { nome: nome || email },
+            emailRedirectTo: `${window.location.origin}/login`,
+          },
         });
         if (err) throw err;
         setInfo("Conta criada! Se a confirmação por e-mail estiver ativa, verifique sua caixa de entrada.");
