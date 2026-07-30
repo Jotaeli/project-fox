@@ -3,6 +3,8 @@ dist/
 build/
 .expo/
 .expo-shared/
+apps/mobile/android/
+apps/mobile/ios/
 .turbo/
 *.tsbuildinfo
 .env

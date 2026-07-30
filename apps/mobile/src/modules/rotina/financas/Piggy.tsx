@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import Animated, { useAnimatedProps, useSharedValue, withTiming } from "react-native-reanimated";
+import { runOnJS, useAnimatedReaction, useSharedValue, withTiming } from "react-native-reanimated";
 import Svg, { Circle, ClipPath, Defs, Ellipse, G, Path, RadialGradient, Stop } from "react-native-svg";
 import { fmtBRL } from "../../../lib/currentMonth";
 import { colors, spacing } from "../../../theme/theme";
@@ -31,14 +31,18 @@ export function Piggy({ avail, total, spent }: { avail: number; total: number; s
   const frac = total > 0 ? avail / total : 0;
   const shownCount = Math.round(frac * COIN_POSITIONS.length);
   const animAvail = useSharedValue(avail);
+  const [displayAvail, setDisplayAvail] = useState(avail);
 
   useEffect(() => {
     animAvail.value = withTiming(avail, { duration: 600 });
   }, [avail]);
 
-  const animatedProps = useAnimatedProps(() => ({
-    text: fmtBRL(Math.round(animAvail.value)),
-  })) as any;
+  useAnimatedReaction(
+    () => Math.round(animAvail.value),
+    (v, prev) => {
+      if (v !== prev) runOnJS(setDisplayAvail)(v);
+    }
+  );
 
   const pct = total ? Math.round((avail / total) * 100) : 0;
 
@@ -93,9 +97,7 @@ export function Piggy({ avail, total, spent }: { avail: number; total: number; s
           fill="rgba(255,255,255,0.1)"
         />
       </Svg>
-      <Animated.Text style={styles.availText} animatedProps={animatedProps}>
-        {fmtBRL(avail)}
-      </Animated.Text>
+      <Text style={styles.availText}>{fmtBRL(displayAvail)}</Text>
       <Text style={styles.availSub}>
         disponíveis de {fmtBRL(total)} · {pct}% do cofrinho
       </Text>
