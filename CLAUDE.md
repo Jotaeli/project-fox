@@ -7,7 +7,7 @@ App pessoal (web + Android, API compartilhada), multi-usuário, 3 módulos inter
 - Backend: Supabase (Postgres + Auth + Storage)
 - Multi-usuário desde o início (não é single-user)
 
-## Status: Fase 5.6 (Guia da Órbita + faixa social na Home) — COMPLETA
+## Status: Fase 6 (Android — casca + 3 módulos portados) — COMPLETA
 - [x] `prototypes/solar-system.html` — Desenvolver/Criar
 - [x] `prototypes/neural-notes.html` — Anotar
 - [x] `prototypes/rotina.html` — Rotina (3 sub-abas)
@@ -28,6 +28,9 @@ App pessoal (web + Android, API compartilhada), multi-usuário, 3 módulos inter
 - [x] Web/Supabase — Planetas compartilhados: dono e membros, convite/aceite, meta semanal e saúde por pessoa, média coletiva, autoria protegida em todo conteúdo e Storage privado por planeta (migrations `0012`–`0016`, teste multiusuário remoto)
 - [x] Web/Supabase — Espaços de notas compartilhados: grafo separado do pessoal, convite/aceite entre amigos, notas e conexões comuns, autoria protegida e posição dos nós individual por usuário (migrations `0017`–`0018`, teste multiusuário remoto)
 - [x] Web — Guia da Órbita em 4 passos com metáfora de constelação e faixa social na Home com streak, pulso recente, desafio ativo, conexões, notificações e atalho para a Órbita
+- [x] Web/Supabase — Estação Órbita: local único de comprovação de desafios (substitui "qualquer relatório de qualquer planeta serve"); entra/sai da órbita por transição conforme desafios ativos; um satélite por desafio ativo, compositor de relatório com check de objetivo no mesmo envio (migrations `0022`–`0023`)
+- [x] Android — casca de navegação Expo (`App.tsx`, `AuthContext`, `RootNavigator`, bottom tabs Home/Rotina/Anotar/Desenvolver·Criar/Órbita) com tema escuro, React Query e Supabase real
+- [x] Android — port completo dos 3 módulos: Rotina (Finanças com porquinho + donut via Skia, Wishlist tierlist, Tarefas com seções/pilha), Anotar (grafo com Skia), Desenvolver/Criar (sistema solar com Skia, estação Órbita incluída), Órbita (feed, desafios, ranking, streak, notificações, perfis)
 
 ### Specs da Rotina (definidas pelo usuário, prototipadas)
 - **Finanças**: cofrinho porquinho ilustrado (arte fornecida pelo usuário, `prototypes/cofrinho.svg`, viewBox 1254×1254) com "janela de vidro" na barriga mostrando moedas douradas = % da renda restante; hover mostra saldo; renda mensal registrável (fonte + valor); modalidades de gasto (Wishlist sempre fixa + livres: comida, contas, rolê…); cada gasto tem check "foi pago" → moedas somem com stagger; abaixo do porquinho, gráfico anelar (donut) mostra % de cada modalidade sobre o total planejado, com legenda colorida e total no centro
@@ -80,8 +83,12 @@ Rodar protótipos: `preview_start` com `name: "prototypes"` (server já configur
    - 5.4. Planeta compartilhado (membros + convite, `autor_id` nas tabelas-filhas, storage por planeta) — completa
    - 5.5. Espaço de notas compartilhado (grafo separado, posição por usuário) — completa
    - 5.6. Guia da aba Órbita + faixa social na Home — completa
-6. Android (Expo) — versão enxuta *(próxima)*
-7. Polimento e deploy
+   - 5.7. Estação Órbita (comprovação de desafios centralizada) — completa
+6. Android (Expo) — versão enxuta — completa
+   - Casca de navegação, auth, bottom tabs — completa
+   - Port dos 3 módulos + Órbita social — completa
+   - *(pendente)* rodar em simulador/dispositivo real e validar fluxos ponta a ponta
+7. Polimento e deploy *(próxima)*
 
 ### Regras do Social (decididas pelo usuário)
 - **Postagens**: o app nunca posta sozinho — detecta o marco e oferece "Compartilhar" com a postagem pré-preenchida; o usuário confirma
