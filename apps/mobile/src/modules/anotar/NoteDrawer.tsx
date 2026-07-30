@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { BadgeNota, ConexaoNota, Nota } from "@project-fox/types";
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { CloseIcon, LinkIcon, TrashIcon } from "../../icons/index";
-import { colors, radius, spacing, typography } from "../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../theme/theme";
 import { BADGE_ORDER, BADGES, INDEP_RGB } from "./graph/badges";
 import { useAnotar } from "./useAnotar";
 
@@ -141,7 +141,7 @@ export function NoteDrawer({
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", justifyContent: "flex-end" },
-  card: {
+  card: { ...shadow.modal,
     maxHeight: "85%",
     backgroundColor: colors.panelSolid,
     borderTopLeftRadius: radius.lg,

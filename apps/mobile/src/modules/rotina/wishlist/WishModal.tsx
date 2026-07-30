@@ -2,8 +2,9 @@ import { useState } from "react";
 import type { TierWishlist } from "@project-fox/types";
 import * as ImagePicker from "expo-image-picker";
 import { Alert, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { GradientButton } from "../../../components/GradientButton";
 import { ImageIcon } from "../../../icons/index";
-import { colors, radius, spacing, typography } from "../../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../../theme/theme";
 import { TIER_ORDER, TIERS } from "./wishConstants";
 import { useWishlist, type NovaFoto } from "./useWishlist";
 
@@ -130,9 +131,9 @@ export function WishModal({ visible, onClose }: { visible: boolean; onClose: () 
               <Pressable style={styles.btn} onPress={onClose}>
                 <Text style={typography.body}>Cancelar</Text>
               </Pressable>
-              <Pressable style={[styles.btn, styles.btnPrimary]} onPress={submit} disabled={addItem.isPending}>
+              <GradientButton style={[styles.btn, styles.btnPrimary]} onPress={submit} disabled={addItem.isPending}>
                 <Text style={[typography.body, { fontWeight: "600" }]}>Adicionar desejo</Text>
-              </Pressable>
+              </GradientButton>
             </View>
           </ScrollView>
         </View>
@@ -143,7 +144,7 @@ export function WishModal({ visible, onClose }: { visible: boolean; onClose: () 
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", justifyContent: "flex-end" },
-  card: {
+  card: { ...shadow.modal,
     maxHeight: "88%",
     backgroundColor: colors.panelSolid,
     borderTopLeftRadius: radius.lg,
@@ -183,5 +184,5 @@ const styles = StyleSheet.create({
   },
   actions: { flexDirection: "row", justifyContent: "flex-end", gap: spacing.sm, marginBottom: spacing.lg },
   btn: { paddingVertical: 9, paddingHorizontal: 16, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
-  btnPrimary: { backgroundColor: "#3667c4", borderColor: "rgba(148,180,255,0.4)" },
+  btnPrimary: { borderColor: "rgba(148,180,255,0.4)" },
 });

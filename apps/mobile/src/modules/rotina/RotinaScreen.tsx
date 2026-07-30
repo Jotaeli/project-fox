@@ -39,7 +39,7 @@ export function RotinaScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0 },
+  screen: { flex: 1 },
   segmented: {
     flexDirection: "row",
     margin: spacing.lg,

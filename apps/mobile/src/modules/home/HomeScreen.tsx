@@ -19,9 +19,9 @@ export function HomeScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerText}>
           <Text style={typography.muted}>{saudacao()},</Text>
-          <Text style={typography.title}>{nome}</Text>
+          <Text style={typography.title} numberOfLines={1}>{nome}</Text>
         </View>
         <Pressable style={styles.logout} onPress={() => supabase.auth.signOut()}>
           <LogoutIcon size={18} color={colors.muted} />
@@ -39,8 +39,9 @@ export function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0, padding: spacing.lg },
+  screen: { flex: 1, padding: spacing.lg },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.xl },
+  headerText: { flex: 1, marginRight: spacing.sm },
   logout: {
     width: 34,
     height: 34,

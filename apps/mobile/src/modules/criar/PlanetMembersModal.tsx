@@ -4,7 +4,7 @@ import Slider from "@react-native-community/slider";
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { FriendSummary } from "../orbita/useOrbita";
 import { CloseIcon, PlusIcon, UsersIcon } from "../../icons/index";
-import { colors, radius, spacing, typography } from "../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../theme/theme";
 import { memberHealth, useCriar } from "./useCriar";
 
 export function PlanetMembersModal({
@@ -112,7 +112,7 @@ export function PlanetMembersModal({
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", justifyContent: "flex-end" },
-  card: { maxHeight: "88%", backgroundColor: colors.panelSolid, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg },
+  card: { ...shadow.modal, maxHeight: "88%", backgroundColor: colors.panelSolid, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   section: { gap: spacing.xs },
   sectionHead: { flexDirection: "row", alignItems: "center", gap: 6 },

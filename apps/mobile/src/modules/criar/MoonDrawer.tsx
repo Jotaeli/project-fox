@@ -3,9 +3,10 @@ import type { Foto, Planeta, Recurso, Relatorio } from "@project-fox/types";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { GradientButton } from "../../components/GradientButton";
 import { CloseIcon, ExtIcon, PlusIcon } from "../../icons/index";
 import { capFirst } from "../../lib/currentMonth";
-import { colors, radius, spacing, typography } from "../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../theme/theme";
 import { MOON_STYLE } from "./criarConstants";
 import { weeklyCount, health } from "./useCriar";
 import { useCriar } from "./useCriar";
@@ -105,9 +106,9 @@ export function MoonDrawer({
                 placeholder={`Como foi hoje em ${planeta.nome}?`}
                 placeholderTextColor={colors.muted}
               />
-              <Pressable style={[styles.btn, styles.btnPrimary]} onPress={sendReport} disabled={addRelatorio.isPending}>
+              <GradientButton style={[styles.btn, styles.btnPrimary]} onPress={sendReport} disabled={addRelatorio.isPending}>
                 <Text style={[typography.body, { fontWeight: "600" }]}>Enviar relatório</Text>
-              </Pressable>
+              </GradientButton>
             </ScrollView>
           )}
 
@@ -123,10 +124,10 @@ export function MoonDrawer({
                   </View>
                 </Pressable>
               ))}
-              <Pressable style={[styles.btn, styles.btnPrimary]} onPress={pickRecurso}>
+              <GradientButton style={[styles.btn, styles.btnPrimary]} onPress={pickRecurso}>
                 <PlusIcon size={13} color={colors.text} />
                 <Text style={[typography.body, { fontWeight: "600" }]}>Adicionar recurso</Text>
-              </Pressable>
+              </GradientButton>
             </ScrollView>
           )}
 
@@ -138,10 +139,10 @@ export function MoonDrawer({
                   <Image key={f.id} source={{ uri: f.url }} style={styles.photo} />
                 ))}
               </View>
-              <Pressable style={[styles.btn, styles.btnPrimary]} onPress={pickFoto}>
+              <GradientButton style={[styles.btn, styles.btnPrimary]} onPress={pickFoto}>
                 <PlusIcon size={13} color={colors.text} />
                 <Text style={[typography.body, { fontWeight: "600" }]}>Adicionar foto</Text>
-              </Pressable>
+              </GradientButton>
             </ScrollView>
           )}
         </View>
@@ -152,7 +153,7 @@ export function MoonDrawer({
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", justifyContent: "flex-end" },
-  card: { maxHeight: "85%", backgroundColor: colors.panelSolid, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg, gap: spacing.md },
+  card: { ...shadow.modal, maxHeight: "85%", backgroundColor: colors.panelSolid, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg, gap: spacing.md },
   head: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   chip: { flexDirection: "row", alignItems: "center", gap: 6 },
   dot: { width: 8, height: 8, borderRadius: 4 },
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
   input: { backgroundColor: "rgba(8,14,32,0.8)", borderWidth: 1, borderColor: colors.line, borderRadius: radius.sm, color: colors.text, padding: 10 },
   textarea: { minHeight: 70, textAlignVertical: "top" },
   btn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 10, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
-  btnPrimary: { backgroundColor: "#3667c4", borderColor: "rgba(148,180,255,0.4)" },
+  btnPrimary: { borderColor: "rgba(148,180,255,0.4)" },
   resItem: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.line },
   photoGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   photo: { width: 90, height: 90, borderRadius: radius.sm },

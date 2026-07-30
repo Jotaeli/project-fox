@@ -11,6 +11,6 @@ export function PlaceholderScreen({ label }: { label: string }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0, alignItems: "center", justifyContent: "center", gap: spacing.sm },
+  screen: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.sm },
   body: { textAlign: "center" },
 });

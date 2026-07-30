@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { colors, radius, spacing, typography } from "../../../theme/theme";
+import { GradientButton } from "../../../components/GradientButton";
+import { colors, radius, shadow, spacing, typography } from "../../../theme/theme";
 import { HUES } from "../wishlist/wishConstants";
 import { useFinancas } from "./useFinancas";
 
@@ -56,9 +57,9 @@ export function NovaModalidadeModal({ visible, onClose }: { visible: boolean; on
             <Pressable style={styles.btn} onPress={onClose}>
               <Text style={typography.body}>Cancelar</Text>
             </Pressable>
-            <Pressable style={[styles.btn, styles.btnPrimary]} onPress={submit} disabled={addModalidade.isPending}>
+            <GradientButton style={[styles.btn, styles.btnPrimary]} onPress={submit} disabled={addModalidade.isPending}>
               <Text style={[typography.body, { fontWeight: "600" }]}>Criar modalidade</Text>
-            </Pressable>
+            </GradientButton>
           </View>
         </Pressable>
       </Pressable>
@@ -68,7 +69,7 @@ export function NovaModalidadeModal({ visible, onClose }: { visible: boolean; on
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", alignItems: "center", justifyContent: "center" },
-  card: {
+  card: { ...shadow.modal,
     width: 340,
     maxWidth: "90%",
     backgroundColor: colors.panelSolid,
@@ -93,5 +94,5 @@ const styles = StyleSheet.create({
   swatchSel: { borderColor: "#fff" },
   actions: { flexDirection: "row", justifyContent: "flex-end", gap: spacing.sm },
   btn: { paddingVertical: 9, paddingHorizontal: 16, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
-  btnPrimary: { backgroundColor: "#3667c4", borderColor: "rgba(148,180,255,0.4)" },
+  btnPrimary: { borderColor: "rgba(148,180,255,0.4)" },
 });

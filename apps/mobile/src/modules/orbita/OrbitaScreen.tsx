@@ -60,7 +60,7 @@ export function OrbitaScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0 },
+  screen: { flex: 1 },
   topbar: { padding: spacing.lg, paddingBottom: spacing.sm },
   selfBtn: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   segmented: {

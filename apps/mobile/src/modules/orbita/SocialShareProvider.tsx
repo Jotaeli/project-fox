@@ -1,10 +1,11 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 import type { TipoPostagem } from "@project-fox/types";
 import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { GradientButton } from "../../components/GradientButton";
 import { useAuth } from "../../auth/AuthContext";
 import { CloseIcon, OrbitIcon, SendIcon } from "../../icons/index";
 import { supabase } from "../../lib/supabaseClient";
-import { colors, radius, spacing, typography } from "../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../theme/theme";
 
 export interface ShareMilestone {
   tipo: Exclude<TipoPostagem, "texto">;
@@ -75,10 +76,10 @@ export function SocialShareProvider({ children }: { children: ReactNode }) {
               <Pressable style={styles.btn} onPress={() => setMilestone(null)}>
                 <Text style={typography.body}>Agora não</Text>
               </Pressable>
-              <Pressable style={[styles.btn, styles.btnPrimary]} onPress={share} disabled={pending}>
+              <GradientButton style={[styles.btn, styles.btnPrimary]} onPress={share} disabled={pending}>
                 <SendIcon size={13} color={colors.text} />
                 <Text style={[typography.body, { fontWeight: "600" }]}>Compartilhar</Text>
-              </Pressable>
+              </GradientButton>
             </View>
           </Pressable>
         </Pressable>
@@ -93,12 +94,12 @@ export function useOfferSocialShare() {
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", alignItems: "center", justifyContent: "center", padding: spacing.lg },
-  card: { width: 400, maxWidth: "100%", backgroundColor: colors.panelSolid, borderWidth: 1, borderColor: colors.line, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm },
+  card: { ...shadow.modal, width: 400, maxWidth: "100%", backgroundColor: colors.panelSolid, borderWidth: 1, borderColor: colors.line, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   headTitleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   input: { backgroundColor: "rgba(8,14,32,0.8)", borderWidth: 1, borderColor: colors.line, borderRadius: radius.sm, color: colors.text, padding: 10 },
   textarea: { minHeight: 100, textAlignVertical: "top" },
   actions: { flexDirection: "row", justifyContent: "flex-end", gap: spacing.sm },
   btn: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 9, paddingHorizontal: 16, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
-  btnPrimary: { backgroundColor: "#3667c4", borderColor: "rgba(148,180,255,0.4)" },
+  btnPrimary: { borderColor: "rgba(148,180,255,0.4)" },
 });

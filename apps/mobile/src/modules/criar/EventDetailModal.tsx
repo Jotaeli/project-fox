@@ -3,7 +3,7 @@ import type { Evento, Relatorio } from "@project-fox/types";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { CheckIcon, ClockIcon, ReportIcon } from "../../icons/index";
 import { deadlineUrgency, fmtDeadlineShort } from "../../lib/currentMonth";
-import { colors, radius, spacing, typography } from "../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../theme/theme";
 import { GOAL_ICON_MAP, hueOf } from "./criarConstants";
 import { derivedStatus, eventProgress, useCriar } from "./useCriar";
 
@@ -107,7 +107,7 @@ export function EventDetailModal({
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", alignItems: "center", justifyContent: "center", padding: spacing.lg },
-  card: { width: 400, maxWidth: "100%", maxHeight: "85%", backgroundColor: colors.panelSolid, borderWidth: 1, borderColor: colors.line, borderRadius: radius.lg, padding: spacing.lg },
+  card: { ...shadow.modal, width: 400, maxWidth: "100%", maxHeight: "85%", backgroundColor: colors.panelSolid, borderWidth: 1, borderColor: colors.line, borderRadius: radius.lg, padding: spacing.lg },
   head: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   iconChip: { width: 40, height: 40, borderRadius: radius.sm, alignItems: "center", justifyContent: "center" },
   statusRow: { flexDirection: "row", alignItems: "center", gap: 4 },

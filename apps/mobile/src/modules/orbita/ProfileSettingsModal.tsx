@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { GradientButton } from "../../components/GradientButton";
 import { CloseIcon } from "../../icons/index";
-import { colors, radius, spacing, typography } from "../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../theme/theme";
 import { Avatar, errorMessage } from "./Avatar";
 import { useOrbita } from "./useOrbita";
 
@@ -138,9 +139,9 @@ export function ProfileSettingsModal({ visible, userId, onClose }: { visible: bo
               <Pressable style={styles.btn} onPress={onClose}>
                 <Text style={typography.body}>Cancelar</Text>
               </Pressable>
-              <Pressable style={[styles.btn, styles.btnPrimary]} onPress={save} disabled={data.updateProfile.isPending}>
+              <GradientButton style={[styles.btn, styles.btnPrimary]} onPress={save} disabled={data.updateProfile.isPending}>
                 <Text style={[typography.body, { fontWeight: "600" }]}>Salvar perfil</Text>
-              </Pressable>
+              </GradientButton>
             </View>
           </ScrollView>
         </View>
@@ -151,7 +152,7 @@ export function ProfileSettingsModal({ visible, userId, onClose }: { visible: bo
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", justifyContent: "flex-end" },
-  card: { maxHeight: "90%", backgroundColor: colors.panelSolid, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg },
+  card: { ...shadow.modal, maxHeight: "90%", backgroundColor: colors.panelSolid, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   avatarRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   smallBtn: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.sm, paddingVertical: 8, paddingHorizontal: 12 },
@@ -165,5 +166,5 @@ const styles = StyleSheet.create({
   toggleRow: { flexDirection: "row", alignItems: "center", paddingVertical: 6 },
   actions: { flexDirection: "row", justifyContent: "flex-end", gap: spacing.sm, marginBottom: spacing.lg },
   btn: { paddingVertical: 9, paddingHorizontal: 16, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
-  btnPrimary: { backgroundColor: "#3667c4", borderColor: "rgba(148,180,255,0.4)" },
+  btnPrimary: { borderColor: "rgba(148,180,255,0.4)" },
 });

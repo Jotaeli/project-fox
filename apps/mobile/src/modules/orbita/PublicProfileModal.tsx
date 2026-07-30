@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { GradientButton } from "../../components/GradientButton";
 import { CloseIcon, PlanetIcon, ShieldIcon, SparkIcon, TargetIcon } from "../../icons/index";
-import { colors, radius, spacing, typography } from "../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../theme/theme";
 import { Avatar, errorMessage } from "./Avatar";
 import { getPublicProfile, useOrbita, type FriendSummary, type PublicProfile } from "./useOrbita";
 
@@ -93,10 +94,10 @@ export function PublicProfileModal({
 
           {friend.direction === "friend" && (
             <View style={styles.actions}>
-              <Pressable style={styles.btnPrimary} onPress={() => act(() => data.poke.mutateAsync({ targetId: friend.userId }), "Cutucada enviada.")}>
+              <GradientButton style={styles.btnPrimary} onPress={() => act(() => data.poke.mutateAsync({ targetId: friend.userId }), "Cutucada enviada.")}>
                 <SparkIcon size={13} color={colors.text} />
                 <Text style={[typography.body, { fontWeight: "600" }]}>Cutucar</Text>
-              </Pressable>
+              </GradientButton>
               <Pressable style={styles.btn} onPress={() => act(() => data.removeFriend.mutateAsync(friend.friendshipId), "Pessoa removida da sua órbita.")}>
                 <Text style={typography.body}>Desfazer amizade</Text>
               </Pressable>
@@ -114,7 +115,7 @@ export function PublicProfileModal({
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", alignItems: "center", justifyContent: "center", padding: spacing.lg },
-  card: { width: 380, maxWidth: "100%", backgroundColor: colors.panelSolid, borderWidth: 1, borderColor: colors.line, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md },
+  card: { ...shadow.modal, width: 380, maxWidth: "100%", backgroundColor: colors.panelSolid, borderWidth: 1, borderColor: colors.line, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md },
   closeRow: { alignItems: "flex-end" },
   hero: { alignItems: "center", gap: 4 },
   showcase: { gap: spacing.sm },
@@ -123,6 +124,6 @@ const styles = StyleSheet.create({
   privateRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, justifyContent: "center" },
   actions: { gap: spacing.sm },
   btn: { alignItems: "center", paddingVertical: 10, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
-  btnPrimary: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 10, borderRadius: radius.md, backgroundColor: "#3667c4" },
+  btnPrimary: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 10, borderRadius: radius.md },
   btnDanger: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 10, borderRadius: radius.md, borderWidth: 1, borderColor: "rgba(255,120,120,.25)" },
 });

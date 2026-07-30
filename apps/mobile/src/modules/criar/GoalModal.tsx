@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { GradientButton } from "../../components/GradientButton";
 import { CloseIcon } from "../../icons/index";
-import { colors, radius, spacing, typography } from "../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../theme/theme";
 import { DEADLINES, GOAL_ICONS, HUES } from "./criarConstants";
 import { useCriar } from "./useCriar";
 
@@ -121,9 +122,9 @@ export function GoalModal({
               <Pressable style={styles.btn} onPress={onClose}>
                 <Text style={typography.body}>Cancelar</Text>
               </Pressable>
-              <Pressable style={[styles.btn, styles.btnPrimary]} onPress={submit} disabled={addEvento.isPending}>
+              <GradientButton style={[styles.btn, styles.btnPrimary]} onPress={submit} disabled={addEvento.isPending}>
                 <Text style={[typography.body, { fontWeight: "600" }]}>Criar meta</Text>
-              </Pressable>
+              </GradientButton>
             </View>
           </ScrollView>
         </View>
@@ -134,7 +135,7 @@ export function GoalModal({
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", justifyContent: "flex-end" },
-  card: { maxHeight: "90%", backgroundColor: colors.panelSolid, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg },
+  card: { ...shadow.modal, maxHeight: "90%", backgroundColor: colors.panelSolid, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg },
   field: { gap: spacing.xs },
   label: { fontSize: 11.5, color: colors.muted, textTransform: "uppercase", letterSpacing: 0.4 },
   input: { backgroundColor: "rgba(8,14,32,0.8)", borderWidth: 1, borderColor: colors.line, borderRadius: radius.sm, color: colors.text, padding: 10 },
@@ -151,5 +152,5 @@ const styles = StyleSheet.create({
   smallBtn: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.sm, paddingVertical: 10, paddingHorizontal: 12, alignItems: "center", justifyContent: "center" },
   actions: { flexDirection: "row", justifyContent: "flex-end", gap: spacing.sm, marginTop: spacing.md, marginBottom: spacing.lg },
   btn: { paddingVertical: 9, paddingHorizontal: 16, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
-  btnPrimary: { backgroundColor: "#3667c4", borderColor: "rgba(148,180,255,0.4)" },
+  btnPrimary: { borderColor: "rgba(148,180,255,0.4)" },
 });

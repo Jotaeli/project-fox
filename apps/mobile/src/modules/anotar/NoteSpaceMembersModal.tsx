@@ -2,7 +2,7 @@ import type { EspacoNotas } from "@project-fox/types";
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { FriendSummary } from "../orbita/useOrbita";
 import { CheckIcon, CloseIcon, PlusIcon } from "../../icons/index";
-import { colors, radius, spacing, typography } from "../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../theme/theme";
 import { useAnotar } from "./useAnotar";
 
 export function NoteSpaceMembersModal({
@@ -79,7 +79,7 @@ export function NoteSpaceMembersModal({
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", justifyContent: "flex-end" },
-  card: { maxHeight: "85%", backgroundColor: colors.panelSolid, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg },
+  card: { ...shadow.modal, maxHeight: "85%", backgroundColor: colors.panelSolid, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   section: { gap: spacing.xs },
   memberRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: 6 },

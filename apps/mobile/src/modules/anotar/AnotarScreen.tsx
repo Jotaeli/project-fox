@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { GradientButton } from "../../components/GradientButton";
 import { FitIcon, PlusIcon, UsersIcon } from "../../icons/index";
 import { colors, radius, spacing, typography } from "../../theme/theme";
 import { BADGES } from "./graph/badges";
@@ -79,10 +80,10 @@ export function AnotarScreen() {
           <Pressable style={styles.iconBtn} onPress={() => canvasRef.current?.fitView()}>
             <FitIcon size={14} color={colors.text} />
           </Pressable>
-          <Pressable style={styles.addBtn} onPress={openNewNoteAtCenter}>
+          <GradientButton style={styles.addBtn} onPress={openNewNoteAtCenter}>
             <PlusIcon size={14} color={colors.text} />
             <Text style={typography.body}>Nova nota</Text>
-          </Pressable>
+          </GradientButton>
         </View>
       </View>
 
@@ -178,7 +179,7 @@ export function AnotarScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0 },
+  screen: { flex: 1 },
   topbar: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start",
     padding: spacing.lg, paddingBottom: spacing.sm,
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
   iconBtn: { width: 34, height: 34, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" },
   addBtn: {
     flexDirection: "row", alignItems: "center", gap: 6,
-    backgroundColor: "#3667c4", borderRadius: radius.md, paddingVertical: 8, paddingHorizontal: 12,
+    borderRadius: radius.md, paddingVertical: 8, paddingHorizontal: 12,
   },
   spaceRow: { flexDirection: "row", gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
   spaceChip: { flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 1, borderColor: colors.line, borderRadius: radius.pill, paddingVertical: 6, paddingHorizontal: 10 },

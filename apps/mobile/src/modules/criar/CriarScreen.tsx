@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import type { Evento } from "@project-fox/types";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useAuth } from "../../auth/AuthContext";
+import { GradientButton } from "../../components/GradientButton";
 import { FitIcon, PlusIcon, TrashIcon, UsersIcon } from "../../icons/index";
 import { useOfferSocialShare } from "../orbita/SocialShareProvider";
 import { useOrbita } from "../orbita/useOrbita";
@@ -64,7 +65,7 @@ export function CriarScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.topbar}>
-        <View>
+        <View style={styles.topbarText}>
           <Text style={typography.title}>Desenvolver/Criar</Text>
           <Text style={typography.muted}>{planetas.length} planetas</Text>
         </View>
@@ -77,10 +78,10 @@ export function CriarScreen() {
           <Pressable style={styles.iconBtn} onPress={() => canvasRef.current?.fitView()}>
             <FitIcon size={14} color={colors.text} />
           </Pressable>
-          <Pressable style={styles.addBtn} onPress={() => setPlanetModalOpen(true)}>
+          <GradientButton style={styles.addBtn} onPress={() => setPlanetModalOpen(true)}>
             <PlusIcon size={14} color={colors.text} />
             <Text style={typography.body}>Novo planeta</Text>
-          </Pressable>
+          </GradientButton>
         </View>
       </View>
 
@@ -183,11 +184,12 @@ export function CriarScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0 },
+  screen: { flex: 1 },
   topbar: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", padding: spacing.lg, paddingBottom: spacing.sm },
+  topbarText: { flexShrink: 1, marginRight: spacing.sm },
   topbarActions: { flexDirection: "row", gap: spacing.sm },
   iconBtn: { width: 34, height: 34, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" },
-  addBtn: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#3667c4", borderRadius: radius.md, paddingVertical: 8, paddingHorizontal: 12 },
+  addBtn: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: radius.md, paddingVertical: 8, paddingHorizontal: 12 },
   empty: { position: "absolute", top: "35%", left: spacing.lg, right: spacing.lg, alignItems: "center", gap: spacing.sm, zIndex: 4 },
   focusPanel: {
     position: "absolute", top: 90, left: spacing.lg, right: spacing.lg,

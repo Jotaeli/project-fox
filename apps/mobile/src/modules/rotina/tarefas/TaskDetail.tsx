@@ -1,9 +1,10 @@
 import { useState } from "react";
 import type { ItemWishlist, Tarefa } from "@project-fox/types";
 import { Alert, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { GradientButton } from "../../../components/GradientButton";
 import { CheckIcon, CoinIcon, SparkIcon, TrashIcon } from "../../../icons/index";
 import { fmtBRL } from "../../../lib/currentMonth";
-import { colors, radius, spacing, typography } from "../../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../../theme/theme";
 import { useTarefas } from "./useTarefas";
 
 export function TaskDetail({ tarefa, wish, onClose }: { tarefa: Tarefa | null; wish?: ItemWishlist; onClose: () => void }) {
@@ -74,11 +75,15 @@ export function TaskDetail({ tarefa, wish, onClose }: { tarefa: Tarefa | null; w
             ))}
           </View>
 
-          <Pressable style={[styles.advanceBtn, finished && styles.advanceBtnDone]} onPress={handleAdvance} disabled={finished || busy}>
-            <Text style={[typography.body, { fontWeight: "600" }]}>
-              {finished ? "Tarefa concluída" : "Concluir etapa"}
-            </Text>
-          </Pressable>
+          {finished ? (
+            <View style={[styles.advanceBtn, styles.advanceBtnDone]}>
+              <Text style={[typography.body, { fontWeight: "600" }]}>Tarefa concluída</Text>
+            </View>
+          ) : (
+            <GradientButton style={styles.advanceBtn} onPress={handleAdvance} disabled={busy}>
+              <Text style={[typography.body, { fontWeight: "600" }]}>Concluir etapa</Text>
+            </GradientButton>
+          )}
 
           <View style={styles.actions}>
             <Pressable style={styles.btnDanger} onPress={confirmDelete}>
@@ -96,7 +101,7 @@ export function TaskDetail({ tarefa, wish, onClose }: { tarefa: Tarefa | null; w
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", alignItems: "center", justifyContent: "center", padding: spacing.lg },
-  card: {
+  card: { ...shadow.modal,
     width: 380,
     maxWidth: "100%",
     backgroundColor: colors.panelSolid,
@@ -120,7 +125,6 @@ const styles = StyleSheet.create({
   },
   stageDotDone: { backgroundColor: colors.green, borderColor: colors.green },
   advanceBtn: {
-    backgroundColor: "#3667c4",
     borderRadius: radius.md,
     alignItems: "center",
     paddingVertical: 12,

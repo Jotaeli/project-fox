@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { BadgeNota } from "@project-fox/types";
 import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { colors, radius, spacing, typography } from "../../theme/theme";
+import { GradientButton } from "../../components/GradientButton";
+import { colors, radius, shadow, spacing, typography } from "../../theme/theme";
 import { BADGE_ORDER, BADGES } from "./graph/badges";
 import { useAnotar } from "./useAnotar";
 
@@ -83,9 +84,9 @@ export function NewNoteModal({
             <Pressable style={styles.btn} onPress={onClose}>
               <Text style={typography.body}>Cancelar</Text>
             </Pressable>
-            <Pressable style={[styles.btn, styles.btnPrimary]} onPress={submit} disabled={addNota.isPending}>
+            <GradientButton style={[styles.btn, styles.btnPrimary]} onPress={submit} disabled={addNota.isPending}>
               <Text style={[typography.body, { fontWeight: "600" }]}>Criar nota</Text>
-            </Pressable>
+            </GradientButton>
           </View>
         </Pressable>
       </Pressable>
@@ -95,7 +96,7 @@ export function NewNoteModal({
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", alignItems: "center", justifyContent: "center", padding: spacing.lg },
-  card: {
+  card: { ...shadow.modal,
     width: 380,
     maxWidth: "100%",
     backgroundColor: colors.panelSolid,
@@ -124,5 +125,5 @@ const styles = StyleSheet.create({
   dot: { width: 8, height: 8, borderRadius: 4 },
   actions: { flexDirection: "row", justifyContent: "flex-end", gap: spacing.sm },
   btn: { paddingVertical: 9, paddingHorizontal: 16, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
-  btnPrimary: { backgroundColor: "#3667c4", borderColor: "rgba(148,180,255,0.4)" },
+  btnPrimary: { borderColor: "rgba(148,180,255,0.4)" },
 });

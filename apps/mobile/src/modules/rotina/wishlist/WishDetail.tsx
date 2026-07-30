@@ -4,7 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Alert, Linking, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { ExtIcon, ImageIcon, TrashIcon } from "../../../icons/index";
 import { fmtBRL } from "../../../lib/currentMonth";
-import { colors, radius, spacing, typography } from "../../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../../theme/theme";
 import { hueFromId, photoColors, TIER_ORDER, TIERS } from "./wishConstants";
 import { useWishlist } from "./useWishlist";
 
@@ -82,7 +82,7 @@ export function WishDetail({ item, onClose }: { item: ItemWishlist | null; onClo
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", alignItems: "center", justifyContent: "center", padding: spacing.lg },
-  card: {
+  card: { ...shadow.modal,
     width: 380,
     maxWidth: "100%",
     backgroundColor: colors.panelSolid,

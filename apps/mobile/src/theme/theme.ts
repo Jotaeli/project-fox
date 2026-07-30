@@ -36,5 +36,27 @@ export const typography = {
   muted: { fontSize: 12.5, color: colors.muted },
 };
 
-export const theme = { colors, spacing, radius, typography };
+export const gradients = {
+  primary: ["#3667c4", "#274a95"] as const,
+  background: ["#0a1230", "#04081a", "#020510"] as const,
+};
+
+export const shadow = {
+  card: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  modal: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.55,
+    shadowRadius: 30,
+    elevation: 16,
+  },
+};
+
+export const theme = { colors, spacing, radius, typography, gradients, shadow };
 export type Theme = typeof theme;

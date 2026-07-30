@@ -1,12 +1,14 @@
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
+import { LinearGradient } from "expo-linear-gradient";
+import { StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "./src/auth/AuthContext";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { SocialShareProvider } from "./src/modules/orbita/SocialShareProvider";
-import { colors } from "./src/theme/theme";
+import { colors, gradients } from "./src/theme/theme";
 
 const queryClient = new QueryClient();
 
@@ -14,7 +16,7 @@ const navigationTheme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    background: colors.bg0,
+    background: "transparent",
     card: colors.panelSolid,
     border: colors.line,
     primary: colors.accent,
@@ -25,6 +27,7 @@ const navigationTheme = {
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <LinearGradient colors={gradients.background} style={StyleSheet.absoluteFillObject} />
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <SocialShareProvider>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { TipoReacao } from "@project-fox/types";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { GradientButton } from "../../components/GradientButton";
 import { FlameIcon, OrbitIcon, RocketIcon, SendIcon, SparkIcon, TargetIcon } from "../../icons/index";
 import { colors, radius, spacing, typography } from "../../theme/theme";
 import { Avatar, errorMessage, since } from "./Avatar";
@@ -58,10 +59,10 @@ export function FeedTab({ userId }: { userId: string }) {
           />
           <View style={styles.composeActions}>
             <Text style={typography.muted}>{text.length}/500 · visível para amigos</Text>
-            <Pressable style={styles.sendBtn} onPress={publish} disabled={!text.trim() || data.createPost.isPending}>
+            <GradientButton style={styles.sendBtn} onPress={publish} disabled={!text.trim() || data.createPost.isPending}>
               <SendIcon size={13} color={colors.text} />
               <Text style={typography.body}>Compartilhar</Text>
-            </Pressable>
+            </GradientButton>
           </View>
         </View>
       </View>
@@ -104,13 +105,13 @@ export function FeedTab({ userId }: { userId: string }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0 },
+  screen: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md },
   composer: { flexDirection: "row", gap: spacing.sm, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, padding: spacing.md },
   composeBody: { flex: 1, gap: spacing.sm },
   input: { color: colors.text, minHeight: 60, textAlignVertical: "top" },
   composeActions: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  sendBtn: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#3667c4", borderRadius: radius.sm, paddingVertical: 8, paddingHorizontal: 12 },
+  sendBtn: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: radius.sm, paddingVertical: 8, paddingHorizontal: 12 },
   empty: { textAlign: "center", paddingVertical: spacing.lg },
   emptyBox: { alignItems: "center", gap: spacing.sm, paddingVertical: spacing.xl },
   post: { backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, padding: spacing.md, gap: spacing.sm },

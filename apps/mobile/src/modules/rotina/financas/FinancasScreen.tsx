@@ -166,7 +166,7 @@ export function FinancasScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.head}>
-        <View>
+        <View style={styles.headText}>
           <Text style={typography.title}>Finanças</Text>
           <Text style={typography.muted}>Marque um gasto como pago e veja o cofrinho reagir</Text>
         </View>
@@ -236,9 +236,10 @@ export function FinancasScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0 },
+  screen: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  headText: { flex: 1, marginRight: spacing.sm },
   headBtn: {
     flexDirection: "row",
     alignItems: "center",

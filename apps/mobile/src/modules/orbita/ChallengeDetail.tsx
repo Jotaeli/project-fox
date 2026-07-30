@@ -1,9 +1,10 @@
 import { useState } from "react";
 import type { DesafioSocial, ObjetivoDesafio, ParticipanteDesafio, ProgressoDesafio } from "@project-fox/types";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { GradientButton } from "../../components/GradientButton";
 import { useCriar } from "../criar/useCriar";
 import { CheckIcon, ChecklistIcon, ClockIcon, CloseIcon, UsersIcon } from "../../icons/index";
-import { colors, radius, spacing, typography } from "../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../theme/theme";
 import { Avatar } from "./Avatar";
 import type { RelatorioDesafio } from "./useDesafios";
 
@@ -129,9 +130,9 @@ export function ChallengeDetail({
                   placeholder="O que você fez pra avançar nesse desafio?"
                   placeholderTextColor={colors.muted}
                 />
-                <Pressable style={styles.sendBtn} onPress={sendReport} disabled={!newReport.trim() || addRelatorio.isPending}>
+                <GradientButton style={styles.sendBtn} onPress={sendReport} disabled={!newReport.trim() || addRelatorio.isPending}>
                   <Text style={[typography.body, { fontWeight: "600" }]}>Enviar relatório</Text>
-                </Pressable>
+                </GradientButton>
               </View>
             )}
 
@@ -148,7 +149,7 @@ export function ChallengeDetail({
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", justifyContent: "flex-end" },
-  card: { maxHeight: "90%", backgroundColor: colors.panelSolid, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg },
+  card: { ...shadow.modal, maxHeight: "90%", backgroundColor: colors.panelSolid, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg },
   head: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm },
   section: { gap: spacing.xs },
   sectionHead: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
@@ -164,6 +165,6 @@ const styles = StyleSheet.create({
   proveBtn: { alignSelf: "flex-start", marginTop: 6, borderWidth: 1, borderColor: colors.line, borderRadius: radius.sm, paddingVertical: 6, paddingHorizontal: 12 },
   input: { backgroundColor: "rgba(8,14,32,0.8)", borderWidth: 1, borderColor: colors.line, borderRadius: radius.sm, color: colors.text, padding: 10 },
   textarea: { minHeight: 60, textAlignVertical: "top" },
-  sendBtn: { alignItems: "center", backgroundColor: "#3667c4", borderRadius: radius.md, paddingVertical: 10 },
+  sendBtn: { alignItems: "center", borderRadius: radius.md, paddingVertical: 10 },
   footer: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: spacing.lg },
 });

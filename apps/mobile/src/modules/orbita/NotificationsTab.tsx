@@ -60,7 +60,7 @@ export function NotificationsTab({ userId }: { userId: string }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0 },
+  screen: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.sm },
   head: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: spacing.sm },
   markBtn: { marginLeft: "auto", borderWidth: 1, borderColor: colors.line, borderRadius: radius.sm, paddingVertical: 6, paddingHorizontal: 10 },

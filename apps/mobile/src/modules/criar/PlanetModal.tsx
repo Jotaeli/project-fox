@@ -1,8 +1,9 @@
 import { useState } from "react";
 import Slider from "@react-native-community/slider";
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { GradientButton } from "../../components/GradientButton";
 import { CameraIcon, LibraryIcon, ReportIcon, SparkIcon } from "../../icons/index";
-import { colors, radius, spacing, typography } from "../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../theme/theme";
 import { COLOR_NAMES, HUES, PLANET_TYPES, type TipoPlanetaKey } from "./criarConstants";
 import { useCriar } from "./useCriar";
 
@@ -115,9 +116,9 @@ export function PlanetModal({ visible, onClose, onCreated }: { visible: boolean;
               <Pressable style={styles.btn} onPress={onClose}>
                 <Text style={typography.body}>Cancelar</Text>
               </Pressable>
-              <Pressable style={[styles.btn, styles.btnPrimary]} onPress={submit} disabled={addPlaneta.isPending}>
+              <GradientButton style={[styles.btn, styles.btnPrimary]} onPress={submit} disabled={addPlaneta.isPending}>
                 <Text style={[typography.body, { fontWeight: "600" }]}>Criar planeta</Text>
-              </Pressable>
+              </GradientButton>
             </View>
           </ScrollView>
         </View>
@@ -128,7 +129,7 @@ export function PlanetModal({ visible, onClose, onCreated }: { visible: boolean;
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", justifyContent: "flex-end" },
-  card: { maxHeight: "90%", backgroundColor: colors.panelSolid, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg },
+  card: { ...shadow.modal, maxHeight: "90%", backgroundColor: colors.panelSolid, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg },
   field: { gap: spacing.xs },
   label: { fontSize: 11.5, color: colors.muted, textTransform: "uppercase", letterSpacing: 0.4 },
   input: { backgroundColor: "rgba(8,14,32,0.8)", borderWidth: 1, borderColor: colors.line, borderRadius: radius.sm, color: colors.text, padding: 10 },
@@ -143,5 +144,5 @@ const styles = StyleSheet.create({
   moonOpt: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.line },
   actions: { flexDirection: "row", justifyContent: "flex-end", gap: spacing.sm, marginBottom: spacing.lg },
   btn: { paddingVertical: 9, paddingHorizontal: 16, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
-  btnPrimary: { backgroundColor: "#3667c4", borderColor: "rgba(148,180,255,0.4)" },
+  btnPrimary: { borderColor: "rgba(148,180,255,0.4)" },
 });

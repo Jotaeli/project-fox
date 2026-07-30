@@ -10,6 +10,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { GradientButton } from "../components/GradientButton";
 import { FoxIcon } from "../icons/index";
 import { supabase } from "../lib/supabaseClient";
 import { colors, radius, spacing, typography } from "../theme/theme";
@@ -102,13 +103,13 @@ export function LoginScreen() {
         {error && <Text style={styles.error}>{error}</Text>}
         {info && <Text style={styles.info}>{info}</Text>}
 
-        <Pressable style={styles.submit} onPress={handleSubmit} disabled={loading}>
+        <GradientButton style={styles.submit} onPress={handleSubmit} disabled={loading}>
           {loading ? (
             <ActivityIndicator color={colors.text} />
           ) : (
             <Text style={styles.submitText}>{mode === "login" ? "Entrar" : "Criar conta"}</Text>
           )}
-        </Pressable>
+        </GradientButton>
 
         <Pressable
           onPress={() => {
@@ -127,7 +128,7 @@ export function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0 },
+  screen: { flex: 1 },
   scroll: { flexGrow: 1, justifyContent: "center", padding: spacing.lg },
   mark: { alignItems: "center", marginBottom: spacing.lg },
   subtitle: { marginTop: spacing.xs, marginBottom: spacing.lg },
@@ -151,7 +152,6 @@ const styles = StyleSheet.create({
   error: { color: colors.danger, marginBottom: spacing.md },
   info: { color: colors.gold, marginBottom: spacing.md },
   submit: {
-    backgroundColor: "#3667c4",
     borderRadius: radius.md,
     paddingVertical: 14,
     alignItems: "center",

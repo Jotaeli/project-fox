@@ -117,7 +117,7 @@ export function FriendsTab({ userId, onOpenProfile }: { userId: string; onOpenPr
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0 },
+  screen: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md },
   searchBox: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, paddingHorizontal: spacing.sm },
   searchInput: { flex: 1, color: colors.text, paddingVertical: 10 },

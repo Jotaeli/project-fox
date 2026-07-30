@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { GradientButton } from "../../components/GradientButton";
 import { CloseIcon, UsersIcon } from "../../icons/index";
-import { colors, radius, spacing, typography } from "../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../theme/theme";
 import { useAnotar } from "./useAnotar";
 
 const COLORS = ["#7c72e8", "#4aa8d8", "#e174a7", "#52b98a", "#e0a855"];
@@ -63,9 +64,9 @@ export function CreateNoteSpaceModal({ visible, onClose, onCreated }: { visible:
             <Pressable style={styles.btn} onPress={onClose}>
               <Text style={typography.body}>Cancelar</Text>
             </Pressable>
-            <Pressable style={[styles.btn, styles.btnPrimary]} onPress={create} disabled={!name.trim() || data.createSpace.isPending}>
+            <GradientButton style={[styles.btn, styles.btnPrimary]} onPress={create} disabled={!name.trim() || data.createSpace.isPending}>
               <Text style={[typography.body, { fontWeight: "600" }]}>Criar espaço</Text>
-            </Pressable>
+            </GradientButton>
           </View>
         </Pressable>
       </Pressable>
@@ -75,7 +76,7 @@ export function CreateNoteSpaceModal({ visible, onClose, onCreated }: { visible:
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", alignItems: "center", justifyContent: "center", padding: spacing.lg },
-  card: { width: 380, maxWidth: "100%", backgroundColor: colors.panelSolid, borderWidth: 1, borderColor: colors.line, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md },
+  card: { ...shadow.modal, width: 380, maxWidth: "100%", backgroundColor: colors.panelSolid, borderWidth: 1, borderColor: colors.line, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   headTitle: { flexDirection: "row", gap: spacing.sm, flex: 1 },
   field: { gap: spacing.xs },
@@ -87,5 +88,5 @@ const styles = StyleSheet.create({
   rule: { lineHeight: 18 },
   actions: { flexDirection: "row", justifyContent: "flex-end", gap: spacing.sm },
   btn: { paddingVertical: 9, paddingHorizontal: 16, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
-  btnPrimary: { backgroundColor: "#3667c4", borderColor: "rgba(148,180,255,0.4)" },
+  btnPrimary: { borderColor: "rgba(148,180,255,0.4)" },
 });

@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { ItemWishlist, TierWishlist } from "@project-fox/types";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useAnimatedRef } from "react-native-reanimated";
+import { GradientButton } from "../../../components/GradientButton";
 import { PlusIcon } from "../../../icons/index";
 import { fmtBRL } from "../../../lib/currentMonth";
 import { colors, radius, spacing, typography } from "../../../theme/theme";
@@ -33,16 +34,16 @@ export function WishlistScreen() {
     <View style={styles.screen}>
       <ScrollView scrollEnabled={scrollEnabled} contentContainerStyle={styles.content}>
         <View style={styles.head}>
-          <View>
+          <View style={styles.headText}>
             <Text style={typography.title}>Wishlist Consumista</Text>
             <Text style={typography.muted}>
               Arraste os desejos entre os tiers · total: {fmtBRL(total)}
             </Text>
           </View>
-          <Pressable style={styles.addBtn} onPress={() => setModalOpen(true)}>
+          <GradientButton style={styles.addBtn} onPress={() => setModalOpen(true)}>
             <PlusIcon size={14} color={colors.text} />
             <Text style={typography.body}>Adicionar</Text>
-          </Pressable>
+          </GradientButton>
         </View>
 
         {items.length === 0 && (
@@ -87,14 +88,14 @@ export function WishlistScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0 },
+  screen: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  headText: { flex: 1, marginRight: spacing.sm },
   addBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#3667c4",
     borderRadius: radius.md,
     paddingVertical: 8,
     paddingHorizontal: 12,

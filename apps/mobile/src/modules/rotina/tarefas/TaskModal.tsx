@@ -1,9 +1,10 @@
 import { useState } from "react";
 import type { SecaoTarefas } from "@project-fox/types";
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { GradientButton } from "../../../components/GradientButton";
 import { CloseIcon, PlusIcon } from "../../../icons/index";
 import { fmtBRL } from "../../../lib/currentMonth";
-import { colors, radius, spacing, typography } from "../../../theme/theme";
+import { colors, radius, shadow, spacing, typography } from "../../../theme/theme";
 import { useWishlist } from "../wishlist/useWishlist";
 import { useTarefas } from "./useTarefas";
 
@@ -163,9 +164,9 @@ export function TaskModal({
               <Pressable style={styles.btn} onPress={onClose}>
                 <Text style={typography.body}>Cancelar</Text>
               </Pressable>
-              <Pressable style={[styles.btn, styles.btnPrimary]} onPress={submit} disabled={addTarefa.isPending}>
+              <GradientButton style={[styles.btn, styles.btnPrimary]} onPress={submit} disabled={addTarefa.isPending}>
                 <Text style={[typography.body, { fontWeight: "600" }]}>Criar tarefa</Text>
-              </Pressable>
+              </GradientButton>
             </View>
           </ScrollView>
         </View>
@@ -176,7 +177,7 @@ export function TaskModal({
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(3,6,16,0.55)", justifyContent: "flex-end" },
-  card: {
+  card: { ...shadow.modal,
     maxHeight: "90%",
     backgroundColor: colors.panelSolid,
     borderTopLeftRadius: radius.lg,
@@ -212,5 +213,5 @@ const styles = StyleSheet.create({
   cascade: { gap: spacing.md, marginTop: spacing.sm },
   actions: { flexDirection: "row", justifyContent: "flex-end", gap: spacing.sm, marginBottom: spacing.lg },
   btn: { paddingVertical: 9, paddingHorizontal: 16, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
-  btnPrimary: { backgroundColor: "#3667c4", borderColor: "rgba(148,180,255,0.4)" },
+  btnPrimary: { borderColor: "rgba(148,180,255,0.4)" },
 });

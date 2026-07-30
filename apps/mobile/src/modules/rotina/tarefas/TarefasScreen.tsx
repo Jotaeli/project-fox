@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import type { SecaoTarefas, Tarefa } from "@project-fox/types";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { AnimatedRef } from "react-native-reanimated";
+import { GradientButton } from "../../../components/GradientButton";
 import { CheckIcon, ChevIcon, CoinIcon, PlusIcon } from "../../../icons/index";
 import { fmtBRL } from "../../../lib/currentMonth";
 import { colors, radius, spacing, typography } from "../../../theme/theme";
@@ -59,14 +60,14 @@ export function TarefasScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.head}>
-        <View>
+        <View style={styles.headText}>
           <Text style={typography.title}>Tarefas</Text>
           <Text style={typography.muted}>A pilha define a prioridade</Text>
         </View>
-        <Pressable style={styles.addBtn} onPress={() => setModalOpen(true)}>
+        <GradientButton style={styles.addBtn} onPress={() => setModalOpen(true)}>
           <PlusIcon size={14} color={colors.text} />
           <Text style={typography.body}>Nova tarefa</Text>
-        </Pressable>
+        </GradientButton>
       </View>
 
       <SectionsNav
@@ -116,11 +117,12 @@ export function TarefasScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0, padding: spacing.lg, gap: spacing.md },
+  screen: { flex: 1, padding: spacing.lg, gap: spacing.md },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  headText: { flex: 1, marginRight: spacing.sm },
   addBtn: {
     flexDirection: "row", alignItems: "center", gap: 6,
-    backgroundColor: "#3667c4", borderRadius: radius.md, paddingVertical: 8, paddingHorizontal: 12,
+    borderRadius: radius.md, paddingVertical: 8, paddingHorizontal: 12,
   },
   content: { gap: spacing.md, paddingBottom: spacing.xl },
   doneFold: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: spacing.sm },

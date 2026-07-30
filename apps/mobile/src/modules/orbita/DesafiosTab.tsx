@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { DesafioSocial } from "@project-fox/types";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { GradientButton } from "../../components/GradientButton";
 import { useEstacao } from "../criar/useEstacao";
 import { AwardIcon, ClockIcon, OrbitIcon, PlusIcon, TargetIcon, UsersIcon } from "../../icons/index";
 import { colors, radius, spacing, typography } from "../../theme/theme";
@@ -59,10 +60,10 @@ export function DesafiosTab({ friends }: { friends: FriendSummary[] }) {
             <Text style={typography.body}>Histórico</Text>
           </Pressable>
         </View>
-        <Pressable style={[styles.addBtn, (!friends.length || !estacaoAtiva) && { opacity: 0.5 }]} disabled={!friends.length || !estacaoAtiva} onPress={() => setCreateOpen(true)}>
+        <GradientButton style={styles.addBtn} disabled={!friends.length || !estacaoAtiva} onPress={() => setCreateOpen(true)}>
           <PlusIcon size={13} color={colors.text} />
           <Text style={typography.body}>Novo desafio</Text>
-        </Pressable>
+        </GradientButton>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -73,10 +74,10 @@ export function DesafiosTab({ friends }: { friends: FriendSummary[] }) {
             <Text style={[typography.muted, { textAlign: "center" }]}>
               Os desafios são comprovados com relatórios escritos dentro da Estação Órbita — o corpo social do seu sistema solar.
             </Text>
-            <Pressable style={styles.gateBtn} onPress={ativar} disabled={ativarEstacao.isPending}>
+            <GradientButton style={styles.gateBtn} onPress={ativar} disabled={ativarEstacao.isPending}>
               <OrbitIcon size={13} color={colors.text} />
               <Text style={[typography.body, { fontWeight: "600" }]}>{ativarEstacao.isPending ? "Lançando…" : "Ativar estação"}</Text>
-            </Pressable>
+            </GradientButton>
           </View>
         )}
 
@@ -102,9 +103,9 @@ export function DesafiosTab({ friends }: { friends: FriendSummary[] }) {
                   <Pressable style={styles.smallBtn} onPress={() => act(() => data.respond.mutateAsync({ id: challenge.id, accept: false }), "Convite recusado.")}>
                     <Text style={typography.body}>Recusar</Text>
                   </Pressable>
-                  <Pressable style={[styles.smallBtn, styles.smallBtnPrimary]} onPress={() => act(() => data.respond.mutateAsync({ id: challenge.id, accept: true }), "Desafio aceito.")}>
+                  <GradientButton style={[styles.smallBtn, styles.smallBtnPrimary]} onPress={() => act(() => data.respond.mutateAsync({ id: challenge.id, accept: true }), "Desafio aceito.")}>
                     <Text style={[typography.body, { fontWeight: "600" }]}>Aceitar</Text>
-                  </Pressable>
+                  </GradientButton>
                 </View>
               );
             })}
@@ -158,10 +159,10 @@ export function DesafiosTab({ friends }: { friends: FriendSummary[] }) {
               {history ? "Os concluídos e vencidos aparecerão aqui." : "Transforme uma meta em compromisso compartilhado."}
             </Text>
             {!history && (
-              <Pressable style={styles.gateBtn} onPress={() => setCreateOpen(true)}>
+              <GradientButton style={styles.gateBtn} onPress={() => setCreateOpen(true)}>
                 <PlusIcon size={13} color={colors.text} />
                 <Text style={[typography.body, { fontWeight: "600" }]}>Criar primeiro desafio</Text>
-              </Pressable>
+              </GradientButton>
             )}
           </View>
         )}
@@ -194,21 +195,21 @@ export function DesafiosTab({ friends }: { friends: FriendSummary[] }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg0 },
+  screen: { flex: 1 },
   toolbar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: spacing.lg, paddingBottom: spacing.sm },
   filter: { flexDirection: "row", gap: 4, backgroundColor: colors.panel, borderRadius: radius.md, padding: 4 },
   filterBtn: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.sm },
   filterBtnSel: { backgroundColor: "rgba(110,168,255,0.18)" },
-  addBtn: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#3667c4", borderRadius: radius.md, paddingVertical: 8, paddingHorizontal: 12 },
+  addBtn: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: radius.md, paddingVertical: 8, paddingHorizontal: 12 },
   content: { padding: spacing.lg, paddingTop: 0, gap: spacing.md },
   gate: { alignItems: "center", gap: spacing.sm, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, padding: spacing.lg },
-  gateBtn: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#3667c4", borderRadius: radius.md, paddingVertical: 10, paddingHorizontal: 16, marginTop: spacing.xs },
+  gateBtn: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: radius.md, paddingVertical: 10, paddingHorizontal: 16, marginTop: spacing.xs },
   section: { gap: spacing.xs },
   sectionHead: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   inviteRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: 6 },
   symbol: { width: 32, height: 32, borderRadius: radius.sm, alignItems: "center", justifyContent: "center" },
   smallBtn: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.sm, paddingVertical: 6, paddingHorizontal: 10 },
-  smallBtnPrimary: { backgroundColor: "#3667c4", borderColor: "rgba(148,180,255,0.4)" },
+  smallBtnPrimary: { borderColor: "rgba(148,180,255,0.4)" },
   card: { backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, padding: spacing.md, gap: 6 },
   cardHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   deadlineRow: { flexDirection: "row", alignItems: "center", gap: 4 },
