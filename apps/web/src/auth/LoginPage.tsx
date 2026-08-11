@@ -110,6 +110,10 @@ export function LoginPage() {
   }, [ativo]);
 
   function handleMove(e: ReactPointerEvent<HTMLDivElement>) {
+    // Mantém o alvo orbital estável enquanto o usuário interage com ele.
+    // Sem isso, o parallax desloca o botão sob o ponteiro e pode alternar
+    // pointerenter/pointerleave rapidamente.
+    if (ativo) return;
     const el = heroRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
@@ -226,7 +230,7 @@ export function LoginPage() {
             </div>
           </div>
 
-          <div className={`hero-stage${ativo ? " paused" : ""}`}>
+          <div className="hero-stage">
             {MODULOS.map((m) => (
               <div
                 key={m.key}

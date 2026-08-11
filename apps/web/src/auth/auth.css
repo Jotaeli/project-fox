@@ -64,7 +64,7 @@
 
 /* ── texto ── */
 .hero-copy { flex: 1 1 320px; min-width: 0; animation: copyIn .7s .1s both cubic-bezier(.2, .9, .3, 1); }
-@keyframes copyIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes copyIn { from { transform: translateY(16px); } to { transform: none; } }
 
 .hero-tag {
   display: inline-flex; align-items: center; gap: 8px;
@@ -125,9 +125,7 @@
   transform: perspective(900px)
     rotateY(calc(var(--px) * 5deg)) rotateX(calc(var(--py) * -5deg));
   transition: transform .5s cubic-bezier(.2, .9, .3, 1);
-  animation: stageIn .9s .15s both cubic-bezier(.2, .9, .3, 1);
 }
-@keyframes stageIn { from { opacity: 0; transform: scale(.9); } to { opacity: 1; } }
 
 .ring {
   position: absolute; width: var(--s); height: var(--s);
@@ -142,7 +140,7 @@
 .ring .spin { position: absolute; inset: 0; animation: spin var(--dur) linear var(--d) infinite; }
 .ring.rev .spin { animation-direction: reverse; }
 .ring .slot { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); }
-.hero-stage.paused .spin, .hero-stage.paused .sat { animation-play-state: paused; }
+.ring.on .spin, .ring.on .sat { animation-play-state: paused; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .sat {
@@ -215,7 +213,7 @@
   width: 100%; max-width: 344px;
   animation: authIn .5s .1s both cubic-bezier(.2, .9, .3, 1);
 }
-@keyframes authIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes authIn { from { transform: translateY(14px); } to { transform: none; } }
 
 .card-mark {
   display: inline-flex; width: 40px; height: 40px; border-radius: 13px;
